@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zen Gradient Playground</title>
+  <style>
+    :root {
+      --color1: #4facfe;
+      --color2: #00f2fe;
+      --color3: #43e97b;
+      --color4: #38f9d7;
+      --direction: 135deg;
+      --duration: 10s;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(var(--direction), var(--color1), var(--color2), var(--color3), var(--color4));
+      background-size: 400% 400%;
+      animation: gradient var(--duration) ease infinite;
+      transition: background 0.5s ease;
+    }
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      color: #fff;
+      max-width: 300px;
+      backdrop-filter: blur(6px);
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+    }
+
+    .panel label {
+      display: block;
+      margin: 10px 0 5px;
+      font-size: 0.9rem;
+    }
+
+    .panel input[type="color"],
+    .panel input[type="range"],
+    .panel input[type="text"],
+    .panel select {
+      width: 100%;
+      padding: 6px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .panel input[type="checkbox"] {
+      margin-right: 6px;
+    }
+
+    .panel .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <h2>Gradient Settings</h2>
+
+    <label>Color 1</label>
+    <input type="color" id="color1" value="#4facfe" />
+
+    <label>Color 2</label>
+    <input type="color" id="color2" value="#00f2fe" />
+
+    <label>Color 3</label>
+    <input type="color" id="color3" value="#43e97b" />
+
+    <label>Color 4</label>
+    <input type="color" id="color4" value="#38f9d7" />
+
+    <label>Direction (Degrees)</label>
+    <input type="range" id="direction" min="0" max="360" value="135" />
+    <div class="row"><small id="dirVal">135°</small></div>
+
+    <label>Animation Speed (seconds)</label>
+    <input type="range" id="speed" min="5" max="60" value="10" />
+    <div class="row"><small id="speedVal">10s</small></div>
+
+    <div class="row">
+      <label><input type="checkbox" id="toggleAnim" checked /> Animate</label>
+    </div>
+  </div>
+
+  <script>
+    const color1Input = document.getElementById("color1");
+    const color2Input = document.getElementById("color2");
+    const color3Input = document.getElementById("color3");
+    const color4Input = document.getElementById("color4");
+    const directionInput = document.getElementById("direction");
+    const dirVal = document.getElementById("dirVal");
+    const speedInput = document.getElementById("speed");
+    const speedVal = document.getElementById("speedVal");
+    const toggleAnim = document.getElementById("toggleAnim");
+
+    function updateStyles() {
+      const color1 = color1Input.value;
+      const color2 = color2Input.value;
+      const color3 = color3Input.value;
+      const color4 = color4Input.value;
+      const direction = directionInput.value + "deg";
+      const duration = speedInput.value + "s";
+      const anim = toggleAnim.checked;
+
+      document.documentElement.style.setProperty('--color1', color1);
+      document.documentElement.style.setProperty('--color2', color2);
+      document.documentElement.style.setProperty('--color3', color3);
+      document.documentElement.style.setProperty('--color4', color4);
+      document.documentElement.style.setProperty('--direction', direction);
+      document.documentElement.style.setProperty('--duration', duration);
+
+      if (anim) {
+        document.body.style.animation = `gradient ${duration} ease infinite`;
+      } else {
+        document.body.style.animation = "none";
+      }
+
+      dirVal.textContent = direction;
+      speedVal.textContent = duration;
+    }
+
+    color1Input.addEventListener("input", updateStyles);
+    color2Input.addEventListener("input", updateStyles);
+    color3Input.addEventListener("input", updateStyles);
+    color4Input.addEventListener("input", updateStyles);
+    directionInput.addEventListener("input", updateStyles);
+    speedInput.addEventListener("input", updateStyles);
+    toggleAnim.addEventListener("change", updateStyles);
+  </script>
+</body>
+</html>
+
