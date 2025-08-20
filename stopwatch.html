@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stopwatch - Advanced</title>
+<style>
+  :root {
+    /* Original Theme Vars */
+    --text-color: #00ffcc;
+    --counter-color: #00ff99;
+    --bg-color: #111;
+    --glass-blur: blur(15px);
+    --font-family: 'Pacifico', sans-serif;
+    /* Gradient Theme Vars */
+    --color1: #4facfe;
+    --color2: #00f2fe;
+    --color3: #43e97b;
+    --color4: #38f9d7;
+    --direction: 135deg;
+    --duration: 10s;
+  }
+
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: var(--font-family);
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition: background 0.4s, color 0.4s;
+    overflow: hidden;
+  }
+  
+  /* Gradient Animation */
+  body.gradient-active {
+    background: linear-gradient(var(--direction), var(--color1), var(--color2), var(--color3), var(--color4));
+    background-size: 400% 400%;
+    animation: gradient var(--duration) ease infinite;
+  }
+
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  #app {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    backdrop-filter: var(--glass-blur);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 30px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  #clock {
+    font-size: 10vw;
+    text-shadow: 0 0 25px var(--counter-color);
+    transition: font-size 0.3s ease, text-shadow 0.3s ease;
+    margin-bottom: 20px;
+    /* FIX: This property ensures all numbers have the same width, preventing shaking */
+    font-variant-numeric: tabular-nums;
+  }
+
+  #controls {
+    display: flex;
+    gap: 20px;
+  }
+
+  .control-btn {
+    font-family: inherit;
+    font-size: 1.5rem;
+    padding: 10px 30px;
+    border-radius: 50px;
+    border: 2px solid var(--text-color);
+    background-color: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    user-select: none;
+  }
+
+  .control-btn:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+  }
+  
+  #startStopBtn.running {
+    border-color: #ff6347;
+    color: #ff6347;
+  }
+  
+  #startStopBtn.running:hover {
+    background-color: #ff6347;
+    color: #fff;
+  }
+
+  #settingsBtn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  #settingsPanel {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #aaa;
+    backdrop-filter: blur(15px);
+    padding: 15px;
+    border-radius: 10px;
+    z-index: 99;
+    width: 280px;
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: left;
+    box-sizing: border-box;
+    display: none;
+  }
+
+  .setting-group {
+    margin-bottom: 12px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+  }
+
+  input[type="color"],
+  input[type="text"],
+  input[type="range"] {
+    width: 100%;
+    padding: 5px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid #777;
+  }
+
+  input[type="checkbox"] {
+    transform: scale(1.3);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  body.light-mode {
+    --bg-color: #f2f2f2;
+    --text-color: #111;
+    --counter-color: #005500;
+  }
+
+  body.light-mode #app {
+    background: rgba(255 255 255 / 0.7);
+  }
+
+  body.light-mode #settingsPanel {
+    background: rgba(255 255 255 / 0.95);
+    border-color: #444;
+    color: #111;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="settingsBtn" title="Settings">⚙</div>
+
+  <div id="settingsPanel">
+    <div class="setting-group" id="bgColorGroup">
+      <label for="bgColor">Background Color:</label>
+      <input type="color" id="bgColor" />
+    </div>
+    
+    <div class="setting-group">
+      <label><input type="checkbox" id="gradientToggle" /> Use Gradient Background</label>
+    </div>
+
+    <div id="gradientSettings" style="display:none;">
+        <div class="setting-group">
+            <label>Color 1:</label>
+            <input type="color" id="gradColor1" value="#4facfe" />
+        </div>
+        <div class="setting-group">
+            <label>Color 2:</label>
+            <input type="color" id="gradColor2" value="#00f2fe" />
+        </div>
+        <div class="setting-group">
+            <label>Color 3:</label>
+            <input type="color" id="gradColor3" value="#43e97b" />
+        </div>
+        <div class="setting-group">
+            <label>Color 4:</label>
+            <input type="color" id="gradColor4" value="#38f9d7" />
+        </div>
+        <div class="setting-group">
+            <label for="gradDirection">Direction (<span id="dirVal">135</span>°):</label>
+            <input type="range" id="gradDirection" min="0" max="360" value="135" />
+        </div>
+        <div class="setting-group">
+            <label for="gradSpeed">Animation Speed (<span id="speedVal">10</span>s):</label>
+            <input type="range" id="gradSpeed" min="2" max="60" value="10" />
+        </div>
+        <div class="setting-group">
+            <label><input type="checkbox" id="gradAnimate" checked /> Animate Gradient</label>
+        </div>
+    </div>
+    <hr>
+    <div class="setting-group">
+      <label for="textColor">Clock Text Color:</label>
+      <input type="color" id="textColor" />
+    </div>
+    
+    <div class="setting-group">
+      <label for="clockColor">Clock Shadow Color:</label>
+      <input type="color" id="clockColor" />
+    </div>
+
+    <div class="setting-group">
+      <label for="fontFamily">Font Family (from Google Fonts):</label>
+      <input type="text" id="fontFamily" placeholder="e.g. roboto / pacifico" />
+    </div>
+
+    <div class="setting-group">
+      <label for="clockSize">Clock Size:</label>
+      <input type="range" id="clockSize" min="5" max="25" value="10" />
+    </div>
+    <hr>
+    <div class="setting-group">
+      <label>Display Options:</label>
+      <div><label><input type="checkbox" id="showMinutes" checked /> Show Minutes</label></div>
+      <div><label><input type="checkbox" id="showSeconds" checked /> Show Seconds</label></div>
+      <div><label><input type="checkbox" id="showMilliseconds" checked /> Show Milliseconds</label></div>
+    </div>
+    <hr>
+    <div class="setting-group">
+      <label><input type="checkbox" id="darkModeToggle" /> Dark Mode</label>
+    </div>
+  </div>
+
+  <div id="clock">00:00:00.00</div>
+  <div id="controls">
+    <button id="startStopBtn" class="control-btn">Start</button>
+    <button id="resetBtn" class="control-btn">Reset</button>
+  </div>
+</div>
+
+<script>
+  // DOM Elements
+  const clock = document.getElementById('clock');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const bgColor = document.getElementById('bgColor');
+  const textColor = document.getElementById('textColor');
+  const clockColor = document.getElementById('clockColor');
+  const fontFamily = document.getElementById('fontFamily');
+  const clockSize = document.getElementById('clockSize');
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const gradientToggle = document.getElementById('gradientToggle');
+  const gradientSettings = document.getElementById('gradientSettings');
+  const bgColorGroup = document.getElementById('bgColorGroup');
+  const gradColor1 = document.getElementById('gradColor1');
+  const gradColor2 = document.getElementById('gradColor2');
+  const gradColor3 = document.getElementById('gradColor3');
+  const gradColor4 = document.getElementById('gradColor4');
+  const gradDirection = document.getElementById('gradDirection');
+  const gradSpeed = document.getElementById('gradSpeed');
+  const gradAnimate = document.getElementById('gradAnimate');
+  const dirVal = document.getElementById('dirVal');
+  const speedVal = document.getElementById('speedVal');
+  
+  // Stopwatch Controls
+  const startStopBtn = document.getElementById('startStopBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // NEW: Display Option Checkboxes
+  const showMinutes = document.getElementById('showMinutes');
+  const showSeconds = document.getElementById('showSeconds');
+  const showMilliseconds = document.getElementById('showMilliseconds');
+
+  // Stopwatch State
+  let startTime = 0;
+  let elapsedTime = 0;
+  let timerInterval = null;
+  let isRunning = false;
+  
+  // NEW: Tab Title State
+  let originalTitle = document.title;
+  let titleUpdateInterval = null;
+  
+  let fontLinkTag = null;
+
+  settingsBtn.onclick = () => {
+    const isBlock = settingsPanel.style.display === 'block';
+    settingsPanel.style.display = isBlock ? 'none' : 'block';
+  };
+    
+  function formatFontName(name) {
+    return name.trim().toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }
+
+  function loadFont(rawFont) {
+    if (!rawFont) {
+      if (fontLinkTag) {
+        fontLinkTag.remove();
+        fontLinkTag = null;
+      }
+      document.documentElement.style.setProperty('--font-family', `'Pacifico', sans-serif`);
+      return;
+    }
+    const formatted = formatFontName(rawFont);      
+    const urlFont = formatted.replace(/ /g, '+');      
+    const url = `https://fonts.googleapis.com/css2?family=${urlFont}&display=swap`;
+    if (fontLinkTag) fontLinkTag.remove();
+    fontLinkTag = document.createElement('link');
+    fontLinkTag.rel = 'stylesheet';
+    fontLinkTag.href = url;
+    document.head.appendChild(fontLinkTag);
+    document.documentElement.style.setProperty('--font-family', `'${formatted}', sans-serif`);
+  }
+
+  function savePrefs() {
+    localStorage.setItem('stopwatchPrefsV2', JSON.stringify({ // Incremented version key
+      bgColor: bgColor.value,
+      textColor: textColor.value,
+      clockColor: clockColor.value,
+      fontFamily: fontFamily.value,
+      clockSize: clockSize.value,
+      darkMode: darkModeToggle.checked,
+      gradientEnabled: gradientToggle.checked,
+      gradColor1: gradColor1.value,
+      gradColor2: gradColor2.value,
+      gradColor3: gradColor3.value,
+      gradColor4: gradColor4.value,
+      gradDirection: gradDirection.value,
+      gradSpeed: gradSpeed.value,
+      gradAnimate: gradAnimate.checked,
+      // NEW: Save display options
+      showMinutes: showMinutes.checked,
+      showSeconds: showSeconds.checked,
+      showMilliseconds: showMilliseconds.checked,
+    }));
+  }
+
+  function loadPrefs() {
+    const prefs = JSON.parse(localStorage.getItem('stopwatchPrefsV2'));
+    if (!prefs) return;
+
+    bgColor.value = prefs.bgColor || '#111111';
+    textColor.value = prefs.textColor || '#00ffcc';
+    clockColor.value = prefs.clockColor || '#00ff99';
+    fontFamily.value = prefs.fontFamily || '';
+    clockSize.value = prefs.clockSize || 10;
+    darkModeToggle.checked = typeof prefs.darkMode === 'boolean' ? prefs.darkMode : false;
+    gradientToggle.checked = typeof prefs.gradientEnabled === 'boolean' ? prefs.gradientEnabled : false;
+    gradColor1.value = prefs.gradColor1 || '#4facfe';
+    gradColor2.value = prefs.gradColor2 || '#00f2fe';
+    gradColor3.value = prefs.gradColor3 || '#43e97b';
+    gradColor4.value = prefs.gradColor4 || '#38f9d7';
+    gradDirection.value = prefs.gradDirection || 135;
+    gradSpeed.value = prefs.gradSpeed || 10;
+    gradAnimate.checked = typeof prefs.gradAnimate === 'boolean' ? prefs.gradAnimate : true;
+    
+    // NEW: Load display options, default to true if not found
+    showMinutes.checked = typeof prefs.showMinutes === 'boolean' ? prefs.showMinutes : true;
+    showSeconds.checked = typeof prefs.showSeconds === 'boolean' ? prefs.showSeconds : true;
+    showMilliseconds.checked = typeof prefs.showMilliseconds === 'boolean' ? prefs.showMilliseconds : true;
+
+    applyPrefs();
+  }
+
+  function applyPrefs() {
+    if (gradientToggle.checked) {
+        document.body.classList.add('gradient-active');
+        document.body.style.background = '';
+        gradientSettings.style.display = 'block';
+        bgColorGroup.style.display = 'none';
+        
+        document.documentElement.style.setProperty('--color1', gradColor1.value);
+        document.documentElement.style.setProperty('--color2', gradColor2.value);
+        document.documentElement.style.setProperty('--color3', gradColor3.value);
+        document.documentElement.style.setProperty('--color4', gradColor4.value);
+        document.documentElement.style.setProperty('--direction', `${gradDirection.value}deg`);
+        document.documentElement.style.setProperty('--duration', `${gradSpeed.value}s`);
+        
+        dirVal.textContent = gradDirection.value;
+        speedVal.textContent = gradSpeed.value;
+        
+        document.body.style.animationName = gradAnimate.checked ? 'gradient' : 'none';
+    } else {
+        document.body.classList.remove('gradient-active');
+        document.body.style.animationName = 'none';
+        document.body.style.background = bgColor.value;
+        gradientSettings.style.display = 'none';
+        bgColorGroup.style.display = 'block';
+    }
+    
+    document.documentElement.style.setProperty('--text-color', textColor.value);
+    document.documentElement.style.setProperty('--counter-color', clockColor.value);
+    
+    clock.style.fontSize = `${clockSize.value}vw`;
+
+    if (darkModeToggle.checked) {
+      document.body.classList.add('dark-mode');
+      document.body.classList.remove('light-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+      document.body.classList.add('light-mode');
+    }
+
+    loadFont(fontFamily.value);
+  }
+
+  // --- Stopwatch Logic ---
+  
+  // UPDATED: formatTime now respects display options
+  function formatTime(time, useMilliseconds = true) {
+    const hours = Math.floor(time / 3600000);
+    const minutes = Math.floor((time % 3600000) / 60000);
+    const seconds = Math.floor((time % 60000) / 1000);
+    const milliseconds = Math.floor((time % 1000) / 10);
+    
+    let parts = [`${String(hours).padStart(2, '0')}`];
+
+    if (showMinutes.checked) {
+      parts.push(`${String(minutes).padStart(2, '0')}`);
+    }
+    if (showSeconds.checked) {
+      parts.push(`${String(seconds).padStart(2, '0')}`);
+    }
+
+    let mainTime = parts.join(':');
+
+    // For tab title, we might want to omit milliseconds
+    if (showMilliseconds.checked && useMilliseconds) {
+      mainTime += `.${String(milliseconds).padStart(2, '0')}`;
+    }
+
+    return mainTime;
+  }
+
+  function updateDisplay() {
+    const timePassedSinceStart = Date.now() - startTime;
+    clock.textContent = formatTime(elapsedTime + timePassedSinceStart);
+  }
+
+  function start() {
+    if (isRunning) return;
+    isRunning = true;
+    startTime = Date.now();
+    timerInterval = setInterval(updateDisplay, 10);
+    startStopBtn.textContent = 'Stop';
+    startStopBtn.classList.add('running');
+  }
+
+  function stop() {
+    if (!isRunning) return;
+    isRunning = false;
+    clearInterval(timerInterval);
+    elapsedTime += Date.now() - startTime;
+    startStopBtn.textContent = 'Start';
+    startStopBtn.classList.remove('running');
+  }
+
+  function reset() {
+    stop();
+    elapsedTime = 0;
+    clock.textContent = formatTime(0);
+  }
+
+  function startStop() {
+    if (isRunning) {
+      stop();
+    } else {
+      start();
+    }
+  }
+
+  // --- NEW: Tab Visibility Logic ---
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      // If the timer is running when we leave the tab, start updating the title
+      if (isRunning) {
+        titleUpdateInterval = setInterval(() => {
+          const currentTime = elapsedTime + (Date.now() - startTime);
+          document.title = formatTime(currentTime, false) + " - Stopwatch"; // No milliseconds in title
+        }, 1000); // Update title once a second
+      }
+    } else {
+      // When we return to the tab, clear the title updates and restore the original
+      clearInterval(titleUpdateInterval);
+      document.title = originalTitle;
+    }
+  }
+
+  // --- Event Listeners ---
+
+  startStopBtn.addEventListener('click', startStop);
+  resetBtn.addEventListener('click', reset);
+  
+  // Add new checkboxes to the list of inputs that trigger a save/apply
+  const allSettingsInputs = [
+    bgColor, textColor, clockColor, fontFamily, clockSize, 
+    darkModeToggle, gradientToggle, gradColor1, gradColor2, 
+    gradColor3, gradColor4, gradDirection, gradSpeed, gradAnimate,
+    showMinutes, showSeconds, showMilliseconds
+  ];
+
+  function handleSettingsChange() {
+      applyPrefs();
+      savePrefs();
+      // Instantly update the clock display if not running
+      if (!isRunning) {
+        clock.textContent = formatTime(elapsedTime);
+      }
+  }
+
+  allSettingsInputs.forEach(el => el.addEventListener('input', handleSettingsChange));
+  
+  // NEW: Listen for tab changes
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  // --- Initial Load ---
+  
+  loadPrefs();
+  applyPrefs();
+  // Ensure the initial clock display respects the loaded settings
+  clock.textContent = formatTime(0);
+
+</script>
+
+</body>
+</html>
