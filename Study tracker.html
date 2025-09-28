@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Study Progress Tracker</title>
+<style>
+:root{
+  --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#7dd3fc; --accent-2:#60a5fa; --glass: rgba(255,255,255,0.03);
+}
+*{box-sizing:border-box}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,var(--bg),#061122);color:#e6eef6;min-height:100vh;padding:24px;display:flex;flex-direction:column;}
+.container{max-width:980px;margin:0 auto;flex:1;}
+.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.header h1{font-size:20px;margin:0}
+.controls{display:flex;gap:8px;align-items:center}
+.btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;cursor:pointer}
+.btn.strong{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#022; font-weight:700}
+.overview{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+.progress-big{flex:1;background:rgba(255,255,255,0.03);padding:12px;border-radius:10px}
+.progress-row{display:flex;align-items:center;gap:12px}
+.progress-bar{height:12px;background:rgba(255,255,255,0.04);border-radius:999px;flex:1;overflow:hidden}
+.progress-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%}
+.small{font-size:13px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);padding:12px;border-radius:12px;min-height:120px}
+.card h3{margin:0 0 8px 0;font-size:16px}
+.chapters{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto;padding-right:6px}
+.chapter{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.02);padding:6px;border-radius:8px}
+.chapter input[type=checkbox]{width:16px;height:16px}
+.add-row{display:flex;gap:6px;margin-top:8px}
+.input, .select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:inherit;outline:none}
+.footer{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.smallnote{color:var(--muted);font-size:13px}
+.actions{display:flex;gap:8px}
+.importfile{display:none}
+.switch{display:inline-flex;align-items:center;gap:6px}
+.dark-toggle{cursor:pointer;padding:6px;border-radius:8px}
+.empty{opacity:0.6;color:var(--muted);padding:18px;text-align:center}
+.devnote{text-align:center;font-size:12px;color:var(--muted);margin-top:18px;}
+@media (max-width:560px){.header{flex-direction:column;align-items:flex-start;gap:8px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Study Progress Tracker</h1>
+    <div class="controls">
+      <button class="btn" id="exportBtn">Export JSON</button>
+      <label class="btn" for="import">Import JSON</label>
+      <input id="import" class="importfile" type="file" accept="application/json">
+      <button class="btn" id="resetBtn">Reset</button>
+      <button class="btn strong" id="addSubjectBtn">+ Add Subject</button>
+    </div>
+  </div>
+
+  <div class="overview">
+    <div class="progress-big">
+      <div class="progress-row">
+        <div style="flex:1">
+          <div class="small">Total progress</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+            <div class="progress-bar" aria-hidden><i id="totalFill"></i></div>
+            <div style="min-width:58px;text-align:right"><strong id="totalPct">0%</strong></div>
+          </div>
+          <div class="small smallnote" style="margin-top:8px">Shows combined completion across all subjects & chapters.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" id="subjectsGrid">
+    <!-- subject cards go here -->
+  </div>
+
+  <div class="footer">
+    <div class="smallnote">Tip: add subjects and chapters, then check chapters as you finish. Data is saved locally in your browser.</div>
+    <div style="flex:1"></div>
+    <div class="actions">
+      <button class="btn" id="importSample">Load Example</button>
+      <button class="btn" id="shareBtn">Copy Shareable JSON</button>
+    </div>
+  </div>
+</div>
+<div class="devnote">Developed by Tamim ❤️</div>
+
+<template id="subjectTpl">
+  <div class="card subject-card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 class="subj-title">Subject</h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div class="small"> <span class="subj-stats">0/0</span></div>
+        <button class="btn editSubj">Edit</button>
+        <button class="btn delSubj">Delete</button>
+      </div>
+    </div>
+    <div class="small" style="margin:8px 0">Progress</div>
+    <div class="progress-bar" style="margin-bottom:8px"><i class="subjFill"></i></div>
+    <div class="chapters"></div>
+    <div class="add-row">
+      <input class="input chapterName" placeholder="New chapter name">
+      <button class="btn addChapter">Add</button>
+    </div>
+  </div>
+</template>
+
+<script>
+// Local storage key
+const KEY = 'study-progress-v1';
+
+let state = { subjects: [] };
+
+// utilities
+const $ = q => document.querySelector(q);
+const $$ = q => Array.from(document.querySelectorAll(q));
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+function load(){
+  const raw = localStorage.getItem(KEY);
+  if(raw) try{ state = JSON.parse(raw); }catch(e){ state = {subjects:[]} }
+}
+
+function uid(){return Math.random().toString(36).slice(2,9)}
+
+function computeProgress(subject){
+  const total = subject.chapters.length || 0;
+  const done = subject.chapters.filter(c=>c.done).length;
+  const pct = total===0?0:Math.round(done/total*100);
+  return {total,done,pct};
+}
+
+function render(){
+  const grid = $('#subjectsGrid'); grid.innerHTML='';
+  // total
+  let totCh = 0, totDone = 0;
+  for(const subj of state.subjects){
+    const stats = computeProgress(subj); totCh += stats.total; totDone += stats.done;
+    const tpl = document.getElementById('subjectTpl');
+    const el = tpl.content.firstElementChild.cloneNode(true);
+    el.dataset.id = subj.id;
+    el.querySelector('.subj-title').textContent = subj.name;
+    el.querySelector('.subj-stats').textContent = stats.done + '/' + stats.total;
+    el.querySelector('.subjFill').style.width = stats.pct + '%';
+    // chapters
+    const chapContainer = el.querySelector('.chapters');
+    if(subj.chapters.length===0){
+      const empty = document.createElement('div'); empty.className='empty'; empty.textContent='No chapters yet.'; chapContainer.appendChild(empty);
+    } else {
+      subj.chapters.forEach(ch=>{
+        const row = document.createElement('div'); row.className='chapter';
+        const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = !!ch.done;
+        cb.addEventListener('change', ()=>{
+          ch.done = cb.checked; save(); render();
+        });
+        const label = document.createElement('div'); label.style.flex='1'; label.textContent = ch.name;
+        const rem = document.createElement('button'); rem.className='btn'; rem.textContent='⋯';
+        rem.addEventListener('click', ()=>{
+          const ok = confirm('Delete chapter "'+ch.name+'"?'); if(!ok) return; subj.chapters = subj.chapters.filter(x=>x.id!==ch.id); save(); render();
+        });
+        row.appendChild(cb); row.appendChild(label); row.appendChild(rem);
+        chapContainer.appendChild(row);
+      })
+    }
+    // add chapter
+    el.querySelector('.addChapter').addEventListener('click', ()=>{
+      const val = el.querySelector('.chapterName').value.trim(); if(!val) return; subj.chapters.push({id:uid(),name:val,done:false}); el.querySelector('.chapterName').value=''; save(); render();
+    });
+    // edit subj
+    el.querySelector('.editSubj').addEventListener('click', ()=>{
+      const newName = prompt('Rename subject', subj.name); if(!newName) return; subj.name = newName.trim(); save(); render();
+    });
+    // delete subj
+    el.querySelector('.delSubj').addEventListener('click', ()=>{
+      const ok = confirm('Delete subject "'+subj.name+'" and its chapters?'); if(!ok) return; state.subjects = state.subjects.filter(s=>s.id!==subj.id); save(); render();
+    });
+
+    grid.appendChild(el);
+  }
+  const totalPct = (totCh===0?0:Math.round(totDone/totCh*100));
+  $('#totalFill').style.width = totalPct + '%';
+  $('#totalPct').textContent = totalPct + '%';
+}
+
+// initial wiring
+$('#addSubjectBtn').addEventListener('click', ()=>{
+  const name = prompt('Subject name (e.g. Physics)'); if(!name) return; state.subjects.push({id:uid(),name:name.trim(),chapters:[]}); save(); render();
+});
+
+$('#resetBtn').addEventListener('click', ()=>{
+  if(confirm('Clear all saved data?')){ state = {subjects:[]}; save(); render(); }
+});
+
+$('#exportBtn').addEventListener('click', ()=>{
+  const dataStr = JSON.stringify(state, null, 2);
+  const blob = new Blob([dataStr],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='study-progress.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+$('#import').addEventListener('change', (ev)=>{
+  const f = ev.target.files[0]; if(!f) return; const reader = new FileReader();
+  reader.onload = e => { try{ const imported = JSON.parse(e.target.result); if(imported && Array.isArray(imported.subjects)){ state = imported; save(); render(); alert('Imported successfully'); } else alert('Invalid file format'); } catch(err){ alert('Invalid JSON'); } }
+  reader.readAsText(f);
+  ev.target.value='';
+});
+
+$('#importSample').addEventListener('click', ()=>{
+  const sample = {
+    subjects:[
+      {id:uid(),name:'Physics',chapters:[{id:uid(),name:'Kinematics',done:true},{id:uid(),name:'Dynamics',done:false},{id:uid(),name:'Work & Energy',done:false}]},
+      {id:uid(),name:'Chemistry',chapters:[{id:uid(),name:'Atomic Structure',done:true},{id:uid(),name:'Periodic Table',done:true}]},
+      {id:uid(),name:'Math',chapters:[{id:uid(),name:'Limits',done:false},{id:uid(),name:'Derivatives',done:false}]}
+    ]
+  };
+  state = sample; save(); render();
+});
+
+$('#shareBtn').addEventListener('click', ()=>{
+  const txt = JSON.stringify(state);
+  navigator.clipboard.writeText(txt).then(()=>alert('Copied JSON to clipboard — share it or paste in Import.'))
+});
+
+// load on start
+load(); render();
+
+// hint: auto-save every 10s (in case)
+setInterval(save,10000);
+</script>
+</body>
+</html>
+
