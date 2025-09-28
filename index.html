@@ -69,6 +69,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   transition: none;
   box-shadow: 0 10px 30px rgba(0,0,0,0.4); border-radius: 10px;
   filter: brightness(1.1) saturate(1.2);
+  transform-origin: center;
 }
 .drag-over {
   background: rgba(125, 211, 252, 0.1); border: 1px dashed var(--accent); transform: scale(1.01); transition: all 0.1s ease;
@@ -85,7 +86,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 .subject-stats { font-size: 13px; color: var(--muted); }
 .subject-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
-.topics {display:flex; flex-direction:column; gap:6px; margin-left:16px; margin-top:6px; padding-right:6px; overflow: hidden; transition: max-height 0.3s ease; }
+.topics {display:flex; flex-direction:column; gap:6px; margin-top:6px; padding-right:6px; overflow: hidden; transition: max-height 0.3s ease; width: 100%; }
 .topic {display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.02); padding:6px; border-radius:6px; position: relative; width:100%;
     transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
@@ -130,7 +131,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 }
 
 @media (max-width: 768px) {
-  .container { padding: 0 12px; }
+  .container { padding: 12px; }
   .grid { grid-template-columns: 1fr; }
   .header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .controls { width: 100%; justify-content: space-between; }
@@ -140,6 +141,35 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   .drag-handle { padding: 8px; }
   .btn { padding: 10px 12px; min-height: 44px; }
   .item-menu { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 280px; }
+  
+  /* Fix for topics on mobile */
+  .topics {
+    margin-left: 0;
+    max-height: 300px !important;
+  }
+  .topic-content {
+    flex-wrap: wrap;
+  }
+  .topic-label {
+    flex: 1;
+    min-width: 120px;
+  }
+  .chapter-content {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chapter-label {
+    min-width: 100%;
+    margin-bottom: 4px;
+  }
+  .small-progress-row {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .add-row {
+    margin-left: 0;
+  }
 }
 @media (max-width: 560px){
   .header{flex-direction:column;align-items:flex-start;gap:8px}
@@ -149,6 +179,20 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   .subject-actions { width: 100%; justify-content: space-between; }
   .chapter-content { flex-wrap: wrap; }
   .chapter-label { min-width: 100px; }
+  
+  /* Additional mobile fixes for topics */
+  .topics {
+    margin-left: 0;
+  }
+  .topic {
+    padding: 8px;
+  }
+  .topic-content {
+    gap: 4px;
+  }
+  .topic-label {
+    font-size: 14px;
+  }
 }
 
 /* Differentiate main progress bar */
@@ -362,6 +406,10 @@ class DragManager {
     this.dragGhost.style.border = '1px solid var(--accent)';
     this.dragGhost.style.backdropFilter = 'blur(5px)';
     
+    // Remove any interactive elements from the ghost
+    const interactiveElements = this.dragGhost.querySelectorAll('button, input, .drag-handle, .item-menu');
+    interactiveElements.forEach(el => el.remove());
+    
     document.body.appendChild(this.dragGhost);
   }
 
@@ -405,8 +453,10 @@ class DragManager {
       let distance;
       
       if (container.classList.contains('chapters') || container.classList.contains('topics')) {
+        // For vertical lists, use vertical distance only
         distance = Math.abs(ghostRect.top - siblingRect.top);
       } else {
+        // For grid layouts, use Euclidean distance
         distance = Math.hypot(ghostRect.left - siblingRect.left, ghostRect.top - siblingRect.top);
       }
       
@@ -421,8 +471,10 @@ class DragManager {
       let insertBefore = false;
       
       if (container.classList.contains('chapters') || container.classList.contains('topics')) {
+        // For vertical lists, check if we're above the middle of the sibling
         insertBefore = ghostRect.top < siblingRect.top + siblingRect.height / 2;
       } else {
+        // For grid layouts, check if we're to the left of the middle of the sibling
         insertBefore = ghostRect.left < siblingRect.left + siblingRect.width / 2;
       }
       
@@ -498,19 +550,28 @@ class DragManager {
   }
 
   handleMouseMove(event) {
-    if (this.draggingElement) { this.updateGhostPosition(event); }
+    if (this.draggingElement) { 
+      this.updateGhostPosition(event); 
+    }
   }
+  
   handleMouseUp() {
-    if (this.draggingElement) { this.endDrag(); }
+    if (this.draggingElement) { 
+      this.endDrag(); 
+    }
   }
+  
   handleTouchMove(event) {
     if (this.draggingElement) {
       this.updateGhostPosition(event);
       event.preventDefault();
     }
   }
+  
   handleTouchEnd() {
-    if (this.draggingElement) { this.endDrag(); }
+    if (this.draggingElement) { 
+      this.endDrag(); 
+    }
   }
 }
 
@@ -520,22 +581,39 @@ function makeDraggable(element, type, handleSelector) {
   const handle = handleSelector ? element.querySelector(handleSelector) : element;
   if (!handle) return;
   
+  // Mouse events
   handle.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0) return; // Only left mouse button
     dragManager.startDrag(element, type, e);
   });
   
+  // Touch events with improved long press detection
   let touchTimer;
+  let longPressTriggered = false;
+  
   handle.addEventListener('touchstart', (e) => {
+    longPressTriggered = false;
     touchTimer = setTimeout(() => {
+      longPressTriggered = true;
       dragManager.startDrag(element, type, e);
-    }, 100);
+    }, 300); // Reduced time for better responsiveness
   });
   
-  const cancelLongPress = () => clearTimeout(touchTimer);
+  const cancelLongPress = () => {
+    clearTimeout(touchTimer);
+  };
+  
   handle.addEventListener('touchend', cancelLongPress);
-  handle.addEventListener('touchmove', cancelLongPress);
+  handle.addEventListener('touchmove', (e) => {
+    if (!longPressTriggered) {
+      cancelLongPress();
+    } else {
+      // If we're already dragging, update position
+      dragManager.updateGhostPosition(e);
+    }
+  });
 
+  // Prevent context menu on long press
   handle.addEventListener('contextmenu', (e) => e.preventDefault());
   handle.classList.add('no-select');
 }
@@ -664,7 +742,6 @@ function render(){
         chapFill.style.width = chStats.pct + '%';
         const chColors = getProgressColors(chStats.pct);
         chapFill.style.background = `linear-gradient(90deg, ${chColors.color1}, ${chColors.color2})`;
-        chapProgress.appendChild(chapFill);
         const chapPct = document.createElement('div');
         chapPct.className = 'small-pct';
         chapPct.textContent = chStats.pct + '%';
@@ -779,7 +856,6 @@ function render(){
         const addTopicRow = document.createElement('div');
         addTopicRow.className = 'add-row';
         addTopicRow.style.marginTop = '6px';
-        addTopicRow.style.marginLeft = '0px';
         addTopicRow.style.display = ch.expanded ? 'flex' : 'none';
         const topicInput = document.createElement('input');
         topicInput.className = 'input topicName';
