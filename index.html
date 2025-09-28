@@ -10,30 +10,42 @@
 }
 *{box-sizing:border-box}
 body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,var(--bg),#061122);color:#e6eef6;min-height:100vh;padding:24px;display:flex;flex-direction:column;}
-.container{max-width:980px;margin:0 auto;flex:1;}
-.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.container{max-width:980px;margin:0 auto;flex:1;width:100%;}
+.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;}
 .header h1{font-size:20px;margin:0}
-.controls{display:flex;gap:8px;align-items:center}
-.btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;cursor:pointer}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;cursor:pointer;transition:all 0.15s ease;}
+.btn:hover{background:rgba(255,255,255,0.06);transform:translateY(-1px);}
 .btn.strong{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#022; font-weight:700}
-.overview{display:flex;gap:12px;align-items:center;margin-bottom:18px}
-.progress-big{flex:1;background:rgba(255,255,255,0.03);padding:12px;border-radius:10px}
+.btn.strong:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(125, 211, 252, 0.2);}
+.overview{display:flex;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
+.progress-big{flex:1;background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;min-width:280px;}
 .progress-row{display:flex;align-items:center;gap:12px}
-.progress-bar{height:12px;background:rgba(255,255,255,0.04);border-radius:999px;flex:1;overflow:hidden}
-.progress-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%}
+.progress-bar{height:12px;background:rgba(255,255,255,0.04);border-radius:999px;flex:1;overflow:hidden;position:relative}
+.progress-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%;transition:width 0.3s ease;}
 .small{font-size:13px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.card{background:var(--card);padding:12px;border-radius:12px;min-height:120px}
-.card h3{margin:0 0 8px 0;font-size:16px}
-.chapters{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto;padding-right:6px}
-.chapter{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.02);padding:6px;border-radius:8px; cursor:grab; position: relative;}
-.chapter.dragging{opacity:0.4;}
-.chapter input[type=checkbox]{width:16px;height:16px}
-.add-row{display:flex;gap:6px;margin-top:8px}
-.input, .select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:inherit;outline:none}
-.footer{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;width:100%;}
+.card{background:var(--card);padding:12px;border-radius:12px;min-height:120px;touch-action: none;transition:all 0.2s cubic-bezier(0.2, 0, 0, 1);width:100%;}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2);}
+.card h3{margin:0 0 8px 0;font-size:16px;cursor:grab;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.chapters{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto;padding-right:6px;width:100%;}
+.chapter{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px; position: relative; transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);width:100%;}
+.chapter:hover{background:rgba(255,255,255,0.04);transform:translateX(4px);}
+.chapter .drag-handle { cursor: grab; padding: 4px; transition: all 0.15s ease; flex-shrink:0; }
+.chapter .drag-handle:hover { color: var(--accent); transform: scale(1.1); }
+.subject-card{transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);}
+.subject-card .drag-handle { cursor: grab; padding: 6px; transition: all 0.15s ease; flex-shrink:0; }
+.subject-card .drag-handle:hover { color: var(--accent); transform: scale(1.1); }
+.subject-card.dragging{opacity: 0.9; transform: rotate(2deg) scale(1.03); box-shadow: 0 15px 30px rgba(0,0,0,0.4); z-index: 1000; filter: brightness(1.1);}
+.chapter.dragging{opacity: 0.9; transform: rotate(1deg) scale(1.02); box-shadow: 0 6px 16px rgba(0,0,0,0.3); z-index: 1000; filter: brightness(1.1);}
+.drag-placeholder{opacity:0.2; border:2px dashed var(--accent); border-radius:10px; background:var(--glass); animation: pulse 1s infinite;flex-shrink:0;}
+.chapter input[type=checkbox]{width:16px;height:16px;flex-shrink:0;}
+.add-row{display:flex;gap:6px;margin-top:8px;width:100%;flex-wrap:wrap;}
+.input, .select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:inherit;outline:none;transition:border 0.15s ease;flex:1;min-width:120px;}
+.input:focus, .select:focus{border-color:var(--accent);}
+.footer{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;}
 .smallnote{color:var(--muted);font-size:13px}
-.actions{display:flex;gap:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;}
 .importfile{display:none}
 .switch{display:inline-flex;align-items:center;gap:6px}
 .dark-toggle{cursor:pointer;padding:6px;border-radius:8px}
@@ -51,10 +63,9 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   z-index: 10;
   min-width: 120px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: slideDown 0.15s ease-out;
 }
-.chapter-menu.active {
-  display: block;
-}
+.chapter-menu.active { display: block; }
 .menu-option {
   display: block;
   width: 100%;
@@ -67,15 +78,212 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  transition: background 0.15s ease;
 }
-.menu-option:hover {
-  background: rgba(255,255,255,0.05);
-}
-.menu-option.delete {
-  color: #fca5a5;
+.menu-option:hover { background: rgba(255,255,255,0.05); }
+.menu-option.delete { color: #fca5a5; }
+
+/* Improved drag styles */
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0.9;
+  transform: rotate(3deg) scale(1.02);
+  transition: none; /* Remove transition for immediate response */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  border-radius: 10px;
+  filter: brightness(1.1) saturate(1.2);
+  will-change: transform;
 }
 
-@media (max-width:560px){.header{flex-direction:column;align-items:flex-start;gap:8px}}
+.drag-over {
+  background: rgba(125, 211, 252, 0.1);
+  border: 1px dashed var(--accent);
+  transform: scale(1.01);
+  transition: all 0.1s ease;
+}
+
+.drag-handle:active, .subject-card h3:active {
+  cursor: grabbing;
+}
+
+/* Smooth transitions for reordering */
+.subject-card, .chapter {
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.4; }
+  100% { opacity: 0.2; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+  40% {transform: translateY(-5px);}
+  60% {transform: translateY(-3px);}
+}
+
+.drag-success {
+  animation: bounce 0.4s ease;
+}
+
+/* Improved drag handle icons */
+.drag-icon {
+  display: inline-block;
+  font-size: 16px;
+  color: var(--muted);
+  transition: all 0.15s ease;
+}
+
+.drag-handle:hover .drag-icon {
+  color: var(--accent);
+  transform: scale(1.2);
+}
+
+/* Dynamic sizing adjustments */
+.chapter-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0; /* Allow text truncation */
+}
+
+.chapter-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subject-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.subject-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.subject-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subject-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 12px;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .progress-big {
+    min-width: 100%;
+  }
+  
+  .footer {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .actions {
+    justify-content: center;
+    width: 100%;
+  }
+  
+  /* Mobile-specific touch improvements */
+  .drag-handle {
+    padding: 8px; /* Larger touch target */
+  }
+  
+  .btn {
+    padding: 10px 12px; /* Larger buttons for touch */
+    min-height: 44px; /* Minimum touch target size */
+  }
+  
+  .chapter-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 560px){
+  .header{flex-direction:column;align-items:flex-start;gap:8px}
+  .controls{flex-direction:column;align-items:flex-start;width:100%;}
+  .btn { width: 100%; }
+  .subject-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .subject-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .chapter-content {
+    flex-wrap: wrap;
+  }
+  .chapter-label {
+    min-width: 100px;
+  }
+}
+
+/* Prevent text selection during drag */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Improved mobile touch handling */
+.touch-dragging {
+  transition: none !important;
+}
 </style>
 </head>
 <body>
@@ -106,8 +314,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
     </div>
   </div>
 
-  <div class="grid" id="subjectsGrid">
-  </div>
+  <div class="grid" id="subjectsGrid"></div>
 
   <div class="footer">
     <div class="smallnote">Tip: add subjects and chapters, then check chapters as you finish. Data is saved locally in your browser.</div>
@@ -122,9 +329,16 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 
 <template id="subjectTpl">
   <div class="card subject-card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <h3 class="subj-title">Subject</h3>
-      <div style="display:flex;gap:6px;align-items:center">
+    <div class="subject-header">
+      <div class="subject-title-container">
+        <h3 class="subj-title no-select">
+          <span class="drag-handle">
+            <span class="drag-icon">☰</span>
+          </span>
+          <span class="subject-name">Subject</span>
+        </h3>
+      </div>
+      <div class="subject-actions">
         <div class="small"> <span class="subj-stats">0/0</span></div>
         <button class="btn editSubj">Edit</button>
         <button class="btn delSubj">Delete</button>
@@ -141,225 +355,523 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 </template>
 
 <script>
-// Local storage keys
 const KEY = 'study-progress-v1';
 const BACKUP_KEY = 'study-progress-backup';
-
 let state = { subjects: [] };
-
-// utilities
 const $ = q => document.querySelector(q);
 const $$ = q => Array.from(document.querySelectorAll(q));
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 function load(){ const raw = localStorage.getItem(KEY); if(raw) try{ state = JSON.parse(raw); }catch(e){ state={subjects:[]} } }
-
 function uid(){return Math.random().toString(36).slice(2,9)}
-
-function computeProgress(subject){
-  const total = subject.chapters.length || 0;
-  const done = subject.chapters.filter(c=>c.done).length;
-  const pct = total===0?0:Math.round(done/total*100);
-  return {total,done,pct};
-}
-
+function computeProgress(subject){ const total=subject.chapters.length||0; const done=subject.chapters.filter(c=>c.done).length; const pct=total===0?0:Math.round(done/total*100); return {total,done,pct}; }
 function closeAllMenus() { $$('.chapter-menu').forEach(menu => menu.classList.remove('active')); }
 
-function render(){
-  const grid = $('#subjectsGrid'); grid.innerHTML='';
-  let totCh = 0, totDone = 0;
-
-  for(const subj of state.subjects){
-    const stats = computeProgress(subj); totCh += stats.total; totDone += stats.done;
-    const tpl = document.getElementById('subjectTpl');
-    const el = tpl.content.firstElementChild.cloneNode(true);
-    el.dataset.id = subj.id;
-    el.querySelector('.subj-title').textContent = subj.name;
-    
-    // SHOW INDIVIDUAL PERCENTAGE
-    el.querySelector('.subj-stats').textContent = `${stats.done}/${stats.total} (${stats.pct}%)`;
-    el.querySelector('.subjFill').style.width = stats.pct + '%';
-    
-    const chapContainer = el.querySelector('.chapters');
-    if(subj.chapters.length===0){
-      const empty = document.createElement('div'); empty.className='empty'; empty.textContent='No chapters yet.'; chapContainer.appendChild(empty);
-    } else {
-      subj.chapters.forEach(ch=>{
-        const row = document.createElement('div'); 
-        row.className='chapter';
-        row.dataset.id = ch.id;
-        row.draggable = true;
-
-        const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = !!ch.done;
-        cb.addEventListener('change', ()=>{ ch.done = cb.checked; save(); render(); });
-
-        const label = document.createElement('div'); label.style.flex='1'; label.textContent = ch.name;
-        const actionsBtn = document.createElement('button'); actionsBtn.className='btn'; actionsBtn.textContent='⋯';
-
-        const menu = document.createElement('div'); menu.className = 'chapter-menu';
-
-        const editOption = document.createElement('button');
-        editOption.className = 'menu-option';
-        editOption.textContent = 'Edit';
-        editOption.addEventListener('click', () => {
-            const newName = prompt('Edit chapter name:', ch.name);
-            if (newName && newName.trim() !== '' && newName.trim() !== ch.name) {
-                ch.name = newName.trim();
-                save(); render();
-            }
-            closeAllMenus();
-        });
-
-        const deleteOption = document.createElement('button');
-        deleteOption.className = 'menu-option delete';
-        deleteOption.textContent = 'Delete';
-        deleteOption.addEventListener('click', () => {
-            const isSure = confirm('Are you sure you want to delete chapter "' + ch.name + '"?');
-            if (isSure) {
-                subj.chapters = subj.chapters.filter(x => x.id !== ch.id);
-                save(); render();
-            }
-            closeAllMenus();
-        });
-
-        menu.appendChild(editOption);
-        menu.appendChild(deleteOption);
-
-        actionsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const currentlyActive = menu.classList.contains('active');
-            closeAllMenus();
-            if(!currentlyActive) { menu.classList.add('active'); }
-        });
-
-        // Drag & touch events
-        let pressTimer;
-        row.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            pressTimer = setTimeout(() => {
-                row.classList.add('dragging');
-                row.draggable = true;
-                row.dispatchEvent(new Event('dragstart', { bubbles: true }));
-            }, 500);
-        });
-        row.addEventListener('touchend', () => { clearTimeout(pressTimer); if(row.classList.contains('dragging')){ row.classList.remove('dragging'); save(); render(); } });
-        row.addEventListener('touchcancel', () => { clearTimeout(pressTimer); row.classList.remove('dragging'); });
-
-        row.addEventListener('dragstart', (e)=>{ row.classList.add('dragging'); e.dataTransfer.setData('text/plain', ch.id); });
-        row.addEventListener('dragend', ()=>{ row.classList.remove('dragging'); });
-
-        row.appendChild(cb); 
-        row.appendChild(label); 
-        row.appendChild(actionsBtn);
-        row.appendChild(menu);
-        chapContainer.appendChild(row);
-      })
-    }
-
-    chapContainer.addEventListener('dragover', e => {
-        e.preventDefault();
-        const afterElement = getDragAfterElement(chapContainer, e.clientY);
-        const dragging = chapContainer.querySelector('.dragging');
-        if (dragging) { if (afterElement == null) { chapContainer.appendChild(dragging); } else { chapContainer.insertBefore(dragging, afterElement); } }
-    });
-
-    chapContainer.addEventListener('drop', e => {
-        e.preventDefault();
-        const subjectId = e.target.closest('.subject-card').dataset.id;
-        const subject = state.subjects.find(s => s.id === subjectId);
-        if(!subject) return;
-        const newOrderIds = Array.from(chapContainer.querySelectorAll('.chapter')).map(r => r.dataset.id);
-        subject.chapters.sort((a,b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
-        save(); render();
-    });
-
-    function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.chapter:not(.dragging)')];
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } else { return closest; }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    el.querySelector('.addChapter').addEventListener('click', ()=>{
-      const val = el.querySelector('.chapterName').value.trim(); if(!val) return; subj.chapters.push({id:uid(),name:val,done:false}); el.querySelector('.chapterName').value=''; save(); render();
-    });
-    el.querySelector('.editSubj').addEventListener('click', ()=>{
-      const newName = prompt('Rename subject', subj.name); if(!newName) return; subj.name = newName.trim(); save(); render();
-    });
-    el.querySelector('.delSubj').addEventListener('click', ()=>{
-      const ok = confirm('Delete subject "'+subj.name+'" and its chapters?'); if(!ok) return; state.subjects = state.subjects.filter(s=>s.id!==subj.id); save(); render();
-    });
-
-    grid.appendChild(el);
+// Enhanced drag functionality with immediate response
+class DragManager {
+  constructor() {
+    this.draggingElement = null;
+    this.dragGhost = null;
+    this.placeholder = null;
+    this.dragType = null;
+    this.initialIndex = -1;
+    this.currentContainer = null;
+    this.isTouchDevice = 'ontouchstart' in window;
+    this.init();
   }
-  const totalPct = (totCh===0?0:Math.round(totDone/totCh*100));
-  $('#totalFill').style.width = totalPct + '%';
-  $('#totalPct').textContent = totalPct + '%';
-}
 
-// initial wiring
-document.addEventListener('click', closeAllMenus);
+  init() {
+    document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+    document.addEventListener('touchend', this.handleTouchEnd.bind(this));
+    
+    // Close menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.chapter-menu') && !e.target.matches('.chapter-menu-btn')) {
+        closeAllMenus();
+      }
+    });
+  }
 
-$('#addSubjectBtn').addEventListener('click', ()=>{
-  const name = prompt('Subject name (e.g. Physics)'); if(!name) return; state.subjects.push({id:uid(),name:name.trim(),chapters:[]}); save(); render();
-});
+  startDrag(element, type, event) {
+    closeAllMenus();
+    this.draggingElement = element;
+    this.dragType = type;
+    this.initialIndex = this.getElementIndex(element);
+    
+    // Create drag ghost immediately
+    this.createDragGhost(element);
+    
+    // Create placeholder
+    this.placeholder = document.createElement('div');
+    this.placeholder.className = 'drag-placeholder';
+    this.placeholder.style.height = element.offsetHeight + 'px';
+    this.placeholder.style.width = element.offsetWidth + 'px';
+    
+    element.parentNode.insertBefore(this.placeholder, element);
+    element.classList.add('dragging');
+    
+    if (this.isTouchDevice) {
+      element.classList.add('touch-dragging');
+    }
+    
+    this.currentContainer = element.parentNode;
+    
+    // Set initial position without smoothing for immediate response
+    this.updateGhostPosition(event, true);
+    
+    event.preventDefault();
+    return false;
+  }
 
-$('#resetBtn').addEventListener('click', ()=>{
-  if(confirm('Clear all saved data?')){
-    state = {subjects:[]}; save();
-    sessionStorage.removeItem(BACKUP_KEY);
-    $('#importSample').textContent = 'Load Example';
+  createDragGhost(element) {
+    this.dragGhost = element.cloneNode(true);
+    this.dragGhost.classList.add('drag-ghost');
+    this.dragGhost.style.width = element.offsetWidth + 'px';
+    this.dragGhost.style.height = element.offsetHeight + 'px';
+    this.dragGhost.style.background = 'var(--card)';
+    this.dragGhost.style.border = '1px solid var(--accent)';
+    this.dragGhost.style.backdropFilter = 'blur(5px)';
+    
+    document.body.appendChild(this.dragGhost);
+  }
+
+  updateGhostPosition(event, immediate = false) {
+    if (!this.dragGhost || !this.draggingElement) return;
+    
+    const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+    const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+    
+    if (clientX && clientY) {
+      // Immediate response - no smoothing for mouse speed tracking
+      this.dragGhost.style.left = (clientX - this.dragGhost.offsetWidth / 2) + 'px';
+      this.dragGhost.style.top = (clientY - this.dragGhost.offsetHeight / 2) + 'px';
+    }
+    
+    this.updateDropZone();
+  }
+
+  updateDropZone() {
+    if (!this.draggingElement || !this.placeholder) return;
+    
+    const container = this.currentContainer;
+    const siblings = Array.from(container.children)
+      .filter(child => child !== this.draggingElement && child !== this.placeholder);
+    
+    // Reset drag-over class from all siblings
+    siblings.forEach(sib => sib.classList.remove('drag-over'));
+    
+    if (siblings.length === 0) {
+      if (container.children[0] !== this.placeholder) {
+        container.insertBefore(this.placeholder, container.children[0]);
+      }
+      return;
+    }
+    
+    const ghostRect = this.dragGhost.getBoundingClientRect();
+    let closestSibling = null;
+    let minDistance = Infinity;
+    
+    siblings.forEach(sibling => {
+      const siblingRect = sibling.getBoundingClientRect();
+      let distance;
+      
+      if (container.classList.contains('chapters')) {
+        // Vertical layout for chapters - only consider vertical distance
+        distance = Math.abs(ghostRect.top - siblingRect.top);
+      } else {
+        // Grid layout for subjects - use Euclidean distance
+        distance = Math.hypot(
+          ghostRect.left - siblingRect.left,
+          ghostRect.top - siblingRect.top
+        );
+      }
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestSibling = sibling;
+      }
+    });
+    
+    if (closestSibling) {
+      const siblingRect = closestSibling.getBoundingClientRect();
+      let insertBefore = false;
+      
+      if (container.classList.contains('chapters')) {
+        insertBefore = ghostRect.top < siblingRect.top + siblingRect.height / 2;
+      } else {
+        insertBefore = ghostRect.left < siblingRect.left + siblingRect.width / 2;
+      }
+      
+      // Add visual feedback to the closest sibling
+      closestSibling.classList.add('drag-over');
+      
+      if (insertBefore) {
+        if (closestSibling.previousSibling !== this.placeholder) {
+          container.insertBefore(this.placeholder, closestSibling);
+        }
+      } else {
+        if (closestSibling.nextSibling !== this.placeholder) {
+          container.insertBefore(this.placeholder, closestSibling.nextSibling);
+        }
+      }
+    }
+  }
+
+  getElementIndex(element) {
+    const parent = element.parentNode;
+    return Array.from(parent.children).indexOf(element);
+  }
+
+  endDrag() {
+    if (!this.draggingElement || !this.placeholder) return;
+    
+    // Remove drag-over classes
+    $$('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    
+    // Move dragging element to placeholder position
+    this.currentContainer.insertBefore(this.draggingElement, this.placeholder);
+    
+    // Add quick success animation
+    this.draggingElement.classList.add('drag-success');
+    setTimeout(() => {
+      this.draggingElement.classList.remove('drag-success');
+    }, 400);
+    
+    // Clean up
+    this.draggingElement.classList.remove('dragging', 'touch-dragging');
+    this.placeholder.remove();
+    if (this.dragGhost) {
+      this.dragGhost.remove();
+      this.dragGhost = null;
+    }
+    
+    // Update state
+    this.updateState();
+    
+    // Reset
+    this.draggingElement = null;
+    this.placeholder = null;
+    this.dragType = null;
+    this.currentContainer = null;
+  }
+
+  updateState() {
+    if (this.dragType === 'subject') {
+      state.subjects = Array.from($('#subjectsGrid').children)
+        .filter(c => c.classList.contains('subject-card'))
+        .map(c => state.subjects.find(s => s.id === c.dataset.id));
+    } else if (this.dragType === 'chapter') {
+      const subjectId = this.draggingElement.closest('.subject-card').dataset.id;
+      const subject = state.subjects.find(s => s.id === subjectId);
+      if (subject) {
+        subject.chapters = Array.from(this.draggingElement.parentNode.children)
+          .filter(c => c.classList.contains('chapter'))
+          .map(r => subject.chapters.find(ch => ch.id === r.dataset.id));
+      }
+    }
+    
+    save();
     render();
   }
-});
 
-$('#exportBtn').addEventListener('click', ()=>{
-  const dataStr = JSON.stringify(state, null, 2);
-  const blob = new Blob([dataStr],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='study-progress.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-});
-
-$('#import').addEventListener('change', (ev)=>{
-  const f = ev.target.files[0]; if(!f) return; const reader = new FileReader();
-  reader.onload = e => { try{ const imported = JSON.parse(e.target.result); if(imported && Array.isArray(imported.subjects)){ state = imported; save(); render(); alert('Imported successfully'); } else alert('Invalid file format'); } catch(err){ alert('Invalid JSON'); } }
-  reader.readAsText(f); ev.target.value='';
-});
-
-$('#importSample').addEventListener('click', (e) => {
-  const btn = e.target;
-  const backup = sessionStorage.getItem(BACKUP_KEY);
-
-  if (backup) {
-    state = JSON.parse(backup);
-    sessionStorage.removeItem(BACKUP_KEY);
-    btn.textContent = 'Load Example';
-  } else {
-    sessionStorage.setItem(BACKUP_KEY, JSON.stringify(state));
-    const sample = {
-      subjects:[
-        {id:uid(),name:'Physics (Sample)',chapters:[{id:uid(),name:'Kinematics',done:true},{id:uid(),name:'Dynamics',done:false},{id:uid(),name:'Work & Energy',done:false}]},
-        {id:uid(),name:'Chemistry (Sample)',chapters:[{id:uid(),name:'Atomic Structure',done:true},{id:uid(),name:'Periodic Table',done:true}]},
-        {id:uid(),name:'Math (Sample)',chapters:[{id:uid(),name:'Limits',done:false},{id:uid(),name:'Derivatives',done:false}]}
-      ]
-    };
-    state = sample;
-    btn.textContent = 'Unload Example';
+  handleMouseMove(event) {
+    if (this.draggingElement) {
+      this.updateGhostPosition(event);
+    }
   }
-  save(); render();
+
+  handleMouseUp() {
+    if (this.draggingElement) {
+      this.endDrag();
+    }
+  }
+
+  handleTouchMove(event) {
+    if (this.draggingElement) {
+      this.updateGhostPosition(event, true);
+      event.preventDefault();
+    }
+  }
+
+  handleTouchEnd() {
+    if (this.draggingElement) {
+      this.endDrag();
+    }
+  }
+}
+
+// Initialize drag manager
+const dragManager = new DragManager();
+
+function makeDraggable(element, type, handleSelector) {
+  const handle = handleSelector ? element.querySelector(handleSelector) : element;
+  
+  if (!handle) return;
+  
+  const startDrag = (event) => {
+    dragManager.startDrag(element, type, event);
+  };
+  
+  // Mouse events
+  handle.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    startDrag(e);
+  });
+  
+  // Touch events - immediate response on mobile
+  handle.addEventListener('touchstart', (e) => {
+    // Shorter delay for mobile (50ms instead of 200ms)
+    const touchTimer = setTimeout(() => {
+      startDrag(e);
+    }, 50);
+    
+    // Cancel drag if user taps quickly (to allow button presses)
+    const cancelDrag = () => {
+      clearTimeout(touchTimer);
+      document.removeEventListener('touchend', cancelDrag);
+      document.removeEventListener('touchmove', cancelOnMove);
+    };
+    
+    const cancelOnMove = (moveEvent) => {
+      // If user moved finger significantly, don't cancel
+      const touch = moveEvent.touches[0];
+      const startTouch = e.touches[0];
+      const dx = touch.clientX - startTouch.clientX;
+      const dy = touch.clientY - startTouch.clientY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance > 5) { // 5px movement threshold
+        document.removeEventListener('touchend', cancelDrag);
+      }
+    };
+    
+    document.addEventListener('touchend', cancelDrag, { once: true });
+    document.addEventListener('touchmove', cancelOnMove);
+  });
+  
+  // Prevent context menu on drag handles
+  handle.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+  });
+  
+  // Add no-select class to prevent text selection during drag
+  handle.classList.add('no-select');
+}
+
+function render(){
+  const grid=$('#subjectsGrid'); 
+  grid.innerHTML='';
+  
+  let totCh=0, totDone=0;
+  for(const subj of state.subjects){
+    const stats=computeProgress(subj); 
+    totCh+=stats.total; 
+    totDone+=stats.done;
+    
+    const tpl=document.getElementById('subjectTpl');
+    const el=tpl.content.firstElementChild.cloneNode(true);
+    el.dataset.id=subj.id;
+    el.querySelector('.subject-name').textContent=subj.name;
+    el.querySelector('.subj-stats').textContent=`${stats.done}/${stats.total} (${stats.pct}%)`;
+    el.querySelector('.subjFill').style.width=stats.pct+'%';
+
+    const chapContainer=el.querySelector('.chapters');
+    if(subj.chapters.length===0){
+      const empty=document.createElement('div'); 
+      empty.className='empty'; 
+      empty.textContent='No chapters yet.'; 
+      chapContainer.appendChild(empty);
+    } else {
+      subj.chapters.forEach(ch=>{
+        const row=document.createElement('div'); 
+        row.className='chapter'; 
+        row.dataset.id=ch.id;
+        
+        const cb=document.createElement('input'); 
+        cb.type='checkbox'; 
+        cb.checked=!!ch.done;
+        cb.addEventListener('change', ()=>{ 
+          ch.done=cb.checked; 
+          save(); 
+          render(); 
+        });
+        
+        const label=document.createElement('div'); 
+        label.className = 'chapter-label';
+        label.textContent=ch.name;
+        
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle';
+        dragHandle.innerHTML = '<span class="drag-icon">⋮⋮</span>';
+        dragHandle.title = 'Drag to reorder';
+        
+        const actionsBtn=document.createElement('button'); 
+        actionsBtn.className='btn chapter-menu-btn'; 
+        actionsBtn.textContent='⋯';
+        actionsBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const menu = row.querySelector('.chapter-menu');
+          const isActive = menu.classList.contains('active');
+          closeAllMenus();
+          if (!isActive) {
+            menu.classList.add('active');
+          }
+        });
+        
+        const menu=document.createElement('div'); 
+        menu.className='chapter-menu';
+        
+        const editOption=document.createElement('button'); 
+        editOption.className='menu-option'; 
+        editOption.textContent='Edit';
+        editOption.addEventListener('click', ()=>{ 
+          const n=prompt('Edit chapter name:', ch.name); 
+          if(n && n.trim()!=='' && n.trim()!==ch.name){ 
+            ch.name=n.trim(); 
+            save(); 
+            render(); 
+          } 
+          closeAllMenus(); 
+        });
+        
+        const deleteOption=document.createElement('button'); 
+        deleteOption.className='menu-option delete'; 
+        deleteOption.textContent='Delete';
+        deleteOption.addEventListener('click', ()=>{ 
+          if(confirm('Delete chapter "'+ch.name+'"?')){ 
+            subj.chapters=subj.chapters.filter(x=>x.id!==ch.id); 
+            save(); 
+            render(); 
+          } 
+          closeAllMenus(); 
+        });
+        
+        menu.appendChild(editOption); 
+        menu.appendChild(deleteOption);
+        
+        const chapterContent = document.createElement('div');
+        chapterContent.className = 'chapter-content';
+        chapterContent.appendChild(cb);
+        chapterContent.appendChild(dragHandle);
+        chapterContent.appendChild(label);
+        chapterContent.appendChild(actionsBtn);
+        
+        row.appendChild(chapterContent);
+        row.appendChild(menu);
+        chapContainer.appendChild(row);
+        makeDraggable(row, 'chapter', '.drag-handle');
+      });
+    }
+
+    el.querySelector('.addChapter').addEventListener('click', ()=>{ 
+      const val=el.querySelector('.chapterName').value.trim(); 
+      if(!val) return; 
+      subj.chapters.push({id:uid(),name:val,done:false}); 
+      el.querySelector('.chapterName').value=''; 
+      save(); 
+      render(); 
+    });
+    
+    el.querySelector('.editSubj').addEventListener('click', ()=>{ 
+      const n=prompt('Rename subject',subj.name); 
+      if(!n) return; 
+      subj.name=n.trim(); 
+      save(); 
+      render(); 
+    });
+    
+    el.querySelector('.delSubj').addEventListener('click', ()=>{ 
+      if(confirm('Delete subject "'+subj.name+'" and its chapters?')){ 
+        state.subjects=state.subjects.filter(s=>s.id!==subj.id); 
+        save(); 
+        render(); 
+      } 
+    });
+    
+    grid.appendChild(el);
+    makeDraggable(el, 'subject', '.drag-handle');
+  }
+  
+  const totalPct=(totCh===0?0:Math.round(totDone/totCh*100));
+  $('#totalFill').style.width=totalPct+'%';
+  $('#totalPct').textContent=totalPct+'%';
+}
+
+document.addEventListener('click', closeAllMenus);
+$('#addSubjectBtn').addEventListener('click', ()=>{ 
+  const n=prompt('Subject name (e.g. Physics)'); 
+  if(!n) return; 
+  state.subjects.push({id:uid(),name:n.trim(),chapters:[]}); 
+  save(); 
+  render(); 
+});
+$('#resetBtn').addEventListener('click', ()=>{ 
+  if(confirm('Clear all saved data?')){ 
+    state={subjects:[]}; 
+    save(); 
+    sessionStorage.removeItem(BACKUP_KEY); 
+    $('#importSample').textContent='Load Example'; 
+    render(); 
+  } 
+});
+$('#exportBtn').addEventListener('click', ()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); 
+  a.href=URL.createObjectURL(blob); 
+  a.download='study-progress.json'; 
+  document.body.appendChild(a); 
+  a.click(); 
+  a.remove();
+});
+$('#import').addEventListener('change', ev=>{ 
+  const f=ev.target.files[0]; 
+  if(!f) return; 
+  const r=new FileReader(); 
+  r.onload=e=>{ 
+    try{ 
+      const imp=JSON.parse(e.target.result); 
+      if(imp && Array.isArray(imp.subjects)){ 
+        state=imp; 
+        save(); 
+        render(); 
+        alert('Imported successfully'); 
+      } else alert('Invalid file format'); 
+    } catch(err){ 
+      alert('Invalid JSON'); 
+    } 
+  }; 
+  r.readAsText(f); 
+  ev.target.value=''; 
+});
+$('#importSample').addEventListener('click', e=>{
+  const btn=e.target; 
+  const backup=sessionStorage.getItem(BACKUP_KEY);
+  if(backup){ 
+    state=JSON.parse(backup); 
+    sessionStorage.removeItem(BACKUP_KEY); 
+    btn.textContent='Load Example'; 
+  } else { 
+    sessionStorage.setItem(BACKUP_KEY,JSON.stringify(state));
+    const sample={ subjects:[
+      {id:uid(),name:'Physics (Sample)',chapters:[{id:uid(),name:'Kinematics',done:true},{id:uid(),name:'Dynamics',done:false},{id:uid(),name:'Work & Energy',done:false}]},
+      {id:uid(),name:'Chemistry (Sample)',chapters:[{id:uid(),name:'Atomic Structure',done:true},{id:uid(),name:'Periodic Table',done:true}]},
+      {id:uid(),name:'Math (Sample)',chapters:[{id:uid(),name:'Limits',done:false},{id:uid(),name:'Derivatives',done:false}]}
+    ]};
+    state=sample; 
+    btn.textContent='Unload Example';
+  }
+  save(); 
+  render();
+});
+$('#shareBtn').addEventListener('click', ()=>{ 
+  navigator.clipboard.writeText(JSON.stringify(state)).then(()=>alert('Copied JSON to clipboard — share it or paste in Import.')); 
 });
 
-$('#shareBtn').addEventListener('click', ()=>{
-  const txt = JSON.stringify(state);
-  navigator.clipboard.writeText(txt).then(()=>alert('Copied JSON to clipboard — share it or paste in Import.'))
-});
-
-load();
+load(); 
 render();
-if (sessionStorage.getItem(BACKUP_KEY)) { $('#importSample').textContent = 'Unload Example'; }
-
+if(sessionStorage.getItem(BACKUP_KEY)) $('#importSample').textContent='Unload Example';
 setInterval(save,10000);
 </script>
 </body>
