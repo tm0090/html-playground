@@ -11,7 +11,7 @@
 *{box-sizing:border-box}
 body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,var(--bg),#061122);color:#e6eef6;min-height:100vh;padding:24px;display:flex;flex-direction:column;}
 .container{max-width:980px;margin:0 auto;flex:1;}
-.header{display:flex;gap:12px;align:items:center;justify-content:space-between;margin-bottom:18px}
+.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
 .header h1{font-size:20px;margin:0}
 .controls{display:flex;gap:8px;align-items:center}
 .btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;cursor:pointer}
@@ -243,6 +243,30 @@ function render(){
             }
         });
 
+        // Mobile long-press for drag functionality
+        let pressTimer;
+        row.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevents default touch action like scrolling
+            pressTimer = setTimeout(() => {
+                row.classList.add('dragging');
+                row.draggable = true;
+                row.dispatchEvent(new Event('dragstart', { bubbles: true }));
+            }, 500);
+        });
+        row.addEventListener('touchend', () => {
+            clearTimeout(pressTimer);
+            if(row.classList.contains('dragging')){
+              row.classList.remove('dragging');
+              // A drop event is not fired on touchend, so we must manually trigger the save.
+              save();
+              render();
+            }
+        });
+        row.addEventListener('touchcancel', () => {
+            clearTimeout(pressTimer);
+            row.classList.remove('dragging');
+        });
+
         row.addEventListener('dragstart', (e)=>{ row.classList.add('dragging'); e.dataTransfer.setData('text/plain', ch.id); });
         row.addEventListener('dragend', ()=>{ row.classList.remove('dragging'); });
         
@@ -258,8 +282,10 @@ function render(){
         e.preventDefault();
         const afterElement = getDragAfterElement(chapContainer, e.clientY);
         const dragging = chapContainer.querySelector('.dragging');
-        if (afterElement == null) { chapContainer.appendChild(dragging); } 
-        else { chapContainer.insertBefore(dragging, afterElement); }
+        if (dragging) {
+          if (afterElement == null) { chapContainer.appendChild(dragging); } 
+          else { chapContainer.insertBefore(dragging, afterElement); }
+        }
     });
 
     chapContainer.addEventListener('drop', e => {
