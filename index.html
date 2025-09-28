@@ -1,3 +1,4 @@
+ 
 <!doctype html>
 <html lang="en">
 <head>
@@ -658,7 +659,13 @@ $('#shareBtn').addEventListener('click', ()=>{
 load(); 
 render();
 if(sessionStorage.getItem(BACKUP_KEY)) $('#importSample').textContent='Unload Example';
-setInterval(save,10000); // Autosave every 10 seconds
+setInterval(save,10); // Autosave every 10 milliseconds
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    save();
+  }
+});
 </script>
 </body>
 </html>
+ 
