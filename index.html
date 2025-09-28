@@ -100,7 +100,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 
 .small-progress-row { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .small-progress { height: 8px; width: 50px; border-radius: 999px; flex-shrink: 0; }
-.small-pct { min-width: 30px; text-align: right; font-size: 12px; }
+.small-pct { min-width: 30px; text-align: right; font-size: 12px; flex-shrink: 0; }
 
 @keyframes pulse { 0% { opacity: 0.2; } 50% { opacity: 0.4; } 100% { opacity: 0.2; } }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -145,7 +145,6 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   /* Fix for topics on mobile */
   .topics {
     margin-left: 0;
-    max-height: 300px !important;
   }
   .topic-content {
     flex-wrap: wrap;
@@ -169,6 +168,12 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   }
   .add-row {
     margin-left: 0;
+  }
+  .progress-row {
+    width: 100%;
+  }
+  .subj-pct-container, .total-pct-container {
+    flex-shrink: 0;
   }
 }
 @media (max-width: 560px){
@@ -262,7 +267,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
           <div class="small">Total progress</div>
           <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
             <div class="progress-bar" aria-hidden><i id="totalFill"></i></div>
-            <div style="min-width:58px;text-align:right"><strong id="totalPct">0%</strong></div>
+            <div class="total-pct-container" style="min-width:58px;text-align:right;flex-shrink:0"><strong id="totalPct">0%</strong></div>
           </div>
           <div class="small smallnote" style="margin-top:8px">Shows combined completion across all subjects, chapters & topics.</div>
         </div>
@@ -300,8 +305,11 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
         <button class="btn delSubj">Delete</button>
       </div>
     </div>
-    <div class="small" style="margin:8px 0">Progress</div>
-    <div class="progress-bar" style="margin-bottom:8px"><i class="subjFill"></i></div>
+    <div class="small" style="margin:8px 0 6px 0">Progress</div>
+    <div class="progress-row">
+      <div class="progress-bar"><i class="subjFill"></i></div>
+      <div class="subj-pct-container" style="min-width:58px;text-align:right;flex-shrink:0"><strong class="subjPct">0%</strong></div>
+    </div>
     <div class="chapters"></div>
     <div class="add-row">
       <input class="input chapterName" placeholder="New chapter name">
@@ -633,6 +641,8 @@ function render(){
   grid.innerHTML = '';
   
   let totTotal = 0, totDone = 0;
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  const expandedHeight = isMobile ? '300px' : '500px';
   for (const subj of state.subjects) {
     const stats = computeSubjectProgress(subj);
     totTotal += stats.total;
@@ -654,6 +664,7 @@ function render(){
     subjFill.style.width = stats.pct + '%';
     const subjColors = getProgressColors(stats.pct);
     subjFill.style.background = `linear-gradient(90deg, ${subjColors.color1}, ${subjColors.color2})`;
+    el.querySelector('.subjPct').textContent = stats.pct + '%';
     
     const chapContainer = el.querySelector('.chapters');
     if (subj.chapters.length === 0) {
@@ -742,6 +753,7 @@ function render(){
         chapFill.style.width = chStats.pct + '%';
         const chColors = getProgressColors(chStats.pct);
         chapFill.style.background = `linear-gradient(90deg, ${chColors.color1}, ${chColors.color2})`;
+        chapProgress.appendChild(chapFill);
         const chapPct = document.createElement('div');
         chapPct.className = 'small-pct';
         chapPct.textContent = chStats.pct + '%';
@@ -761,7 +773,7 @@ function render(){
         
         const topicsContainer = document.createElement('div');
         topicsContainer.className = 'topics';
-        topicsContainer.style.maxHeight = ch.expanded ? '500px' : '0px';
+        topicsContainer.style.maxHeight = ch.expanded ? expandedHeight : '0px';
         row.appendChild(topicsContainer);
         
         if (!ch.topics) ch.topics = [];
@@ -877,9 +889,29 @@ function render(){
         
         chapterContent.addEventListener('dblclick', () => {
           ch.expanded = !ch.expanded;
-          topicsContainer.style.maxHeight = ch.expanded ? '500px' : '0px';
+          const isMobile = window.matchMedia("(max-width: 768px)").matches;
+          const expandedHeight = isMobile ? '300px' : '500px';
+          topicsContainer.style.maxHeight = ch.expanded ? expandedHeight : '0px';
           addTopicRow.style.display = ch.expanded ? 'flex' : 'none';
           save();
+        });
+        
+        let lastTap = 0;
+        chapterContent.addEventListener('touchend', (e) => {
+          if (dragManager.draggingElement) return;
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.drag-handle')) return;
+          const currentTime = new Date().getTime();
+          const tapLength = currentTime - lastTap;
+          if (tapLength < 500 && tapLength > 0) {
+            ch.expanded = !ch.expanded;
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+            const expandedHeight = isMobile ? '300px' : '500px';
+            topicsContainer.style.maxHeight = ch.expanded ? expandedHeight : '0px';
+            addTopicRow.style.display = ch.expanded ? 'flex' : 'none';
+            save();
+            e.preventDefault();
+          }
+          lastTap = currentTime;
         });
         
         chapContainer.appendChild(row);
