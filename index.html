@@ -107,7 +107,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   </div>
 
   <div class="grid" id="subjectsGrid">
-    </div>
+  </div>
 
   <div class="footer">
     <div class="smallnote">Tip: add subjects and chapters, then check chapters as you finish. Data is saved locally in your browser.</div>
@@ -143,7 +143,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 <script>
 // Local storage keys
 const KEY = 'study-progress-v1';
-const BACKUP_KEY = 'study-progress-backup'; // NEW: Key for session backup
+const BACKUP_KEY = 'study-progress-backup';
 
 let state = { subjects: [] };
 
@@ -151,13 +151,8 @@ let state = { subjects: [] };
 const $ = q => document.querySelector(q);
 const $$ = q => Array.from(document.querySelectorAll(q));
 
-function save(){
-  localStorage.setItem(KEY, JSON.stringify(state));
-}
-function load(){
-  const raw = localStorage.getItem(KEY);
-  if(raw) try{ state = JSON.parse(raw); }catch(e){ state = {subjects:[]} }
-}
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function load(){ const raw = localStorage.getItem(KEY); if(raw) try{ state = JSON.parse(raw); }catch(e){ state={subjects:[]} } }
 
 function uid(){return Math.random().toString(36).slice(2,9)}
 
@@ -168,10 +163,7 @@ function computeProgress(subject){
   return {total,done,pct};
 }
 
-// Function to close all open menus
-function closeAllMenus() {
-    $$('.chapter-menu').forEach(menu => menu.classList.remove('active'));
-}
+function closeAllMenus() { $$('.chapter-menu').forEach(menu => menu.classList.remove('active')); }
 
 function render(){
   const grid = $('#subjectsGrid'); grid.innerHTML='';
@@ -183,7 +175,9 @@ function render(){
     const el = tpl.content.firstElementChild.cloneNode(true);
     el.dataset.id = subj.id;
     el.querySelector('.subj-title').textContent = subj.name;
-    el.querySelector('.subj-stats').textContent = stats.done + '/' + stats.total;
+    
+    // SHOW INDIVIDUAL PERCENTAGE
+    el.querySelector('.subj-stats').textContent = `${stats.done}/${stats.total} (${stats.pct}%)`;
     el.querySelector('.subjFill').style.width = stats.pct + '%';
     
     const chapContainer = el.querySelector('.chapters');
@@ -198,13 +192,12 @@ function render(){
 
         const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = !!ch.done;
         cb.addEventListener('change', ()=>{ ch.done = cb.checked; save(); render(); });
-        
+
         const label = document.createElement('div'); label.style.flex='1'; label.textContent = ch.name;
         const actionsBtn = document.createElement('button'); actionsBtn.className='btn'; actionsBtn.textContent='⋯';
-        
-        const menu = document.createElement('div');
-        menu.className = 'chapter-menu';
-        
+
+        const menu = document.createElement('div'); menu.className = 'chapter-menu';
+
         const editOption = document.createElement('button');
         editOption.className = 'menu-option';
         editOption.textContent = 'Edit';
@@ -212,8 +205,7 @@ function render(){
             const newName = prompt('Edit chapter name:', ch.name);
             if (newName && newName.trim() !== '' && newName.trim() !== ch.name) {
                 ch.name = newName.trim();
-                save();
-                render();
+                save(); render();
             }
             closeAllMenus();
         });
@@ -225,51 +217,37 @@ function render(){
             const isSure = confirm('Are you sure you want to delete chapter "' + ch.name + '"?');
             if (isSure) {
                 subj.chapters = subj.chapters.filter(x => x.id !== ch.id);
-                save();
-                render();
+                save(); render();
             }
             closeAllMenus();
         });
-        
+
         menu.appendChild(editOption);
         menu.appendChild(deleteOption);
-        
+
         actionsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const currentlyActive = menu.classList.contains('active');
             closeAllMenus();
-            if(!currentlyActive) {
-              menu.classList.add('active');
-            }
+            if(!currentlyActive) { menu.classList.add('active'); }
         });
 
-        // Mobile long-press for drag functionality
+        // Drag & touch events
         let pressTimer;
         row.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevents default touch action like scrolling
+            e.preventDefault();
             pressTimer = setTimeout(() => {
                 row.classList.add('dragging');
                 row.draggable = true;
                 row.dispatchEvent(new Event('dragstart', { bubbles: true }));
             }, 500);
         });
-        row.addEventListener('touchend', () => {
-            clearTimeout(pressTimer);
-            if(row.classList.contains('dragging')){
-              row.classList.remove('dragging');
-              // A drop event is not fired on touchend, so we must manually trigger the save.
-              save();
-              render();
-            }
-        });
-        row.addEventListener('touchcancel', () => {
-            clearTimeout(pressTimer);
-            row.classList.remove('dragging');
-        });
+        row.addEventListener('touchend', () => { clearTimeout(pressTimer); if(row.classList.contains('dragging')){ row.classList.remove('dragging'); save(); render(); } });
+        row.addEventListener('touchcancel', () => { clearTimeout(pressTimer); row.classList.remove('dragging'); });
 
         row.addEventListener('dragstart', (e)=>{ row.classList.add('dragging'); e.dataTransfer.setData('text/plain', ch.id); });
         row.addEventListener('dragend', ()=>{ row.classList.remove('dragging'); });
-        
+
         row.appendChild(cb); 
         row.appendChild(label); 
         row.appendChild(actionsBtn);
@@ -277,15 +255,12 @@ function render(){
         chapContainer.appendChild(row);
       })
     }
-    
+
     chapContainer.addEventListener('dragover', e => {
         e.preventDefault();
         const afterElement = getDragAfterElement(chapContainer, e.clientY);
         const dragging = chapContainer.querySelector('.dragging');
-        if (dragging) {
-          if (afterElement == null) { chapContainer.appendChild(dragging); } 
-          else { chapContainer.insertBefore(dragging, afterElement); }
-        }
+        if (dragging) { if (afterElement == null) { chapContainer.appendChild(dragging); } else { chapContainer.insertBefore(dragging, afterElement); } }
     });
 
     chapContainer.addEventListener('drop', e => {
@@ -295,8 +270,7 @@ function render(){
         if(!subject) return;
         const newOrderIds = Array.from(chapContainer.querySelectorAll('.chapter')).map(r => r.dataset.id);
         subject.chapters.sort((a,b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
-        save();
-        render();
+        save(); render();
     });
 
     function getDragAfterElement(container, y) {
@@ -304,8 +278,7 @@ function render(){
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
             const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } 
-            else { return closest; }
+            if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } else { return closest; }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
@@ -334,13 +307,11 @@ $('#addSubjectBtn').addEventListener('click', ()=>{
 });
 
 $('#resetBtn').addEventListener('click', ()=>{
-  if(confirm('Clear all saved data?')){ 
-    state = {subjects:[]}; 
-    save(); 
-    // Also clear any backup when resetting all data
+  if(confirm('Clear all saved data?')){
+    state = {subjects:[]}; save();
     sessionStorage.removeItem(BACKUP_KEY);
     $('#importSample').textContent = 'Load Example';
-    render(); 
+    render();
   }
 });
 
@@ -354,22 +325,18 @@ $('#exportBtn').addEventListener('click', ()=>{
 $('#import').addEventListener('change', (ev)=>{
   const f = ev.target.files[0]; if(!f) return; const reader = new FileReader();
   reader.onload = e => { try{ const imported = JSON.parse(e.target.result); if(imported && Array.isArray(imported.subjects)){ state = imported; save(); render(); alert('Imported successfully'); } else alert('Invalid file format'); } catch(err){ alert('Invalid JSON'); } }
-  reader.readAsText(f);
-  ev.target.value='';
+  reader.readAsText(f); ev.target.value='';
 });
 
-// NEW: Updated Load/Unload Example logic
 $('#importSample').addEventListener('click', (e) => {
   const btn = e.target;
   const backup = sessionStorage.getItem(BACKUP_KEY);
 
   if (backup) {
-    // Unload the example and restore from backup
     state = JSON.parse(backup);
     sessionStorage.removeItem(BACKUP_KEY);
     btn.textContent = 'Load Example';
   } else {
-    // Load the example and create a backup
     sessionStorage.setItem(BACKUP_KEY, JSON.stringify(state));
     const sample = {
       subjects:[
@@ -381,8 +348,7 @@ $('#importSample').addEventListener('click', (e) => {
     state = sample;
     btn.textContent = 'Unload Example';
   }
-  save();
-  render();
+  save(); render();
 });
 
 $('#shareBtn').addEventListener('click', ()=>{
@@ -390,16 +356,10 @@ $('#shareBtn').addEventListener('click', ()=>{
   navigator.clipboard.writeText(txt).then(()=>alert('Copied JSON to clipboard — share it or paste in Import.'))
 });
 
-// load on start
 load();
 render();
+if (sessionStorage.getItem(BACKUP_KEY)) { $('#importSample').textContent = 'Unload Example'; }
 
-// NEW: Check on load if a backup exists and update button text
-if (sessionStorage.getItem(BACKUP_KEY)) {
-  $('#importSample').textContent = 'Unload Example';
-}
-
-// hint: auto-save every 10s (in case)
 setInterval(save,10000);
 </script>
 </body>
