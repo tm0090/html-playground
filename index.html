@@ -11,7 +11,7 @@
 *{box-sizing:border-box}
 body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,var(--bg),#061122);color:#e6eef6;min-height:100vh;padding:24px;display:flex;flex-direction:column;}
 .container{max-width:980px;margin:0 auto;flex:1;}
-.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.header{display:flex;gap:12px;align:items:center;justify-content:space-between;margin-bottom:18px}
 .header h1{font-size:20px;margin:0}
 .controls{display:flex;gap:8px;align-items:center}
 .btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;cursor:pointer}
@@ -26,7 +26,8 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 .card{background:var(--card);padding:12px;border-radius:12px;min-height:120px}
 .card h3{margin:0 0 8px 0;font-size:16px}
 .chapters{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto;padding-right:6px}
-.chapter{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.02);padding:6px;border-radius:8px}
+.chapter{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.02);padding:6px;border-radius:8px; cursor:grab; position: relative;}
+.chapter.dragging{opacity:0.4;}
 .chapter input[type=checkbox]{width:16px;height:16px}
 .add-row{display:flex;gap:6px;margin-top:8px}
 .input, .select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:inherit;outline:none}
@@ -38,6 +39,42 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 .dark-toggle{cursor:pointer;padding:6px;border-radius:8px}
 .empty{opacity:0.6;color:var(--muted);padding:18px;text-align:center}
 .devnote{text-align:center;font-size:12px;color:var(--muted);margin-top:18px;}
+.chapter-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 36px;
+  background-color: #1a273b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 10;
+  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.chapter-menu.active {
+  display: block;
+}
+.menu-option {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  padding: 8px 10px;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.menu-option:hover {
+  background: rgba(255,255,255,0.05);
+}
+.menu-option.delete {
+  color: #fca5a5;
+}
+
 @media (max-width:560px){.header{flex-direction:column;align-items:flex-start;gap:8px}}
 </style>
 </head>
@@ -70,8 +107,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   </div>
 
   <div class="grid" id="subjectsGrid">
-    <!-- subject cards go here -->
-  </div>
+    </div>
 
   <div class="footer">
     <div class="smallnote">Tip: add subjects and chapters, then check chapters as you finish. Data is saved locally in your browser.</div>
@@ -105,8 +141,9 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 </template>
 
 <script>
-// Local storage key
+// Local storage keys
 const KEY = 'study-progress-v1';
+const BACKUP_KEY = 'study-progress-backup'; // NEW: Key for session backup
 
 let state = { subjects: [] };
 
@@ -131,10 +168,15 @@ function computeProgress(subject){
   return {total,done,pct};
 }
 
+// Function to close all open menus
+function closeAllMenus() {
+    $$('.chapter-menu').forEach(menu => menu.classList.remove('active'));
+}
+
 function render(){
   const grid = $('#subjectsGrid'); grid.innerHTML='';
-  // total
   let totCh = 0, totDone = 0;
+
   for(const subj of state.subjects){
     const stats = computeProgress(subj); totCh += stats.total; totDone += stats.done;
     const tpl = document.getElementById('subjectTpl');
@@ -143,35 +185,110 @@ function render(){
     el.querySelector('.subj-title').textContent = subj.name;
     el.querySelector('.subj-stats').textContent = stats.done + '/' + stats.total;
     el.querySelector('.subjFill').style.width = stats.pct + '%';
-    // chapters
+    
     const chapContainer = el.querySelector('.chapters');
     if(subj.chapters.length===0){
       const empty = document.createElement('div'); empty.className='empty'; empty.textContent='No chapters yet.'; chapContainer.appendChild(empty);
     } else {
       subj.chapters.forEach(ch=>{
-        const row = document.createElement('div'); row.className='chapter';
+        const row = document.createElement('div'); 
+        row.className='chapter';
+        row.dataset.id = ch.id;
+        row.draggable = true;
+
         const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = !!ch.done;
-        cb.addEventListener('change', ()=>{
-          ch.done = cb.checked; save(); render();
-        });
+        cb.addEventListener('change', ()=>{ ch.done = cb.checked; save(); render(); });
+        
         const label = document.createElement('div'); label.style.flex='1'; label.textContent = ch.name;
-        const rem = document.createElement('button'); rem.className='btn'; rem.textContent='⋯';
-        rem.addEventListener('click', ()=>{
-          const ok = confirm('Delete chapter "'+ch.name+'"?'); if(!ok) return; subj.chapters = subj.chapters.filter(x=>x.id!==ch.id); save(); render();
+        const actionsBtn = document.createElement('button'); actionsBtn.className='btn'; actionsBtn.textContent='⋯';
+        
+        const menu = document.createElement('div');
+        menu.className = 'chapter-menu';
+        
+        const editOption = document.createElement('button');
+        editOption.className = 'menu-option';
+        editOption.textContent = 'Edit';
+        editOption.addEventListener('click', () => {
+            const newName = prompt('Edit chapter name:', ch.name);
+            if (newName && newName.trim() !== '' && newName.trim() !== ch.name) {
+                ch.name = newName.trim();
+                save();
+                render();
+            }
+            closeAllMenus();
         });
-        row.appendChild(cb); row.appendChild(label); row.appendChild(rem);
+
+        const deleteOption = document.createElement('button');
+        deleteOption.className = 'menu-option delete';
+        deleteOption.textContent = 'Delete';
+        deleteOption.addEventListener('click', () => {
+            const isSure = confirm('Are you sure you want to delete chapter "' + ch.name + '"?');
+            if (isSure) {
+                subj.chapters = subj.chapters.filter(x => x.id !== ch.id);
+                save();
+                render();
+            }
+            closeAllMenus();
+        });
+        
+        menu.appendChild(editOption);
+        menu.appendChild(deleteOption);
+        
+        actionsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const currentlyActive = menu.classList.contains('active');
+            closeAllMenus();
+            if(!currentlyActive) {
+              menu.classList.add('active');
+            }
+        });
+
+        row.addEventListener('dragstart', (e)=>{ row.classList.add('dragging'); e.dataTransfer.setData('text/plain', ch.id); });
+        row.addEventListener('dragend', ()=>{ row.classList.remove('dragging'); });
+        
+        row.appendChild(cb); 
+        row.appendChild(label); 
+        row.appendChild(actionsBtn);
+        row.appendChild(menu);
         chapContainer.appendChild(row);
       })
     }
-    // add chapter
+    
+    chapContainer.addEventListener('dragover', e => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(chapContainer, e.clientY);
+        const dragging = chapContainer.querySelector('.dragging');
+        if (afterElement == null) { chapContainer.appendChild(dragging); } 
+        else { chapContainer.insertBefore(dragging, afterElement); }
+    });
+
+    chapContainer.addEventListener('drop', e => {
+        e.preventDefault();
+        const subjectId = e.target.closest('.subject-card').dataset.id;
+        const subject = state.subjects.find(s => s.id === subjectId);
+        if(!subject) return;
+        const newOrderIds = Array.from(chapContainer.querySelectorAll('.chapter')).map(r => r.dataset.id);
+        subject.chapters.sort((a,b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id));
+        save();
+        render();
+    });
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.chapter:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } 
+            else { return closest; }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
     el.querySelector('.addChapter').addEventListener('click', ()=>{
       const val = el.querySelector('.chapterName').value.trim(); if(!val) return; subj.chapters.push({id:uid(),name:val,done:false}); el.querySelector('.chapterName').value=''; save(); render();
     });
-    // edit subj
     el.querySelector('.editSubj').addEventListener('click', ()=>{
       const newName = prompt('Rename subject', subj.name); if(!newName) return; subj.name = newName.trim(); save(); render();
     });
-    // delete subj
     el.querySelector('.delSubj').addEventListener('click', ()=>{
       const ok = confirm('Delete subject "'+subj.name+'" and its chapters?'); if(!ok) return; state.subjects = state.subjects.filter(s=>s.id!==subj.id); save(); render();
     });
@@ -184,12 +301,21 @@ function render(){
 }
 
 // initial wiring
+document.addEventListener('click', closeAllMenus);
+
 $('#addSubjectBtn').addEventListener('click', ()=>{
   const name = prompt('Subject name (e.g. Physics)'); if(!name) return; state.subjects.push({id:uid(),name:name.trim(),chapters:[]}); save(); render();
 });
 
 $('#resetBtn').addEventListener('click', ()=>{
-  if(confirm('Clear all saved data?')){ state = {subjects:[]}; save(); render(); }
+  if(confirm('Clear all saved data?')){ 
+    state = {subjects:[]}; 
+    save(); 
+    // Also clear any backup when resetting all data
+    sessionStorage.removeItem(BACKUP_KEY);
+    $('#importSample').textContent = 'Load Example';
+    render(); 
+  }
 });
 
 $('#exportBtn').addEventListener('click', ()=>{
@@ -206,15 +332,31 @@ $('#import').addEventListener('change', (ev)=>{
   ev.target.value='';
 });
 
-$('#importSample').addEventListener('click', ()=>{
-  const sample = {
-    subjects:[
-      {id:uid(),name:'Physics',chapters:[{id:uid(),name:'Kinematics',done:true},{id:uid(),name:'Dynamics',done:false},{id:uid(),name:'Work & Energy',done:false}]},
-      {id:uid(),name:'Chemistry',chapters:[{id:uid(),name:'Atomic Structure',done:true},{id:uid(),name:'Periodic Table',done:true}]},
-      {id:uid(),name:'Math',chapters:[{id:uid(),name:'Limits',done:false},{id:uid(),name:'Derivatives',done:false}]}
-    ]
-  };
-  state = sample; save(); render();
+// NEW: Updated Load/Unload Example logic
+$('#importSample').addEventListener('click', (e) => {
+  const btn = e.target;
+  const backup = sessionStorage.getItem(BACKUP_KEY);
+
+  if (backup) {
+    // Unload the example and restore from backup
+    state = JSON.parse(backup);
+    sessionStorage.removeItem(BACKUP_KEY);
+    btn.textContent = 'Load Example';
+  } else {
+    // Load the example and create a backup
+    sessionStorage.setItem(BACKUP_KEY, JSON.stringify(state));
+    const sample = {
+      subjects:[
+        {id:uid(),name:'Physics (Sample)',chapters:[{id:uid(),name:'Kinematics',done:true},{id:uid(),name:'Dynamics',done:false},{id:uid(),name:'Work & Energy',done:false}]},
+        {id:uid(),name:'Chemistry (Sample)',chapters:[{id:uid(),name:'Atomic Structure',done:true},{id:uid(),name:'Periodic Table',done:true}]},
+        {id:uid(),name:'Math (Sample)',chapters:[{id:uid(),name:'Limits',done:false},{id:uid(),name:'Derivatives',done:false}]}
+      ]
+    };
+    state = sample;
+    btn.textContent = 'Unload Example';
+  }
+  save();
+  render();
 });
 
 $('#shareBtn').addEventListener('click', ()=>{
@@ -223,11 +365,16 @@ $('#shareBtn').addEventListener('click', ()=>{
 });
 
 // load on start
-load(); render();
+load();
+render();
+
+// NEW: Check on load if a backup exists and update button text
+if (sessionStorage.getItem(BACKUP_KEY)) {
+  $('#importSample').textContent = 'Unload Example';
+}
 
 // hint: auto-save every 10s (in case)
 setInterval(save,10000);
 </script>
 </body>
 </html>
-
