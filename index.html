@@ -636,7 +636,45 @@ function getProgressColors(pct) {
   }
 }
 
+function saveScrollPositions() {
+  const scrollState = {
+    window: window.scrollY,
+    chapters: {},
+    topics: {}
+  };
+  $$('.subject-card').forEach(sub => {
+    const id = sub.dataset.id;
+    const chCont = sub.querySelector('.chapters');
+    scrollState.chapters[id] = chCont.scrollTop;
+  });
+  $$('.chapter').forEach(ch => {
+    const id = ch.dataset.id;
+    const topCont = ch.querySelector('.topics');
+    scrollState.topics[id] = topCont.scrollTop;
+  });
+  return scrollState;
+}
+
+function restoreScrollPositions(scrollState) {
+  window.scrollTo(0, scrollState.window);
+  $$('.subject-card').forEach(sub => {
+    const id = sub.dataset.id;
+    const chCont = sub.querySelector('.chapters');
+    if (scrollState.chapters[id] !== undefined) {
+      chCont.scrollTop = scrollState.chapters[id];
+    }
+  });
+  $$('.chapter').forEach(ch => {
+    const id = ch.dataset.id;
+    const topCont = ch.querySelector('.topics');
+    if (scrollState.topics[id] !== undefined) {
+      topCont.scrollTop = scrollState.topics[id];
+    }
+  });
+}
+
 function render(){
+  const scrollState = saveScrollPositions();
   const grid = $('#subjectsGrid');
   grid.innerHTML = '';
   
@@ -897,6 +935,7 @@ function render(){
           topicsContainer.style.maxHeight = ch.expanded ? expandedHeight : '0px';
           addTopicRow.style.display = ch.expanded ? 'flex' : 'none';
           save();
+          render();
         });
         
         let lastTapChapter = 0;
@@ -910,6 +949,7 @@ function render(){
             topicsContainer.style.maxHeight = ch.expanded ? expandedHeight : '0px';
             addTopicRow.style.display = ch.expanded ? 'flex' : 'none';
             save();
+            render();
             e.preventDefault();
           }
           lastTapChapter = currentTime;
@@ -951,6 +991,7 @@ function render(){
       chapContainer.style.maxHeight = subj.expanded ? expandedHeight : '0px';
       addChapterRow.style.display = subj.expanded ? 'flex' : 'none';
       save();
+      render();
     });
 
     let lastTapSubject = 0;
@@ -964,6 +1005,7 @@ function render(){
         chapContainer.style.maxHeight = subj.expanded ? expandedHeight : '0px';
         addChapterRow.style.display = subj.expanded ? 'flex' : 'none';
         save();
+        render();
         e.preventDefault();
       }
       lastTapSubject = currentTime;
@@ -979,6 +1021,8 @@ function render(){
   const totalColors = getProgressColors(totalPct);
   totalFill.style.background = `linear-gradient(90deg, ${totalColors.color1}, ${totalColors.color2})`;
   $('#totalPct').textContent = totalPct + '%';
+
+  restoreScrollPositions(scrollState);
 }
 
 document.addEventListener('click', (e) => {
