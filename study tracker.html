@@ -1,4 +1,3 @@
- 
 <!doctype html>
 <html lang="en">
 <head>
@@ -31,8 +30,8 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 }
 .card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2);}
 .card h3{margin:0 0 8px 0;font-size:16px;cursor:grab;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.chapters{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto;padding-right:6px;width:100%;}
-.chapter{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px; position: relative; width:100%;
+.chapters{display:flex;flex-direction:column;gap:6px;overflow:auto;padding-right:6px;width:100%;transition: max-height 0.3s ease;}
+.chapter{display:flex;align-items:flex-start;gap:8px;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px; position: relative; width:100%; flex-direction:column;
     transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 .chapter:hover{background:rgba(255,255,255,0.04);transform:translateX(4px);}
@@ -43,7 +42,6 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 .subject-card.dragging{opacity: 0.9; transform: rotate(2deg) scale(1.03); box-shadow: 0 15px 30px rgba(0,0,0,0.4); z-index: 1000; filter: brightness(1.1);}
 .chapter.dragging{opacity: 0.9; transform: rotate(1deg) scale(1.02); box-shadow: 0 6px 16px rgba(0,0,0,0.3); z-index: 1000; filter: brightness(1.1);}
 .drag-placeholder{opacity:0.2; border:2px dashed var(--accent); border-radius:10px; background:var(--glass); animation: pulse 1s infinite;flex-shrink:0;}
-.chapter input[type=checkbox]{width:16px;height:16px;flex-shrink:0;}
 .add-row{display:flex;gap:6px;margin-top:8px;width:100%;flex-wrap:wrap;}
 .input, .select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:inherit;outline:none;transition:border 0.15s ease;flex:1;min-width:120px;}
 .input:focus, .select:focus{border-color:var(--accent);}
@@ -55,10 +53,10 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 .dark-toggle{cursor:pointer;padding:6px;border-radius:8px}
 .empty{opacity:0.6;color:var(--muted);padding:18px;text-align:center}
 .devnote{text-align:center;font-size:12px;color:var(--muted);margin-top:18px;}
-.chapter-menu {
+.item-menu {
   display: none; position: absolute; right: 0; top: 36px; background-color: #1a273b; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 4px; z-index: 10; min-width: 120px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: slideDown 0.15s ease-out;
 }
-.chapter-menu.active { display: block; }
+.item-menu.active { display: block; }
 .menu-option {
   display: block; width: 100%; background: none; border: none; color: inherit; font-family: inherit; padding: 8px 10px; text-align: left; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.15s ease;
 }
@@ -71,6 +69,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   transition: none;
   box-shadow: 0 10px 30px rgba(0,0,0,0.4); border-radius: 10px;
   filter: brightness(1.1) saturate(1.2);
+  transform-origin: center;
 }
 .drag-over {
   background: rgba(125, 211, 252, 0.1); border: 1px dashed var(--accent); transform: scale(1.01); transition: all 0.1s ease;
@@ -79,12 +78,29 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 .drag-success { animation: bounce 0.4s ease; }
 .drag-icon { display: inline-block; font-size: 16px; color: var(--muted); transition: all 0.15s ease; }
 .drag-handle:hover .drag-icon { color: var(--accent); transform: scale(1.2); }
-.chapter-content { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; }
-.chapter-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chapter-content { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; cursor: pointer; }
+.chapter-label { flex: 1; min-width: 0; white-space: normal; font-weight: bold; }
 .subject-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; }
-.subject-title-container { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-.subject-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.subject-title-container { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: 1; min-width: 0; cursor: pointer; }
+.subject-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: bold; }
+.subject-stats { font-size: 13px; color: var(--muted); }
 .subject-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+
+.topics {display:flex; flex-direction:column; gap:6px; margin-top:6px; padding-right:6px; overflow: auto; transition: max-height 0.3s ease; width: 100%; }
+.topic {display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.02); padding:6px; border-radius:6px; position: relative; width:100%;
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+.topic:hover {background:rgba(255,255,255,0.04);transform:translateX(2px);}
+.topic .drag-handle { cursor: grab; padding: 3px; transition: color 0.15s ease, transform 0.15s ease; flex-shrink:0; touch-action: none; }
+.topic .drag-handle:hover { color: var(--accent); transform: scale(1.1); }
+.topic.dragging{opacity: 0.9; transform: rotate(1deg) scale(1.02); box-shadow: 0 6px 16px rgba(0,0,0,0.3); z-index: 1000; filter: brightness(1.1);}
+.topic input[type=checkbox]{width:14px;height:14px;flex-shrink:0;}
+.topic-content { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; }
+.topic-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.small-progress-row { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.small-progress { height: 8px; width: 50px; border-radius: 999px; flex-shrink: 0; }
+.small-pct { min-width: 30px; text-align: right; font-size: 12px; flex-shrink: 0; }
 
 @keyframes pulse { 0% { opacity: 0.2; } 50% { opacity: 0.4; } 100% { opacity: 0.2; } }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -115,7 +131,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 }
 
 @media (max-width: 768px) {
-  .container { padding: 0 12px; }
+  .container { padding: 12px; }
   .grid { grid-template-columns: 1fr; }
   .header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .controls { width: 100%; justify-content: space-between; }
@@ -124,7 +140,41 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   .actions { justify-content: center; width: 100%; }
   .drag-handle { padding: 8px; }
   .btn { padding: 10px 12px; min-height: 44px; }
-  .chapter-menu { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 280px; }
+  .item-menu { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 280px; }
+  
+  /* Fix for topics on mobile */
+  .topics {
+    margin-left: 0;
+  }
+  .topic-content {
+    flex-wrap: wrap;
+  }
+  .topic-label {
+    flex: 1;
+    min-width: 120px;
+  }
+  .chapter-content {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chapter-label {
+    min-width: 100%;
+    margin-bottom: 4px;
+  }
+  .small-progress-row {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .add-row {
+    margin-left: 0;
+  }
+  .progress-row {
+    width: 100%;
+  }
+  .subj-pct-container, .total-pct-container {
+    flex-shrink: 0;
+  }
 }
 @media (max-width: 560px){
   .header{flex-direction:column;align-items:flex-start;gap:8px}
@@ -134,6 +184,20 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   .subject-actions { width: 100%; justify-content: space-between; }
   .chapter-content { flex-wrap: wrap; }
   .chapter-label { min-width: 100px; }
+  
+  /* Additional mobile fixes for topics */
+  .topics {
+    margin-left: 0;
+  }
+  .topic {
+    padding: 8px;
+  }
+  .topic-content {
+    gap: 4px;
+  }
+  .topic-label {
+    font-size: 14px;
+  }
 }
 
 /* Differentiate main progress bar */
@@ -181,6 +245,48 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   height: 6px;
   animation-delay: -0.5s, -4s;
 }
+
+/* New: Modal styles for sign-in UI */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.7);
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: var(--card);
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.close-modal {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.close-modal:hover {
+  color: var(--accent);
+}
+#firebaseui-auth-container {
+  margin-top: 16px;
+}
+#auth-loader {
+  text-align: center;
+  margin-top: 16px;
+  color: var(--muted);
+}
 </style>
 </head>
 <body>
@@ -192,6 +298,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
       <label class="btn" for="import">Import JSON</label>
       <input id="import" class="importfile" type="file" accept="application/json">
       <button class="btn" id="resetBtn">Reset</button>
+      <button class="btn" id="signInBtn">Sign In</button>
       <button class="btn strong" id="addSubjectBtn">+ Add Subject</button>
     </div>
   </div>
@@ -203,9 +310,9 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
           <div class="small">Total progress</div>
           <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
             <div class="progress-bar" aria-hidden><i id="totalFill"></i></div>
-            <div style="min-width:58px;text-align:right"><strong id="totalPct">0%</strong></div>
+            <div class="total-pct-container" style="min-width:58px;text-align:right;flex-shrink:0"><strong id="totalPct">0%</strong></div>
           </div>
-          <div class="small smallnote" style="margin-top:8px">Shows combined completion across all subjects & chapters.</div>
+          <div class="small smallnote" style="margin-top:8px">Shows combined completion across all subjects, chapters & topics.</div>
         </div>
       </div>
     </div>
@@ -214,7 +321,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   <div class="grid" id="subjectsGrid"></div>
 
   <div class="footer">
-    <div class="smallnote">Tip: add subjects and chapters, then check chapters as you finish. Data is saved locally in your browser.</div>
+    <div class="smallnote" id="footerTip">Tip: Add subjects, chapters, and topics to organize your study plan. Check off completed chapters and topics to track progress. Double-tap or double-click to collapse/expand subjects and chapters for a cleaner view. Drag to reorder items. ⚠️ Data is saved locally in your browser.</div>
     <div style="flex:1"></div>
     <div class="actions">
       <button class="btn" id="importSample">Load Example</button>
@@ -222,7 +329,17 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
     </div>
   </div>
 </div>
-<div class="devnote">Developed by Tamim ❤️</div>
+<div class="devnote">Made with ❤️ by Tamim </div>
+
+<!-- New: Modal for sign-in UI -->
+<div id="signInModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" id="closeModal">&times;</span>
+    <h2 style="margin: 0 0 16px 0; text-align: center;">Sign In / Sign Up</h2>
+    <div id="firebaseui-auth-container"></div>
+    <div id="auth-loader">Loading...</div>
+  </div>
+</div>
 
 <template id="subjectTpl">
   <div class="card subject-card">
@@ -236,13 +353,16 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
         </h3>
       </div>
       <div class="subject-actions">
-        <div class="small"> <span class="subj-stats">0/0</span></div>
+        
         <button class="btn editSubj">Edit</button>
         <button class="btn delSubj">Delete</button>
       </div>
     </div>
-    <div class="small" style="margin:8px 0">Progress</div>
-    <div class="progress-bar" style="margin-bottom:8px"><i class="subjFill"></i></div>
+    <div class="small" style="margin:8px 0 6px 0">Progress</div>
+    <div class="progress-row">
+      <div class="progress-bar"><i class="subjFill"></i></div>
+      <div class="subj-pct-container" style="min-width:58px;text-align:right;flex-shrink:0"><strong class="subjPct">0%</strong></div>
+    </div>
     <div class="chapters"></div>
     <div class="add-row">
       <input class="input chapterName" placeholder="New chapter name">
@@ -251,18 +371,207 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   </div>
 </template>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<!-- New: FirebaseUI CDN -->
+<script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+<link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
+
 <script>
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDsmD8sxZdU__Qk7VICtSLPe6ifNMM0I88",
+  authDomain: "study-tracker-database.firebaseapp.com",
+  projectId: "study-tracker-database",
+  storageBucket: "study-tracker-database.firebasestorage.app",
+  messagingSenderId: "345068871227",
+  appId: "1:345068871227:web:9027b54b933980db2a061e",
+  measurementId: "G-SFQC45M9FC"
+};
+
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth(app);
+const db = firebase.firestore(app);
+
+// New: Initialize FirebaseUI
+const ui = new firebaseui.auth.AuthUI(auth);
+
 const KEY = 'study-progress-v1';
 const BACKUP_KEY = 'study-progress-backup';
 let state = { subjects: [] };
+let unsubscribe = null; // For real-time listener
 const $ = q => document.querySelector(q);
 const $$ = q => Array.from(document.querySelectorAll(q));
 
-function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
-function load(){ const raw = localStorage.getItem(KEY); if(raw) try{ state = JSON.parse(raw); }catch(e){ state={subjects:[]} } }
+function saveToLocal() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+function loadFromLocal() {
+  const raw = localStorage.getItem(KEY);
+  if (raw) try { state = JSON.parse(raw); } catch (e) { state = { subjects: [] }; }
+}
+
+async function saveToFirestore() {
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      await db.collection('users').doc(user.uid).set({ state: JSON.stringify(state) });
+    } catch (e) {
+      console.error('Error saving to Firestore:', e);
+    }
+  } else {
+    saveToLocal();
+  }
+}
+
+async function loadFromFirestore() {
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        state = JSON.parse(doc.data().state);
+        return true;
+      }
+    } catch (e) {
+      console.error('Error loading from Firestore:', e);
+    }
+  }
+  loadFromLocal();
+  return false;
+}
+
+function migrateLocalToFirestore() {
+  const localData = localStorage.getItem(KEY);
+  if (localData) {
+    state = JSON.parse(localData);
+    saveToFirestore();
+    localStorage.removeItem(KEY); // Clear local after migration
+  }
+}
+
+function updateAuthButton(user) {
+  const btn = $('#signInBtn');
+  if (user) {
+    btn.textContent = 'Sign Out';
+    btn.onclick = () => auth.signOut();
+  } else {
+    btn.textContent = 'Sign In';
+    btn.onclick = showSignInModal;
+  }
+}
+
+function updateFooterTip(user) {
+  const tip = $('#footerTip');
+  if (user) {
+    tip.textContent = 'Tip: Add subjects, chapters, and topics to organize your study plan. Check off completed chapters and topics to track progress. Double-tap or double-click to collapse/expand subjects and chapters for a cleaner view. Drag to reorder items. ☁️ Data syncs to the cloud when signed in.';
+  } else {
+    tip.textContent = 'Tip: Add subjects, chapters, and topics to organize your study plan. Check off completed chapters and topics to track progress. Double-tap or double-click to collapse/expand subjects and chapters for a cleaner view. Drag to reorder items. ⚠️ Data is saved locally in your browser.';
+  }
+}
+
+// New: Show the sign-in modal with FirebaseUI
+function showSignInModal() {
+  const modal = $('#signInModal');
+  modal.style.display = 'flex';
+
+  // FirebaseUI config
+  const uiConfig = {
+  signInFlow: 'popup',
+signInOptions: [
+  // Email/password login
+  firebase.auth.EmailAuthProvider.PROVIDER_ID,
+
+  // Google login
+  firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+],
+
+    callbacks: {
+      signInSuccessWithAuthResult: function(authResult) {
+        closeModal();
+        return false; // Don't redirect
+      },
+      uiShown: function() {
+        $('#auth-loader').style.display = 'none';
+      }
+    },
+    tosUrl: 'https://example.com/terms', // Replace with your terms URL if needed
+    privacyPolicyUrl: 'https://example.com/privacy' // Replace with your privacy URL
+  };
+
+  // Start FirebaseUI
+  $('#auth-loader').style.display = 'block';
+  ui.start('#firebaseui-auth-container', uiConfig);
+}
+
+// New: Close modal function
+function closeModal() {
+  const modal = $('#signInModal');
+  modal.style.display = 'none';
+  // Reset FirebaseUI container to avoid reuse issues
+  $('#firebaseui-auth-container').innerHTML = '';
+}
+
+auth.onAuthStateChanged(async (user) => {
+  updateAuthButton(user);
+  updateFooterTip(user);
+  if (unsubscribe) unsubscribe(); // Clean up previous listener
+  if (user) {
+    const loadedFromCloud = await loadFromFirestore();
+    if (!loadedFromCloud) {
+      migrateLocalToFirestore();
+    }
+    // Set up real-time listener for sync across devices
+    unsubscribe = db.collection('users').doc(user.uid).onSnapshot(doc => {
+      if (doc.exists) {
+        state = JSON.parse(doc.data().state);
+        render();
+      }
+    });
+  } else {
+    loadFromLocal();
+  }
+  render();
+});
+
+// New: Modal event listeners
+$('#closeModal').addEventListener('click', closeModal);
+window.addEventListener('click', (e) => {
+  if (e.target === $('#signInModal')) closeModal();
+});
+
+function save() {
+  saveToFirestore();
+}
+
 function uid(){return Math.random().toString(36).slice(2,9)}
-function computeProgress(subject){ const total=subject.chapters.length||0; const done=subject.chapters.filter(c=>c.done).length; const pct=total===0?0:Math.round(done/total*100); return {total,done,pct}; }
-function closeAllMenus() { $$('.chapter-menu').forEach(menu => menu.classList.remove('active')); }
+function closeAllMenus() { $$('.item-menu').forEach(menu => menu.classList.remove('active')); }
+
+function computeChapterProgress(ch) {
+  let total = 0;
+  let done = 0;
+  if (ch.topics && ch.topics.length > 0) {
+    total = ch.topics.length;
+    done = ch.topics.filter(t => t.done).length;
+  } else {
+    total = 1;
+    done = ch.done ? 1 : 0;
+  }
+  const pct = total === 0 ? 0 : Math.round(done / total * 100);
+  return {total, done, pct};
+}
+
+function computeSubjectProgress(subject) {
+  let total = 0;
+  let done = 0;
+  for (const ch of subject.chapters) {
+    const chStats = computeChapterProgress(ch);
+    total += chStats.total;
+    done += chStats.done;
+  }
+  const pct = total === 0 ? 0 : Math.round(done / total * 100);
+  return {total, done, pct};
+}
 
 class DragManager {
   constructor() {
@@ -280,7 +589,7 @@ class DragManager {
     document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
     document.addEventListener('touchend', this.handleTouchEnd.bind(this));
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.chapter-menu') && !e.target.matches('.chapter-menu-btn')) {
+      if (!e.target.closest('.item-menu') && !e.target.matches('.chapter-menu-btn')) {
         closeAllMenus();
       }
     });
@@ -321,6 +630,10 @@ class DragManager {
     this.dragGhost.style.background = 'var(--card)';
     this.dragGhost.style.border = '1px solid var(--accent)';
     this.dragGhost.style.backdropFilter = 'blur(5px)';
+    
+    // Remove any interactive elements from the ghost
+    const interactiveElements = this.dragGhost.querySelectorAll('button, input, .drag-handle, .item-menu');
+    interactiveElements.forEach(el => el.remove());
     
     document.body.appendChild(this.dragGhost);
   }
@@ -364,9 +677,11 @@ class DragManager {
       const siblingRect = sibling.getBoundingClientRect();
       let distance;
       
-      if (container.classList.contains('chapters')) {
+      if (container.classList.contains('chapters') || container.classList.contains('topics')) {
+        // For vertical lists, use vertical distance only
         distance = Math.abs(ghostRect.top - siblingRect.top);
       } else {
+        // For grid layouts, use Euclidean distance
         distance = Math.hypot(ghostRect.left - siblingRect.left, ghostRect.top - siblingRect.top);
       }
       
@@ -380,9 +695,11 @@ class DragManager {
       const siblingRect = closestSibling.getBoundingClientRect();
       let insertBefore = false;
       
-      if (container.classList.contains('chapters')) {
+      if (container.classList.contains('chapters') || container.classList.contains('topics')) {
+        // For vertical lists, check if we're above the middle of the sibling
         insertBefore = ghostRect.top < siblingRect.top + siblingRect.height / 2;
       } else {
+        // For grid layouts, check if we're to the left of the middle of the sibling
         insertBefore = ghostRect.left < siblingRect.left + siblingRect.width / 2;
       }
       
@@ -439,26 +756,47 @@ class DragManager {
           .filter(c => c.classList.contains('chapter'))
           .map(r => subject.chapters.find(ch => ch.id === r.dataset.id));
       }
+    } else if (this.dragType === 'topic') {
+      const chapterElement = this.currentContainer.closest('.chapter');
+      const subjectId = chapterElement.closest('.subject-card').dataset.id;
+      const chapterId = chapterElement.dataset.id;
+      const subject = state.subjects.find(s => s.id === subjectId);
+      if (subject) {
+        const chapter = subject.chapters.find(c => c.id === chapterId);
+        if (chapter) {
+          chapter.topics = Array.from(this.currentContainer.children)
+            .filter(c => c.classList.contains('topic'))
+            .map(r => chapter.topics.find(t => t.id === r.dataset.id));
+        }
+      }
     }
-    
     save();
     render();
   }
 
   handleMouseMove(event) {
-    if (this.draggingElement) { this.updateGhostPosition(event); }
+    if (this.draggingElement) { 
+      this.updateGhostPosition(event); 
+    }
   }
+  
   handleMouseUp() {
-    if (this.draggingElement) { this.endDrag(); }
+    if (this.draggingElement) { 
+      this.endDrag(); 
+    }
   }
+  
   handleTouchMove(event) {
     if (this.draggingElement) {
       this.updateGhostPosition(event);
       event.preventDefault();
     }
   }
+  
   handleTouchEnd() {
-    if (this.draggingElement) { this.endDrag(); }
+    if (this.draggingElement) { 
+      this.endDrag(); 
+    }
   }
 }
 
@@ -468,93 +806,166 @@ function makeDraggable(element, type, handleSelector) {
   const handle = handleSelector ? element.querySelector(handleSelector) : element;
   if (!handle) return;
   
+  // Mouse events
   handle.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0) return; // Only left mouse button
     dragManager.startDrag(element, type, e);
   });
   
+  // Touch events with improved long press detection
   let touchTimer;
+  let longPressTriggered = false;
+  
   handle.addEventListener('touchstart', (e) => {
+    longPressTriggered = false;
     touchTimer = setTimeout(() => {
+      longPressTriggered = true;
       dragManager.startDrag(element, type, e);
-    }, 100);
+    }, 300); // Reduced time for better responsiveness
   });
   
-  const cancelLongPress = () => clearTimeout(touchTimer);
+  const cancelLongPress = () => {
+    clearTimeout(touchTimer);
+  };
+  
   handle.addEventListener('touchend', cancelLongPress);
-  handle.addEventListener('touchmove', cancelLongPress);
+  handle.addEventListener('touchmove', (e) => {
+    if (!longPressTriggered) {
+      cancelLongPress();
+    } else {
+      // If we're already dragging, update position
+      dragManager.updateGhostPosition(e);
+    }
+  });
 
+  // Prevent context menu on long press
   handle.addEventListener('contextmenu', (e) => e.preventDefault());
   handle.classList.add('no-select');
 }
 
 function getProgressColors(pct) {
   if (pct < 30) {
-    return {color1: '#ef4444', color2: '#b91c1c'}; // red
+    return {color1: '#ef4444', color2: '#b91c1c'};
   } else if (pct < 75) {
-    return {color1: '#eab308', color2: '#a16207'}; // yellow
+    return {color1: '#eab308', color2: '#a16207'};
   } else {
-    return {color1: '#22c55e', color2: '#15803d'}; // green
+    return {color1: '#22c55e', color2: '#15803d'};
   }
 }
 
+function saveScrollPositions() {
+  const scrollState = {
+    window: window.scrollY,
+    chapters: {},
+    topics: {}
+  };
+  $$('.subject-card').forEach(sub => {
+    const id = sub.dataset.id;
+    const chCont = sub.querySelector('.chapters');
+    scrollState.chapters[id] = chCont.scrollTop;
+  });
+  $$('.chapter').forEach(ch => {
+    const id = ch.dataset.id;
+    const topCont = ch.querySelector('.topics');
+    scrollState.topics[id] = topCont.scrollTop;
+  });
+  return scrollState;
+}
+
+function restoreScrollPositions(scrollState) {
+  window.scrollTo(0, scrollState.window);
+  $$('.subject-card').forEach(sub => {
+    const id = sub.dataset.id;
+    const chCont = sub.querySelector('.chapters');
+    if (scrollState.chapters[id] !== undefined) {
+      chCont.scrollTop = scrollState.chapters[id];
+    }
+  });
+  $$('.chapter').forEach(ch => {
+    const id = ch.dataset.id;
+    const topCont = ch.querySelector('.topics');
+    if (scrollState.topics[id] !== undefined) {
+      topCont.scrollTop = scrollState.topics[id];
+    }
+  });
+}
+
 function render(){
-  const grid=$('#subjectsGrid'); 
-  grid.innerHTML='';
+  const scrollState = saveScrollPositions();
+  const grid = $('#subjectsGrid');
+  grid.innerHTML = '';
   
-  let totCh=0, totDone=0;
-  for(const subj of state.subjects){
-    const stats=computeProgress(subj); 
-    totCh+=stats.total; 
-    totDone+=stats.done;
+  let totTotal = 0, totDone = 0;
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  const expandedHeight = isMobile ? '300px' : '500px';
+  for (const subj of state.subjects) {
+    if (!('expanded' in subj)) subj.expanded = true;
+    const stats = computeSubjectProgress(subj);
+    totTotal += stats.total;
+    totDone += stats.done;
     
-    const tpl=document.getElementById('subjectTpl');
-    const el=tpl.content.firstElementChild.cloneNode(true);
-    el.dataset.id=subj.id;
-    el.querySelector('.subject-name').textContent=subj.name;
-    el.querySelector('.subj-stats').textContent=`${stats.done}/${stats.total} (${stats.pct}%)`;
+    const tpl = document.getElementById('subjectTpl');
+    const el = tpl.content.firstElementChild.cloneNode(true);
+    el.dataset.id = subj.id;
+    el.querySelector('.subject-name').textContent = subj.name;
+    
+    const chTotal = subj.chapters.length;
+    const chDone = subj.chapters.filter(c => c.done).length;
+    const statsDiv = document.createElement('div');
+    statsDiv.className = 'subject-stats';
+    statsDiv.textContent = `Chapters: ${chDone}/${chTotal} | Topics: ${stats.done}/${stats.total}`;
+    el.querySelector('.subject-title-container').appendChild(statsDiv);
     
     const subjFill = el.querySelector('.subjFill');
     subjFill.style.width = stats.pct + '%';
     const subjColors = getProgressColors(stats.pct);
     subjFill.style.background = `linear-gradient(90deg, ${subjColors.color1}, ${subjColors.color2})`;
-
-    const chapContainer=el.querySelector('.chapters');
-    if(subj.chapters.length===0){
-      const empty=document.createElement('div'); 
-      empty.className='empty'; 
-      empty.textContent='No chapters yet.'; 
+    el.querySelector('.subjPct').textContent = stats.pct + '%';
+    
+    const chapContainer = el.querySelector('.chapters');
+    chapContainer.style.maxHeight = subj.expanded ? expandedHeight : '0px';
+    const addChapterRow = el.querySelector('.add-row');
+    addChapterRow.style.display = subj.expanded ? 'flex' : 'none';
+    
+    if (subj.chapters.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = 'No chapters yet.';
       chapContainer.appendChild(empty);
     } else {
-      subj.chapters.forEach(ch=>{
-        const row=document.createElement('div'); 
-        row.className='chapter'; 
-        row.dataset.id=ch.id;
+      subj.chapters.forEach(ch => {
+        if (!('expanded' in ch)) ch.expanded = true;
+        const row = document.createElement('div');
+        row.className = 'chapter';
+        row.dataset.id = ch.id;
         
-        const cb=document.createElement('input'); 
-        cb.type='checkbox'; 
-        cb.checked=!!ch.done;
-        cb.addEventListener('change', ()=>{ 
-          ch.done=cb.checked; 
-          save(); 
-          render(); 
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!ch.done;
+        cb.addEventListener('change', () => {
+          ch.done = cb.checked;
+          if (ch.topics) {
+            ch.topics.forEach(t => t.done = ch.done);
+          }
+          save();
+          render();
         });
         
-        const label=document.createElement('div'); 
+        const label = document.createElement('div');
         label.className = 'chapter-label';
-        label.textContent=ch.name;
+        label.textContent = ch.name;
         
         const dragHandle = document.createElement('div');
         dragHandle.className = 'drag-handle';
         dragHandle.innerHTML = '<span class="drag-icon">⋮⋮</span>';
         dragHandle.title = 'Drag to reorder';
         
-        const actionsBtn=document.createElement('button'); 
-        actionsBtn.className='btn chapter-menu-btn'; 
-        actionsBtn.textContent='⋯';
+        const actionsBtn = document.createElement('button');
+        actionsBtn.className = 'btn chapter-menu-btn';
+        actionsBtn.textContent = '⋯';
         actionsBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const menu = row.querySelector('.chapter-menu');
+          const menu = row.querySelector('.item-menu');
           const isActive = menu.classList.contains('active');
           closeAllMenus();
           if (!isActive) {
@@ -562,166 +973,361 @@ function render(){
           }
         });
         
-        const menu=document.createElement('div'); 
-        menu.className='chapter-menu';
+        const menu = document.createElement('div');
+        menu.className = 'item-menu';
         
-        const editOption=document.createElement('button'); 
-        editOption.className='menu-option'; 
-        editOption.textContent='Edit';
-        editOption.addEventListener('click', ()=>{ 
-          const n=prompt('Edit chapter name:', ch.name); 
-          if(n && n.trim()!=='' && n.trim()!==ch.name){ 
-            ch.name=n.trim(); 
-            save(); 
-            render(); 
-          } 
-          closeAllMenus(); 
+        const editOption = document.createElement('button');
+        editOption.className = 'menu-option';
+        editOption.textContent = 'Edit';
+        editOption.addEventListener('click', () => {
+          const n = prompt('Edit chapter name:', ch.name);
+          if (n && n.trim() !== '' && n.trim() !== ch.name) {
+            ch.name = n.trim();
+            save();
+            render();
+          }
+          closeAllMenus();
         });
         
-        const deleteOption=document.createElement('button'); 
-        deleteOption.className='menu-option delete'; 
-        deleteOption.textContent='Delete';
-        deleteOption.addEventListener('click', ()=>{ 
-          if(confirm('Delete chapter "'+ch.name+'"?')){ 
-            subj.chapters=subj.chapters.filter(x=>x.id!==ch.id); 
-            save(); 
-            render(); 
-          } 
-          closeAllMenus(); 
+        const deleteOption = document.createElement('button');
+        deleteOption.className = 'menu-option delete';
+        deleteOption.textContent = 'Delete';
+        deleteOption.addEventListener('click', () => {
+          if (confirm('Delete chapter "' + ch.name + '"?')) {
+            subj.chapters = subj.chapters.filter(x => x.id !== ch.id);
+            save();
+            render();
+          }
+          closeAllMenus();
         });
         
-        menu.appendChild(editOption); 
+        menu.appendChild(editOption);
         menu.appendChild(deleteOption);
+        
+        const chStats = computeChapterProgress(ch);
+        const chapProgressRow = document.createElement('div');
+        chapProgressRow.className = 'small-progress-row';
+        const chapProgress = document.createElement('div');
+        chapProgress.className = 'progress-bar small-progress';
+        const chapFill = document.createElement('i');
+        chapFill.style.width = chStats.pct + '%';
+        const chColors = getProgressColors(chStats.pct);
+        chapFill.style.background = `linear-gradient(90deg, ${chColors.color1}, ${chColors.color2})`;
+        chapProgress.appendChild(chapFill);
+        const chapPct = document.createElement('div');
+        chapPct.className = 'small-pct';
+        chapPct.textContent = chStats.pct + '%';
+        chapProgressRow.appendChild(chapProgress);
+        chapProgressRow.appendChild(chapPct);
         
         const chapterContent = document.createElement('div');
         chapterContent.className = 'chapter-content';
         chapterContent.appendChild(cb);
         chapterContent.appendChild(dragHandle);
         chapterContent.appendChild(label);
+        chapterContent.appendChild(chapProgressRow);
         chapterContent.appendChild(actionsBtn);
         
         row.appendChild(chapterContent);
         row.appendChild(menu);
+        
+        const topicsContainer = document.createElement('div');
+        topicsContainer.className = 'topics';
+        topicsContainer.style.maxHeight = ch.expanded ? expandedHeight : '0px';
+        row.appendChild(topicsContainer);
+        
+        if (!ch.topics) ch.topics = [];
+        if (ch.topics.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.style.padding = '8px';
+          empty.textContent = 'No topics yet.';
+          topicsContainer.appendChild(empty);
+        } else {
+          ch.topics.forEach(t => {
+            const topicRow = document.createElement('div');
+            topicRow.className = 'topic';
+            topicRow.dataset.id = t.id;
+            
+            const topicCb = document.createElement('input');
+            topicCb.type = 'checkbox';
+            topicCb.checked = !!t.done;
+            topicCb.addEventListener('change', () => {
+              t.done = topicCb.checked;
+              save();
+              render();
+            });
+            
+            const topicLabel = document.createElement('div');
+            topicLabel.className = 'topic-label';
+            topicLabel.textContent = t.name;
+            
+            const topicDragHandle = document.createElement('div');
+            topicDragHandle.className = 'drag-handle';
+            topicDragHandle.innerHTML = '<span class="drag-icon">⋮⋮</span>';
+            topicDragHandle.title = 'Drag to reorder';
+            
+            const topicActionsBtn = document.createElement('button');
+            topicActionsBtn.className = 'btn chapter-menu-btn';
+            topicActionsBtn.textContent = '⋯';
+            topicActionsBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const topicMenu = topicRow.querySelector('.item-menu');
+              const isActive = topicMenu.classList.contains('active');
+              closeAllMenus();
+              if (!isActive) {
+                topicMenu.classList.add('active');
+              }
+            });
+            
+            const topicMenu = document.createElement('div');
+            topicMenu.className = 'item-menu';
+            
+            const topicEditOption = document.createElement('button');
+            topicEditOption.className = 'menu-option';
+            topicEditOption.textContent = 'Edit';
+            topicEditOption.addEventListener('click', () => {
+              const n = prompt('Edit topic name:', t.name);
+              if (n && n.trim() !== '' && n.trim() !== t.name) {
+                t.name = n.trim();
+                save();
+                render();
+              }
+              closeAllMenus();
+            });
+            
+            const topicDeleteOption = document.createElement('button');
+            topicDeleteOption.className = 'menu-option delete';
+            topicDeleteOption.textContent = 'Delete';
+            topicDeleteOption.addEventListener('click', () => {
+              if (confirm('Delete topic "' + t.name + '"?')) {
+                ch.topics = ch.topics.filter(x => x.id !== t.id);
+                save();
+                render();
+              }
+              closeAllMenus();
+            });
+            
+            topicMenu.appendChild(topicEditOption);
+            topicMenu.appendChild(topicDeleteOption);
+            
+            const topicContent = document.createElement('div');
+            topicContent.className = 'topic-content';
+            topicContent.appendChild(topicCb);
+            topicContent.appendChild(topicDragHandle);
+            topicContent.appendChild(topicLabel);
+            topicContent.appendChild(topicActionsBtn);
+            
+            topicRow.appendChild(topicContent);
+            topicRow.appendChild(topicMenu);
+            topicsContainer.appendChild(topicRow);
+            makeDraggable(topicRow, 'topic', '.drag-handle');
+          });
+        }
+        
+        const addTopicRow = document.createElement('div');
+        addTopicRow.className = 'add-row';
+        addTopicRow.style.marginTop = '6px';
+        addTopicRow.style.display = ch.expanded ? 'flex' : 'none';
+        const topicInput = document.createElement('input');
+        topicInput.className = 'input topicName';
+        topicInput.placeholder = 'New topic name';
+        const addTopicBtn = document.createElement('button');
+        addTopicBtn.className = 'btn addTopic';
+        addTopicBtn.textContent = 'Add';
+        addTopicBtn.addEventListener('click', () => {
+          const val = topicInput.value.trim();
+          if (!val) return;
+          ch.topics.push({id: uid(), name: val, done: false});
+          topicInput.value = '';
+          save();
+          render();
+        });
+        addTopicRow.appendChild(topicInput);
+        addTopicRow.appendChild(addTopicBtn);
+        row.appendChild(addTopicRow);
+        
+        chapterContent.addEventListener('dblclick', () => {
+          ch.expanded = !ch.expanded;
+          topicsContainer.style.maxHeight = ch.expanded ? expandedHeight : '0px';
+          addTopicRow.style.display = ch.expanded ? 'flex' : 'none';
+          save();
+          render();
+        });
+        
+        let lastTapChapter = 0;
+        chapterContent.addEventListener('touchend', (e) => {
+          if (dragManager.draggingElement) return;
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.drag-handle')) return;
+          const currentTime = new Date().getTime();
+          const tapLength = currentTime - lastTapChapter;
+          if (tapLength < 500 && tapLength > 0) {
+            ch.expanded = !ch.expanded;
+            topicsContainer.style.maxHeight = ch.expanded ? expandedHeight : '0px';
+            addTopicRow.style.display = ch.expanded ? 'flex' : 'none';
+            save();
+            render();
+            e.preventDefault();
+          }
+          lastTapChapter = currentTime;
+        });
+        
         chapContainer.appendChild(row);
         makeDraggable(row, 'chapter', '.drag-handle');
       });
     }
 
-    el.querySelector('.addChapter').addEventListener('click', ()=>{ 
-      const val=el.querySelector('.chapterName').value.trim(); 
-      if(!val) return; 
-      subj.chapters.push({id:uid(),name:val,done:false}); 
-      el.querySelector('.chapterName').value=''; 
-      save(); 
-      render(); 
+    el.querySelector('.addChapter').addEventListener('click', () => {
+      const val = el.querySelector('.chapterName').value.trim();
+      if (!val) return;
+      subj.chapters.push({id: uid(), name: val, done: false, topics: [], expanded: true});
+      el.querySelector('.chapterName').value = '';
+      save();
+      render();
     });
     
-    el.querySelector('.editSubj').addEventListener('click', ()=>{ 
-      const n=prompt('Rename subject',subj.name); 
-      if(!n) return; 
-      subj.name=n.trim(); 
-      save(); 
-      render(); 
+    el.querySelector('.editSubj').addEventListener('click', () => {
+      const n = prompt('Rename subject', subj.name);
+      if (!n) return;
+      subj.name = n.trim();
+      save();
+      render();
     });
     
-    el.querySelector('.delSubj').addEventListener('click', ()=>{ 
-      if(confirm('Delete subject "'+subj.name+'" and its chapters?')){ 
-        state.subjects=state.subjects.filter(s=>s.id!==subj.id); 
-        save(); 
-        render(); 
-      } 
+    el.querySelector('.delSubj').addEventListener('click', () => {
+      if (confirm('Delete subject "' + subj.name + '" and its chapters?')) {
+        state.subjects = state.subjects.filter(s => s.id !== subj.id);
+        save();
+        render();
+      }
+    });
+
+    const subjectTitleContainer = el.querySelector('.subject-title-container');
+    subjectTitleContainer.addEventListener('dblclick', () => {
+      subj.expanded = !subj.expanded;
+      chapContainer.style.maxHeight = subj.expanded ? expandedHeight : '0px';
+      addChapterRow.style.display = subj.expanded ? 'flex' : 'none';
+      save();
+      render();
+    });
+
+    let lastTapSubject = 0;
+    subjectTitleContainer.addEventListener('touchend', (e) => {
+      if (dragManager.draggingElement) return;
+      if (e.target.closest('.drag-handle')) return;
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTapSubject;
+      if (tapLength < 500 && tapLength > 0) {
+        subj.expanded = !subj.expanded;
+        chapContainer.style.maxHeight = subj.expanded ? expandedHeight : '0px';
+        addChapterRow.style.display = subj.expanded ? 'flex' : 'none';
+        save();
+        render();
+        e.preventDefault();
+      }
+      lastTapSubject = currentTime;
     });
     
     grid.appendChild(el);
     makeDraggable(el, 'subject', '.drag-handle');
   }
   
-  const totalPct = (totCh === 0 ? 0 : Math.round(totDone / totCh * 100));
+  const totalPct = (totTotal === 0 ? 0 : Math.round(totDone / totTotal * 100));
   const totalFill = $('#totalFill');
   totalFill.style.width = totalPct + '%';
   const totalColors = getProgressColors(totalPct);
   totalFill.style.background = `linear-gradient(90deg, ${totalColors.color1}, ${totalColors.color2})`;
   $('#totalPct').textContent = totalPct + '%';
+
+  restoreScrollPositions(scrollState);
 }
 
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.chapter-menu, .chapter-menu-btn')) {
+    if (!e.target.closest('.item-menu, .chapter-menu-btn')) {
         closeAllMenus();
     }
 });
-$('#addSubjectBtn').addEventListener('click', ()=>{ 
-  const n=prompt('Subject name (e.g. Physics)'); 
-  if(!n) return; 
-  state.subjects.push({id:uid(),name:n.trim(),chapters:[]}); 
-  save(); 
-  render(); 
-});
-$('#resetBtn').addEventListener('click', ()=>{ 
-  if(confirm('Clear all saved data?')){ 
-    state={subjects:[]}; 
-    save(); 
-    sessionStorage.removeItem(BACKUP_KEY); 
-    $('#importSample').textContent='Load Example'; 
-    render(); 
-  } 
-});
-$('#exportBtn').addEventListener('click', ()=>{
-  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); 
-  a.href=URL.createObjectURL(blob); 
-  a.download='study-progress.json'; 
-  document.body.appendChild(a); 
-  a.click(); 
-  a.remove();
-});
-$('#import').addEventListener('change', ev=>{ 
-  const f=ev.target.files[0]; 
-  if(!f) return; 
-  const r=new FileReader(); 
-  r.onload=e=>{ 
-    try{ 
-      const imp=JSON.parse(e.target.result); 
-      if(imp && Array.isArray(imp.subjects)){ 
-        state=imp; 
-        save(); 
-        render(); 
-        alert('Imported successfully'); 
-      } else alert('Invalid file format'); 
-    } catch(err){ 
-      alert('Invalid JSON'); 
-    } 
-  }; 
-  r.readAsText(f); 
-  ev.target.value=''; 
-});
-$('#importSample').addEventListener('click', e=>{
-  const btn=e.target; 
-  const backup=sessionStorage.getItem(BACKUP_KEY);
-  if(backup){ 
-    state=JSON.parse(backup); 
-    sessionStorage.removeItem(BACKUP_KEY); 
-    btn.textContent='Load Example'; 
-  } else { 
-    sessionStorage.setItem(BACKUP_KEY,JSON.stringify(state));
-    const sample={ subjects:[
-      {id:uid(),name:'Physics (Sample)',chapters:[{id:uid(),name:'Kinematics',done:true},{id:uid(),name:'Dynamics',done:false},{id:uid(),name:'Work & Energy',done:false}]},
-      {id:uid(),name:'Chemistry (Sample)',chapters:[{id:uid(),name:'Atomic Structure',done:true},{id:uid(),name:'Periodic Table',done:true}]},
-      {id:uid(),name:'Math (Sample)',chapters:[{id:uid(),name:'Limits',done:false},{id:uid(),name:'Derivatives',done:false}]}
-    ]};
-    state=sample; 
-    btn.textContent='Unload Example';
-  }
-  save(); 
+$('#addSubjectBtn').addEventListener('click', () => {
+  const n = prompt('Subject name (e.g. Physics)');
+  if (!n) return;
+  state.subjects.push({id: uid(), name: n.trim(), chapters: [], expanded: true});
+  save();
   render();
 });
-$('#shareBtn').addEventListener('click', ()=>{ 
-  navigator.clipboard.writeText(JSON.stringify(state)).then(()=>alert('Copied JSON to clipboard — share it or paste in Import.')); 
+$('#resetBtn').addEventListener('click', () => {
+  if (confirm('Clear all saved data?')) {
+    state = {subjects: []};
+    save();
+    sessionStorage.removeItem(BACKUP_KEY);
+    $('#importSample').textContent = 'Load Example';
+    render();
+  }
+});
+$('#exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'study-progress.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+});
+$('#import').addEventListener('change', ev => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const imp = JSON.parse(e.target.result);
+      if (imp && Array.isArray(imp.subjects)) {
+        state = imp;
+        save();
+        render();
+        alert('Imported successfully');
+      } else alert('Invalid file format');
+    } catch (err) {
+      alert('Invalid JSON');
+    }
+  };
+  r.readAsText(f);
+  ev.target.value = '';
+});
+$('#importSample').addEventListener('click', e => {
+  const btn = e.target;
+  const backup = sessionStorage.getItem(BACKUP_KEY);
+  if (backup) {
+    state = JSON.parse(backup);
+    sessionStorage.removeItem(BACKUP_KEY);
+    btn.textContent = 'Load Example';
+  } else {
+    sessionStorage.setItem(BACKUP_KEY, JSON.stringify(state));
+    const sample = { subjects: [
+      {id: uid(), name: 'Physics (Sample)', chapters: [
+        {id: uid(), name: 'Kinematics', done: true, topics: [{id: uid(), name: '1D Motion', done: true}, {id: uid(), name: '2D Motion', done: false}], expanded: true},
+        {id: uid(), name: 'Dynamics', done: false, topics: [{id: uid(), name: "Newton's Laws", done: false}, {id: uid(), name: 'Friction', done: false}], expanded: true},
+        {id: uid(), name: 'Work & Energy', done: false, topics: [], expanded: true}
+      ], expanded: true},
+      {id: uid(), name: 'Chemistry (Sample)', chapters: [
+        {id: uid(), name: 'Atomic Structure', done: true, topics: [{id: uid(), name: 'Bohr Model', done: true}], expanded: true},
+        {id: uid(), name: 'Periodic Table', done: true, topics: [{id: uid(), name: 'Groups', done: true}, {id: uid(), name: 'Periods', done: false}], expanded: true}
+      ], expanded: true},
+      {id: uid(), name: 'Math (Sample)', chapters: [
+        {id: uid(), name: 'Limits', done: false, topics: [], expanded: true},
+        {id: uid(), name: 'Derivatives', done: false, topics: [{id: uid(), name: 'Chain Rule', done: false}], expanded: true}
+      ], expanded: true}
+    ]};
+    state = sample;
+    btn.textContent = 'Unload Example';
+  }
+  save();
+  render();
+});
+$('#shareBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(JSON.stringify(state)).then(() => alert('Copied JSON to clipboard — share it or paste in Import.'));
 });
 
-load(); 
-render();
-if(sessionStorage.getItem(BACKUP_KEY)) $('#importSample').textContent='Unload Example';
-setInterval(save,10);
+// Initial load handled in onAuthStateChanged
+setInterval(save, 10000); // Increased interval to 10 seconds
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     save();
