@@ -11,13 +11,13 @@
 *{box-sizing:border-box}
 body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,var(--bg),#061122);color:#e6eef6;min-height:100vh;display:flex;flex-direction:column;}
 .container{max-width:980px;margin:0 auto;flex:1;width:100%;padding: 24px;}
-.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;}
-.header h1{font-size:20px;margin:0}
+.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;padding:12px;background:var(--card);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);position:sticky;top:0;z-index:10;}
+.header h1{font-size:20px;margin:0;text-shadow:0 1px 2px rgba(125,211,252,0.3);}
 .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;cursor:pointer;transition:all 0.15s ease;}
-.btn:hover{background:rgba(255,255,255,0.06);transform:translateY(-1px);}
+.btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;cursor:pointer;transition:all 0.15s ease;font-size:14px;min-height:44px;}
+.btn:hover{background:rgba(255,255,255,0.06);transform:translateY(-1px);box-shadow:0 2px 6px rgba(125,211,252,0.1);}
 .btn.strong{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#022; font-weight:700}
-.btn.strong:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(125, 211, 252, 0.2);}
+.btn.strong:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(125, 211, 252, 0.3);}
 .overview{display:flex;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
 .progress-big{flex:1;background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;min-width:280px;}
 .progress-row{display:flex;align-items:center;gap:12px}
@@ -121,6 +121,38 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 .no-select { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .touch-dragging { transition: none !important; }
 
+#hamburger {
+  display: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: var(--accent);
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: transform 0.15s ease;
+}
+#hamburger:hover {
+  transform: scale(1.1);
+  background: var(--glass);
+}
+
+.onboarding {
+  text-align: center;
+  padding: 24px;
+  background: var(--glass);
+  border-radius: 12px;
+  margin: 12px 0;
+  box-shadow: 0 4px 12px rgba(125, 211, 252, 0.1);
+  color: var(--muted);
+}
+.onboarding p {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.onboarding .btn {
+  font-size: 16px;
+  padding: 12px 16px;
+}
+
 @media (min-width: 1280px) {
   .container {
     max-width: 1280px;
@@ -133,13 +165,36 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
 @media (max-width: 768px) {
   .container { padding: 12px; }
   .grid { grid-template-columns: 1fr; }
-  .header { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .controls { width: 100%; justify-content: space-between; }
+  .header { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 8px; border-radius: 0 0 12px 12px; }
+  #hamburger { display: block; }
+  .controls {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--card);
+    padding: 12px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    flex-direction: column;
+    gap: 8px;
+    width: 200px;
+    z-index: 9;
+  }
+  .controls.active {
+    display: flex;
+  }
+  .controls > * {
+    width: 100%;
+    margin: 0;
+    text-align: center;
+  }
   .progress-big { min-width: 100%; }
   .footer { flex-direction: column; gap: 12px; }
   .actions { justify-content: center; width: 100%; }
   .drag-handle { padding: 8px; }
-  .btn { padding: 10px 12px; min-height: 44px; }
+  .btn { padding: 10px 12px; min-height: 44px; font-size: 15px; }
+  .btn.strong { font-size: 16px; padding: 12px 14px; }
   .item-menu { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 280px; }
   
   /* Fix for topics on mobile */
@@ -177,9 +232,11 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   }
 }
 @media (max-width: 560px){
-  .header{flex-direction:column;align-items:flex-start;gap:8px}
-  .controls{flex-direction:column;align-items:flex-start;width:100%;}
-  .btn { width: 100%; }
+  .header{flex-direction:row;align-items:center;gap:8px;padding:8px;}
+  .header h1{font-size:18px;}
+  .controls{flex-direction:column;gap:6px;width:180px;}
+  .btn { flex: 1 1 100%; font-size: 14px; padding: 8px; text-align: center; }
+  .btn.strong { font-size: 16px; padding: 12px; }
   .subject-header { flex-direction: column; align-items: flex-start; }
   .subject-actions { width: 100%; justify-content: space-between; }
   .chapter-content { flex-wrap: wrap; }
@@ -287,12 +344,88 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   margin-top: 16px;
   color: var(--muted);
 }
+
+/* New: Styles for mobile step-by-step guide */
+.guide-modal {
+  display: none;
+  position: fixed;
+  z-index: 1001;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.7);
+  justify-content: center;
+  align-items: center;
+}
+.guide-content {
+  background: var(--card);
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 90%;
+  width: 320px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  text-align: center;
+}
+.step {
+  display: none;
+}
+.step.active {
+  display: block;
+}
+.guide-content h2 {
+  margin: 0 0 12px 0;
+}
+.guide-content p {
+  font-size: 14px;
+  margin-bottom: 16px;
+  color: var(--muted);
+}
+.guide-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+.guide-nav .btn {
+  flex: 1;
+  margin: 0 4px;
+}
+
+/* Step indicators */
+#stepIndicators {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.step-indicator {
+  height: 12px;
+  width: 12px;
+  margin: 0 4px;
+  background-color: var(--muted);
+  border: none;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.5;
+  transition: opacity 0.3s, background-color 0.3s;
+}
+.step-indicator.active {
+  opacity: 1;
+  background-color: var(--accent);
+}
+
+/* Make tip section appear only on smaller screens */
+@media (min-width: 769px) {
+  #footerTip {
+    display: none;
+  }
+}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <h1>Study Progress Tracker</h1>
+    <span id="hamburger">☰</span>
     <div class="controls">
       <button class="btn" id="exportBtn">Export JSON</button>
       <label class="btn" for="import">Import JSON</label>
@@ -340,6 +473,39 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
     <h2 style="margin: 0 0 16px 0; text-align: center;">Sign In / Sign Up</h2>
     <div id="firebaseui-auth-container"></div>
     <div id="auth-loader">Loading...</div>
+  </div>
+</div>
+
+<!-- New: Modal for mobile step-by-step guide -->
+<div id="guideModal" class="guide-modal">
+  <div class="guide-content">
+    <div id="stepIndicators">
+      <span class="step-indicator"></span>
+      <span class="step-indicator"></span>
+      <span class="step-indicator"></span>
+      <span class="step-indicator"></span>
+    </div>
+    <div id="step1" class="step">
+      <h2>Welcome to Study Progress Tracker!</h2>
+      <p>This app helps you organize and track your study progress across subjects, chapters, and topics. See real-time progress bars as you complete items.</p>
+    </div>
+    <div id="step2" class="step">
+      <h2>Step 1: Add Subjects</h2>
+      <p>Tap the "+ Add Subject" button in the menu (accessed via the ☰ icon) to create your first subject, like "Physics" or "Math".</p>
+    </div>
+    <div id="step3" class="step">
+      <h2>Step 2: Add Chapters and Topics</h2>
+      <p>Inside a subject, add chapters (e.g., "Kinematics"). Then, add topics within chapters (e.g., "1D Motion"). Topics help refine your progress tracking.</p>
+    </div>
+    <div id="step4" class="step">
+      <h2>Step 3: Track and Manage Progress</h2>
+      <p>Check off completed topics/chapters to update progress bars. Drag to reorder, double-tap to expand/collapse, and use menus for editing/deleting.</p>
+    </div>
+    <div class="guide-nav">
+      <button id="guidePrev" class="btn">Previous</button>
+      <button id="guideNext" class="btn">Next</button>
+      <button id="guideFinish" class="btn strong" style="display:none;">Finish</button>
+    </div>
   </div>
 </div>
 
@@ -905,8 +1071,9 @@ function render(){
   const grid = $('#subjectsGrid');
   grid.innerHTML = '';
   
-  let totTotal = 0, totDone = 0;
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  
+  let totTotal = 0, totDone = 0;
   const expandedHeight = isMobile ? '300px' : '500px';
   for (const subj of state.subjects) {
     if (!('expanded' in subj)) subj.expanded = true;
@@ -1250,12 +1417,24 @@ function render(){
   $('#totalPct').textContent = totalPct + '%';
 
   restoreScrollPositions(scrollState);
+
+  // New: Show mobile guide if applicable
+  if (isMobile && state.subjects.length === 0) {
+    showGuide();
+  }
 }
 
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.item-menu, .chapter-menu-btn')) {
         closeAllMenus();
     }
+    if (!e.target.closest('#hamburger, .controls')) {
+      $('.controls').classList.remove('active');
+    }
+});
+$('#hamburger').addEventListener('click', (e) => {
+  e.stopPropagation();
+  $('.controls').classList.toggle('active');
 });
 $('#addSubjectBtn').addEventListener('click', () => {
   const n = prompt('Subject name (e.g. Physics)');
@@ -1335,6 +1514,51 @@ $('#importSample').addEventListener('click', e => {
 $('#shareBtn').addEventListener('click', () => {
   navigator.clipboard.writeText(JSON.stringify(state)).then(() => alert('Copied JSON to clipboard — share it or paste in Import.'));
 });
+
+// New: Mobile guide logic
+let currentGuideStep = 0;
+const guideSteps = $$('.step');
+const stepIndicators = $$('.step-indicator');
+
+function showGuide() {
+  const modal = $('#guideModal');
+  modal.style.display = 'flex';
+  currentGuideStep = 0;
+  showGuideTab(currentGuideStep);
+}
+
+function showGuideTab(n) {
+  guideSteps.forEach(s => s.classList.remove('active'));
+  stepIndicators.forEach(i => i.classList.remove('active'));
+  guideSteps[n].classList.add('active');
+  stepIndicators[n].classList.add('active');
+
+  if (n == 0) {
+    $('#guidePrev').style.display = 'none';
+  } else {
+    $('#guidePrev').style.display = 'block';
+  }
+  if (n == (guideSteps.length - 1)) {
+    $('#guideNext').style.display = 'none';
+    $('#guideFinish').style.display = 'block';
+  } else {
+    $('#guideNext').style.display = 'block';
+    $('#guideFinish').style.display = 'none';
+  }
+}
+
+function nextPrevGuide(n) {
+  currentGuideStep = currentGuideStep + n;
+  if (currentGuideStep >= guideSteps.length) {
+    $('#guideModal').style.display = 'none';
+    return false;
+  }
+  showGuideTab(currentGuideStep);
+}
+
+$('#guidePrev').addEventListener('click', () => nextPrevGuide(-1));
+$('#guideNext').addEventListener('click', () => nextPrevGuide(1));
+$('#guideFinish').addEventListener('click', () => nextPrevGuide(1));
 
 // Initial load handled in onAuthStateChanged
 setInterval(save, 10000); // Increased interval to 10 seconds
