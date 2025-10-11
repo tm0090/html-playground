@@ -412,6 +412,13 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   opacity: 1;
   background-color: var(--accent);
 }
+
+/* Make tip section appear only on smaller screens */
+@media (min-width: 769px) {
+  #footerTip {
+    display: none;
+  }
+}
 </style>
 </head>
 <body>
@@ -1066,16 +1073,6 @@ function render(){
   
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
   
-  if (state.subjects.length === 0) {
-    const onboarding = document.createElement('div');
-    onboarding.className = 'onboarding';
-    onboarding.innerHTML = `
-      <p>Get started by adding your first subject!</p>
-      <button class="btn strong" onclick="addFirstSubject()">Add Subject</button>
-    `;
-    grid.appendChild(onboarding);
-  }
-  
   let totTotal = 0, totDone = 0;
   const expandedHeight = isMobile ? '300px' : '500px';
   for (const subj of state.subjects) {
@@ -1425,14 +1422,6 @@ function render(){
   if (isMobile && state.subjects.length === 0) {
     showGuide();
   }
-}
-
-function addFirstSubject() {
-  const n = prompt('Subject name (e.g. Physics)');
-  if (!n) return;
-  state.subjects.push({id: uid(), name: n.trim(), chapters: [], expanded: true});
-  save();
-  render();
 }
 
 document.addEventListener('click', (e) => {
