@@ -135,6 +135,24 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   background: var(--glass);
 }
 
+.onboarding {
+  text-align: center;
+  padding: 24px;
+  background: var(--glass);
+  border-radius: 12px;
+  margin: 12px 0;
+  box-shadow: 0 4px 12px rgba(125, 211, 252, 0.1);
+  color: var(--muted);
+}
+.onboarding p {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.onboarding .btn {
+  font-size: 16px;
+  padding: 12px 16px;
+}
+
 @media (min-width: 1280px) {
   .container {
     max-width: 1280px;
@@ -326,6 +344,74 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   margin-top: 16px;
   color: var(--muted);
 }
+
+/* New: Styles for mobile step-by-step guide */
+.guide-modal {
+  display: none;
+  position: fixed;
+  z-index: 1001;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.7);
+  justify-content: center;
+  align-items: center;
+}
+.guide-content {
+  background: var(--card);
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 90%;
+  width: 320px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  text-align: center;
+}
+.step {
+  display: none;
+}
+.step.active {
+  display: block;
+}
+.guide-content h2 {
+  margin: 0 0 12px 0;
+}
+.guide-content p {
+  font-size: 14px;
+  margin-bottom: 16px;
+  color: var(--muted);
+}
+.guide-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+.guide-nav .btn {
+  flex: 1;
+  margin: 0 4px;
+}
+
+/* Step indicators */
+#stepIndicators {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.step-indicator {
+  height: 12px;
+  width: 12px;
+  margin: 0 4px;
+  background-color: var(--muted);
+  border: none;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.5;
+  transition: opacity 0.3s, background-color 0.3s;
+}
+.step-indicator.active {
+  opacity: 1;
+  background-color: var(--accent);
+}
 </style>
 </head>
 <body>
@@ -380,6 +466,39 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
     <h2 style="margin: 0 0 16px 0; text-align: center;">Sign In / Sign Up</h2>
     <div id="firebaseui-auth-container"></div>
     <div id="auth-loader">Loading...</div>
+  </div>
+</div>
+
+<!-- New: Modal for mobile step-by-step guide -->
+<div id="guideModal" class="guide-modal">
+  <div class="guide-content">
+    <div id="stepIndicators">
+      <span class="step-indicator"></span>
+      <span class="step-indicator"></span>
+      <span class="step-indicator"></span>
+      <span class="step-indicator"></span>
+    </div>
+    <div id="step1" class="step">
+      <h2>Welcome to Study Progress Tracker!</h2>
+      <p>This app helps you organize and track your study progress across subjects, chapters, and topics. See real-time progress bars as you complete items.</p>
+    </div>
+    <div id="step2" class="step">
+      <h2>Step 1: Add Subjects</h2>
+      <p>Tap the "+ Add Subject" button in the menu (accessed via the ☰ icon) to create your first subject, like "Physics" or "Math".</p>
+    </div>
+    <div id="step3" class="step">
+      <h2>Step 2: Add Chapters and Topics</h2>
+      <p>Inside a subject, add chapters (e.g., "Kinematics"). Then, add topics within chapters (e.g., "1D Motion"). Topics help refine your progress tracking.</p>
+    </div>
+    <div id="step4" class="step">
+      <h2>Step 3: Track and Manage Progress</h2>
+      <p>Check off completed topics/chapters to update progress bars. Drag to reorder, double-tap to expand/collapse, and use menus for editing/deleting.</p>
+    </div>
+    <div class="guide-nav">
+      <button id="guidePrev" class="btn">Previous</button>
+      <button id="guideNext" class="btn">Next</button>
+      <button id="guideFinish" class="btn strong" style="display:none;">Finish</button>
+    </div>
   </div>
 </div>
 
@@ -945,8 +1064,19 @@ function render(){
   const grid = $('#subjectsGrid');
   grid.innerHTML = '';
   
-  let totTotal = 0, totDone = 0;
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  
+  if (state.subjects.length === 0) {
+    const onboarding = document.createElement('div');
+    onboarding.className = 'onboarding';
+    onboarding.innerHTML = `
+      <p>Get started by adding your first subject!</p>
+      <button class="btn strong" onclick="addFirstSubject()">Add Subject</button>
+    `;
+    grid.appendChild(onboarding);
+  }
+  
+  let totTotal = 0, totDone = 0;
   const expandedHeight = isMobile ? '300px' : '500px';
   for (const subj of state.subjects) {
     if (!('expanded' in subj)) subj.expanded = true;
@@ -1290,6 +1420,19 @@ function render(){
   $('#totalPct').textContent = totalPct + '%';
 
   restoreScrollPositions(scrollState);
+
+  // New: Show mobile guide if applicable
+  if (isMobile && state.subjects.length === 0) {
+    showGuide();
+  }
+}
+
+function addFirstSubject() {
+  const n = prompt('Subject name (e.g. Physics)');
+  if (!n) return;
+  state.subjects.push({id: uid(), name: n.trim(), chapters: [], expanded: true});
+  save();
+  render();
 }
 
 document.addEventListener('click', (e) => {
@@ -1382,6 +1525,51 @@ $('#importSample').addEventListener('click', e => {
 $('#shareBtn').addEventListener('click', () => {
   navigator.clipboard.writeText(JSON.stringify(state)).then(() => alert('Copied JSON to clipboard — share it or paste in Import.'));
 });
+
+// New: Mobile guide logic
+let currentGuideStep = 0;
+const guideSteps = $$('.step');
+const stepIndicators = $$('.step-indicator');
+
+function showGuide() {
+  const modal = $('#guideModal');
+  modal.style.display = 'flex';
+  currentGuideStep = 0;
+  showGuideTab(currentGuideStep);
+}
+
+function showGuideTab(n) {
+  guideSteps.forEach(s => s.classList.remove('active'));
+  stepIndicators.forEach(i => i.classList.remove('active'));
+  guideSteps[n].classList.add('active');
+  stepIndicators[n].classList.add('active');
+
+  if (n == 0) {
+    $('#guidePrev').style.display = 'none';
+  } else {
+    $('#guidePrev').style.display = 'block';
+  }
+  if (n == (guideSteps.length - 1)) {
+    $('#guideNext').style.display = 'none';
+    $('#guideFinish').style.display = 'block';
+  } else {
+    $('#guideNext').style.display = 'block';
+    $('#guideFinish').style.display = 'none';
+  }
+}
+
+function nextPrevGuide(n) {
+  currentGuideStep = currentGuideStep + n;
+  if (currentGuideStep >= guideSteps.length) {
+    $('#guideModal').style.display = 'none';
+    return false;
+  }
+  showGuideTab(currentGuideStep);
+}
+
+$('#guidePrev').addEventListener('click', () => nextPrevGuide(-1));
+$('#guideNext').addEventListener('click', () => nextPrevGuide(1));
+$('#guideFinish').addEventListener('click', () => nextPrevGuide(1));
 
 // Initial load handled in onAuthStateChanged
 setInterval(save, 10000); // Increased interval to 10 seconds
