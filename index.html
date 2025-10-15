@@ -5,106 +5,491 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Study Progress Tracker</title>
 <style>
-:root{
-  --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#7dd3fc; --accent-2:#60a5fa; --glass: rgba(255,255,255,0.03);
+:root {
+  --bg: #0f1724;
+  --card: #0b1220;
+  --muted: #9aa4b2;
+  --accent: #7dd3fc;
+  --accent-2: #60a5fa;
+  --glass: rgba(255,255,255,0.03);
 }
-*{box-sizing:border-box}
-body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,var(--bg),#061122);color:#e6eef6;min-height:100vh;display:flex;flex-direction:column;}
-.container{max-width:980px;margin:0 auto;flex:1;width:100%;padding: 24px;}
-.header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;padding:12px;background:var(--card);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);position:sticky;top:0;z-index:10;}
-.header h1{font-size:20px;margin:0;text-shadow:0 1px 2px rgba(125,211,252,0.3);}
-.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;cursor:pointer;transition:all 0.15s ease;font-size:14px;min-height:44px;}
-.btn:hover{background:rgba(255,255,255,0.06);transform:translateY(-1px);box-shadow:0 2px 6px rgba(125,211,252,0.1);}
-.btn.strong{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#022; font-weight:700}
-.btn.strong:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(125, 211, 252, 0.3);}
-.overview{display:flex;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
-.progress-big{flex:1;background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;min-width:280px;}
-.progress-row{display:flex;align-items:center;gap:12px}
-.progress-bar{height:12px;background:rgba(255,255,255,0.04);border-radius:999px;flex:1;overflow:hidden;position:relative}
-.progress-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%;transition:width 0.3s ease;}
-.small{font-size:13px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;width:100%;}
-.card{background:var(--card);padding:12px;border-radius:12px;min-height:120px;width:100%;
-    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+* { box-sizing: border-box; }
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  margin: 0;
+  background: linear-gradient(180deg, var(--bg), #061122);
+  color: #e6eef6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2);}
-.card h3{margin:0 0 8px 0;font-size:16px;cursor:grab;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.chapters{display:flex;flex-direction:column;gap:6px;overflow:auto;padding-right:6px;width:100%;transition: max-height 0.3s ease;}
-.chapter{display:flex;align-items:flex-start;gap:8px;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px; position: relative; width:100%; flex-direction:column;
-    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  flex: 1;
+  width: 100%;
+  padding: 24px;
 }
-.chapter:hover{background:rgba(255,255,255,0.04);transform:translateX(4px);}
-.chapter .drag-handle { cursor: grab; padding: 4px; transition: color 0.15s ease, transform 0.15s ease; flex-shrink:0; touch-action: none; }
-.chapter .drag-handle:hover { color: var(--accent); transform: scale(1.1); }
-.subject-card .drag-handle { cursor: grab; padding: 6px; transition: color 0.15s ease, transform 0.15s ease; flex-shrink:0; touch-action: none; }
-.subject-card .drag-handle:hover { color: var(--accent); transform: scale(1.1); }
-.subject-card.dragging{opacity: 0.9; transform: rotate(2deg) scale(1.03); box-shadow: 0 15px 30px rgba(0,0,0,0.4); z-index: 1000; filter: brightness(1.1);}
-.chapter.dragging{opacity: 0.9; transform: rotate(1deg) scale(1.02); box-shadow: 0 6px 16px rgba(0,0,0,0.3); z-index: 1000; filter: brightness(1.1);}
-.drag-placeholder{opacity:0.2; border:2px dashed var(--accent); border-radius:10px; background:var(--glass); animation: pulse 1s infinite;flex-shrink:0;}
-.add-row{display:flex;gap:6px;margin-top:8px;width:100%;flex-wrap:wrap;}
-.input, .select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:inherit;outline:none;transition:border 0.15s ease;flex:1;min-width:120px;}
-.input:focus, .select:focus{border-color:var(--accent);}
-.footer{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;}
-.smallnote{color:var(--muted);font-size:13px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;}
-.importfile{display:none}
-.switch{display:inline-flex;align-items:center;gap:6px}
-.dark-toggle{cursor:pointer;padding:6px;border-radius:8px}
-.empty{opacity:0.6;color:var(--muted);padding:18px;text-align:center}
-.devnote{text-align:center;font-size:12px;color:var(--muted);margin-top:18px;}
+.header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header h1 {
+  font-size: 20px;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(125,211,252,0.3);
+}
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn {
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 14px;
+  min-height: 44px;
+}
+.btn:hover {
+  background: rgba(255,255,255,0.06);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(125,211,252,0.1);
+}
+.btn.strong {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #022;
+  font-weight: 700;
+}
+.btn.strong:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(125, 211, 252, 0.3);
+}
+.overview {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.progress-big {
+  flex: 1;
+  background: rgba(255,255,255,0.03);
+  padding: 12px;
+  border-radius: 10px;
+  min-width: 280px;
+}
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.progress-bar {
+  height: 12px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 999px;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.progress-bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.small {
+  font-size: 13px;
+  color: var(--muted);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+.card {
+  background: var(--card);
+  padding: 12px;
+  border-radius: 12px;
+  min-height: 120px;
+  width: 100%;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.card h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+  padding-right: 6px;
+  width: 100%;
+  transition: max-height 0.3s ease;
+}
+.chapter {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(255,255,255,0.02);
+  padding: 8px;
+  border-radius: 8px;
+  position: relative;
+  width: 100%;
+  flex-direction: column;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+.chapter:hover {
+  background: rgba(255,255,255,0.04);
+  transform: translateX(4px);
+}
+.chapter .drag-handle {
+  cursor: grab;
+  padding: 4px;
+  transition: color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  touch-action: none;
+}
+.chapter .drag-handle:hover {
+  color: var(--accent);
+  transform: scale(1.1);
+}
+.subject-card .drag-handle {
+  cursor: grab;
+  padding: 6px;
+  transition: color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  touch-action: none;
+}
+.subject-card .drag-handle:hover {
+  color: var(--accent);
+  transform: scale(1.1);
+}
+.subject-card.dragging {
+  opacity: 0.9;
+  transform: rotate(2deg) scale(1.03);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+  z-index: 1000;
+  filter: brightness(1.1);
+}
+.chapter.dragging {
+  opacity: 0.9;
+  transform: rotate(1deg) scale(1.02);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  z-index: 1000;
+  filter: brightness(1.1);
+}
+.drag-placeholder {
+  opacity: 0.2;
+  border: 2px dashed var(--accent);
+  border-radius: 10px;
+  background: var(--glass);
+  animation: pulse 1s infinite;
+  flex-shrink: 0;
+}
+.add-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.input, .select {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 8px;
+  border-radius: 8px;
+  color: inherit;
+  outline: none;
+  transition: border 0.15s ease;
+  flex: 1;
+  min-width: 120px;
+}
+.input:focus, .select:focus {
+  border-color: var(--accent);
+}
+.footer {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.smallnote {
+  color: var(--muted);
+  font-size: 13px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.importfile {
+  display: none;
+}
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dark-toggle {
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+}
+.empty {
+  opacity: 0.6;
+  color: var(--muted);
+  padding: 18px;
+  text-align: center;
+}
+.devnote {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 18px;
+}
 .item-menu {
-  display: none; position: absolute; right: 0; top: 36px; background-color: #1a273b; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 4px; z-index: 10; min-width: 120px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: slideDown 0.15s ease-out;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 36px;
+  background-color: #1a273b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 10;
+  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: slideDown 0.15s ease-out;
 }
-.item-menu.active { display: block; }
+.item-menu.active {
+  display: block;
+}
 .menu-option {
-  display: block; width: 100%; background: none; border: none; color: inherit; font-family: inherit; padding: 8px 10px; text-align: left; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.15s ease;
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  padding: 8px 10px;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s ease;
 }
-.menu-option:hover { background: rgba(255,255,255,0.05); }
-.menu-option.delete { color: #fca5a5; }
-
+.menu-option:hover {
+  background: rgba(255,255,255,0.05);
+}
+.menu-option.delete {
+  color: #fca5a5;
+}
 .drag-ghost {
-  position: fixed; pointer-events: none; z-index: 10000; opacity: 0.9;
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0.9;
   will-change: transform;
   transition: none;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4); border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  border-radius: 10px;
   filter: brightness(1.1) saturate(1.2);
   transform-origin: center;
 }
 .drag-over {
-  background: rgba(125, 211, 252, 0.1); border: 1px dashed var(--accent); transform: scale(1.01); transition: all 0.1s ease;
+  background: rgba(125, 211, 252, 0.1);
+  border: 1px dashed var(--accent);
+  transform: scale(1.01);
+  transition: all 0.1s ease;
 }
-.drag-handle:active, .subject-card h3:active { cursor: grabbing; }
-.drag-success { animation: bounce 0.4s ease; }
-.drag-icon { display: inline-block; font-size: 16px; color: var(--muted); transition: all 0.15s ease; }
-.drag-handle:hover .drag-icon { color: var(--accent); transform: scale(1.2); }
-.chapter-content { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; cursor: pointer; }
-.chapter-label { flex: 1; min-width: 0; white-space: normal; font-weight: bold; }
-.subject-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; }
-.subject-title-container { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: 1; min-width: 0; cursor: pointer; }
-.subject-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: bold; }
-.subject-stats { font-size: 13px; color: var(--muted); }
-.subject-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
-
-.topics {display:flex; flex-direction:column; gap:6px; margin-top:6px; padding-right:6px; overflow: auto; transition: max-height 0.3s ease; width: 100%; }
-.topic {display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.02); padding:6px; border-radius:6px; position: relative; width:100%;
-    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+.drag-handle:active, .subject-card h3:active {
+  cursor: grabbing;
 }
-.topic:hover {background:rgba(255,255,255,0.04);transform:translateX(2px);}
-.topic .drag-handle { cursor: grab; padding: 3px; transition: color 0.15s ease, transform 0.15s ease; flex-shrink:0; touch-action: none; }
-.topic .drag-handle:hover { color: var(--accent); transform: scale(1.1); }
-.topic.dragging{opacity: 0.9; transform: rotate(1deg) scale(1.02); box-shadow: 0 6px 16px rgba(0,0,0,0.3); z-index: 1000; filter: brightness(1.1);}
-.topic input[type=checkbox]{width:14px;height:14px;flex-shrink:0;}
-.topic-content { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; }
-.topic-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.small-progress-row { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.small-progress { height: 8px; width: 50px; border-radius: 999px; flex-shrink: 0; }
-.small-pct { min-width: 30px; text-align: right; font-size: 12px; flex-shrink: 0; }
-
-@keyframes pulse { 0% { opacity: 0.2; } 50% { opacity: 0.4; } 100% { opacity: 0.2; } }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-5px);} 60% {transform: translateY(-3px);} }
+.drag-success {
+  animation: bounce 0.4s ease;
+}
+.drag-icon {
+  display: inline-block;
+  font-size: 16px;
+  color: var(--muted);
+  transition: all 0.15s ease;
+}
+.drag-handle:hover .drag-icon {
+  color: var(--accent);
+  transform: scale(1.2);
+}
+.chapter-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  cursor: pointer;
+}
+.chapter-label {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  font-weight: bold;
+}
+.subject-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+.subject-title-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.subject-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: bold;
+}
+.subject-stats {
+  font-size: 13px;
+  color: var(--muted);
+}
+.subject-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.topics {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding-right: 6px;
+  overflow: auto;
+  transition: max-height 0.3s ease;
+  width: 100%;
+}
+.topic {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.02);
+  padding: 6px;
+  border-radius: 6px;
+  position: relative;
+  width: 100%;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+.topic:hover {
+  background: rgba(255,255,255,0.04);
+  transform: translateX(2px);
+}
+.topic .drag-handle {
+  cursor: grab;
+  padding: 3px;
+  transition: color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  touch-action: none;
+}
+.topic .drag-handle:hover {
+  color: var(--accent);
+  transform: scale(1.1);
+}
+.topic.dragging {
+  opacity: 0.9;
+  transform: rotate(1deg) scale(1.02);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  z-index: 1000;
+  filter: brightness(1.1);
+}
+.topic input[type=checkbox] {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.topic-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+.topic-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.small-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.small-progress {
+  height: 8px;
+  width: 50px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.small-pct {
+  min-width: 30px;
+  text-align: right;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+@keyframes pulse {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.4; }
+  100% { opacity: 0.2; }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+  60% { transform: translateY(-3px); }
+}
 @keyframes sparkle {
   0% { opacity: 0; transform: scale(0.2) translate(0, 8px) rotate(0deg); }
   20% { opacity: 1; transform: scale(2) translate(3px, -8px) rotate(45deg); }
@@ -117,10 +502,17 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   0% { left: -10%; }
   100% { left: 110%; }
 }
-
-.no-select { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
-.touch-dragging { transition: none !important; }
-
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.touch-dragging {
+  transition: none !important;
+}
 #hamburger {
   display: none;
   cursor: pointer;
@@ -134,136 +526,10 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   transform: scale(1.1);
   background: var(--glass);
 }
-
-.onboarding {
-  text-align: center;
-  padding: 24px;
-  background: var(--glass);
-  border-radius: 12px;
-  margin: 12px 0;
-  box-shadow: 0 4px 12px rgba(125, 211, 252, 0.1);
-  color: var(--muted);
-}
-.onboarding p {
-  font-size: 16px;
-  margin-bottom: 12px;
-}
-.onboarding .btn {
-  font-size: 16px;
-  padding: 12px 16px;
-}
-
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
-  .grid {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  .container { padding: 12px; }
-  .grid { grid-template-columns: 1fr; }
-  .header { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 8px; border-radius: 0 0 12px 12px; }
-  #hamburger { display: block; }
-  .controls {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--card);
-    padding: 12px;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    flex-direction: column;
-    gap: 8px;
-    width: 200px;
-    z-index: 9;
-  }
-  .controls.active {
-    display: flex;
-  }
-  .controls > * {
-    width: 100%;
-    margin: 0;
-    text-align: center;
-  }
-  .progress-big { min-width: 100%; }
-  .footer { flex-direction: column; gap: 12px; }
-  .actions { justify-content: center; width: 100%; }
-  .drag-handle { padding: 8px; }
-  .btn { padding: 10px 12px; min-height: 44px; font-size: 15px; }
-  .btn.strong { font-size: 16px; padding: 12px 14px; }
-  .item-menu { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 280px; }
-  
-  /* Fix for topics on mobile */
-  .topics {
-    margin-left: 0;
-  }
-  .topic-content {
-    flex-wrap: wrap;
-  }
-  .topic-label {
-    flex: 1;
-    min-width: 120px;
-  }
-  .chapter-content {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .chapter-label {
-    min-width: 100%;
-    margin-bottom: 4px;
-  }
-  .small-progress-row {
-    margin-left: 0;
-    width: 100%;
-    justify-content: flex-end;
-  }
-  .add-row {
-    margin-left: 0;
-  }
-  .progress-row {
-    width: 100%;
-  }
-  .subj-pct-container, .total-pct-container {
-    flex-shrink: 0;
-  }
-}
-@media (max-width: 560px){
-  .header{flex-direction:row;align-items:center;gap:8px;padding:8px;}
-  .header h1{font-size:18px;}
-  .controls{flex-direction:column;gap:6px;width:180px;}
-  .btn { flex: 1 1 100%; font-size: 14px; padding: 8px; text-align: center; }
-  .btn.strong { font-size: 16px; padding: 12px; }
-  .subject-header { flex-direction: column; align-items: flex-start; }
-  .subject-actions { width: 100%; justify-content: space-between; }
-  .chapter-content { flex-wrap: wrap; }
-  .chapter-label { min-width: 100px; }
-  
-  /* Additional mobile fixes for topics */
-  .topics {
-    margin-left: 0;
-  }
-  .topic {
-    padding: 8px;
-  }
-  .topic-content {
-    gap: 4px;
-  }
-  .topic-label {
-    font-size: 14px;
-  }
-}
-
-/* Differentiate main progress bar */
 .overview .progress-bar {
   height: 18px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-
-/* Main progress bar sparkle effect */
 #totalFill {
   position: relative;
   overflow: hidden;
@@ -302,50 +568,6 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   height: 6px;
   animation-delay: -0.5s, -4s;
 }
-
-/* New: Modal styles for sign-in UI */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.7);
-  justify-content: center;
-  align-items: center;
-}
-.modal-content {
-  background: var(--card);
-  padding: 24px;
-  border-radius: 12px;
-  max-width: 400px;
-  width: 90%;
-  position: relative;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-.close-modal {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--muted);
-}
-.close-modal:hover {
-  color: var(--accent);
-}
-#firebaseui-auth-container {
-  margin-top: 16px;
-}
-#auth-loader {
-  text-align: center;
-  margin-top: 16px;
-  color: var(--muted);
-}
-
-/* New: Styles for mobile step-by-step guide */
 .guide-modal {
   display: none;
   position: fixed;
@@ -391,8 +613,6 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   flex: 1;
   margin: 0 4px;
 }
-
-/* Step indicators */
 #stepIndicators {
   text-align: center;
   margin-bottom: 20px;
@@ -412,11 +632,227 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   opacity: 1;
   background-color: var(--accent);
 }
-
-/* Make tip section appear only on smaller screens */
-@media (min-width: 769px) {
-  #footerTip {
+/* New: Desktop welcome screen styles */
+.desktop-welcome {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(15, 23, 36, 0.95), rgba(6, 17, 34, 0.95));
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.5s ease-out;
+}
+.desktop-welcome-content {
+  background: var(--card);
+  padding: 32px;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.desktop-welcome h2 {
+  font-size: 28px;
+  margin: 0 0 16px 0;
+  color: var(--accent);
+}
+.desktop-welcome p {
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.desktop-welcome .btn {
+  font-size: 16px;
+  padding: 12px 24px;
+  margin: 8px;
+}
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.feature-icon {
+  font-size: 20px;
+  color: var(--accent);
+}
+.feature-text {
+  font-size: 15px;
+  color: #e6eef6;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+}
+@media (max-width: 768px) {
+  .container { padding: 12px; }
+  .grid { grid-template-columns: 1fr; }
+  .header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 0 0 12px 12px;
+  }
+  #hamburger {
+    display: block;
+  }
+  .controls {
     display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--card);
+    padding: 12px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    flex-direction: column;
+    gap: 8px;
+    width: 200px;
+    z-index: 9;
+  }
+  .controls.active {
+    display: flex;
+  }
+  .controls > * {
+    width: 100%;
+    margin: 0;
+    text-align: center;
+  }
+  .progress-big {
+    min-width: 100%;
+  }
+  .footer {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .actions {
+    justify-content: center;
+    width: 100%;
+  }
+  .drag-handle {
+    padding: 8px;
+  }
+  .btn {
+    padding: 10px 12px;
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .btn.strong {
+    font-size: 16px;
+    padding: 12px 14px;
+  }
+  .item-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 280px;
+  }
+  .topics {
+    margin-left: 0;
+  }
+  .topic-content {
+    flex-wrap: wrap;
+  }
+  .topic-label {
+    flex: 1;
+    min-width: 120px;
+  }
+  .chapter-content {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chapter-label {
+    min-width: 100%;
+    margin-bottom: 4px;
+  }
+  .small-progress-row {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .add-row {
+    margin-left: 0;
+  }
+  .progress-row {
+    width: 100%;
+  }
+  .subj-pct-container, .total-pct-container {
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 560px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+  }
+  .header h1 {
+    font-size: 18px;
+  }
+  .controls {
+    flex-direction: column;
+    gap: 6px;
+    width: 180px;
+  }
+  .btn {
+    flex: 1 1 100%;
+    font-size: 14px;
+    padding: 8px;
+    text-align: center;
+  }
+  .btn.strong {
+    font-size: 16px;
+    padding: 12px;
+  }
+  .subject-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .subject-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .chapter-content {
+    flex-wrap: wrap;
+  }
+  .chapter-label {
+    min-width: 100px;
+  }
+  .topics {
+    margin-left: 0;
+  }
+  .topic {
+    padding: 8px;
+  }
+  .topic-content {
+    gap: 4px;
+  }
+  .topic-label {
+    font-size: 14px;
   }
 }
 </style>
@@ -431,9 +867,6 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
       <label class="btn" for="import">Import JSON</label>
       <input id="import" class="importfile" type="file" accept="application/json">
       <button class="btn" id="resetBtn">Reset</button>
-      <button class="btn" id="signInBtn">Sign In</button>
-      <span id="userDisplay" style="display:none; padding:8px 10px; border-radius:10px; background:var(--glass); color:var(--accent); font-weight: bold;"></span>
-      <button class="btn" id="signOutBtn" style="display:none;">Sign Out</button>
       <button class="btn strong" id="addSubjectBtn">+ Add Subject</button>
     </div>
   </div>
@@ -464,19 +897,9 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
     </div>
   </div>
 </div>
-<div class="devnote">Made with ♥️ by Tamim </div>
+<div class="devnote">Made with ♥️ by Tamim</div>
 
-<!-- New: Modal for sign-in UI -->
-<div id="signInModal" class="modal">
-  <div class="modal-content">
-    <span class="close-modal" id="closeModal">&times;</span>
-    <h2 style="margin: 0 0 16px 0; text-align: center;">Sign In / Sign Up</h2>
-    <div id="firebaseui-auth-container"></div>
-    <div id="auth-loader">Loading...</div>
-  </div>
-</div>
-
-<!-- New: Modal for mobile step-by-step guide -->
+<!-- Mobile step-by-step guide -->
 <div id="guideModal" class="guide-modal">
   <div class="guide-content">
     <div id="stepIndicators">
@@ -509,6 +932,36 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   </div>
 </div>
 
+<!-- New: Desktop welcome screen -->
+<div id="desktopWelcome" class="desktop-welcome">
+  <div class="desktop-welcome-content">
+    <h2>Get Started with Study Progress Tracker</h2>
+    <p>Welcome to your personal study organizer! Track your progress across subjects, chapters, and topics with ease.</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="feature-icon">📚</span>
+        <span class="feature-text">Organize your study plan with subjects, chapters, and topics.</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">📊</span>
+        <span class="feature-text">Monitor progress with dynamic progress bars.</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🖱️</span>
+        <span class="feature-text">Drag to reorder, double-click to expand/collapse, and edit/delete via menus.</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">💾</span>
+        <span class="feature-text">Data is saved locally—export JSON to back up your progress.</span>
+      </div>
+    </div>
+    <div>
+      <button class="btn strong" id="addFirstSubject">Add Your First Subject</button>
+      <button class="btn" id="dismissDesktopWelcome">Start Exploring</button>
+    </div>
+  </div>
+</div>
+
 <template id="subjectTpl">
   <div class="card subject-card">
     <div class="subject-header">
@@ -521,7 +974,6 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
         </h3>
       </div>
       <div class="subject-actions">
-        
         <button class="btn editSubj">Edit</button>
         <button class="btn delSubj">Delete</button>
       </div>
@@ -539,189 +991,37 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"He
   </div>
 </template>
 
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-<!-- New: FirebaseUI CDN -->
-<script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
-<link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
-
 <script>
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDsmD8sxZdU__Qk7VICtSLPe6ifNMM0I88",
-  authDomain: "study-tracker-database.firebaseapp.com",
-  projectId: "study-tracker-database",
-  storageBucket: "study-tracker-database.firebasestorage.app",
-  messagingSenderId: "345068871227",
-  appId: "1:345068871227:web:9027b54b933980db2a061e",
-  measurementId: "G-SFQC45M9FC"
-};
-
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth(app);
-const db = firebase.firestore(app);
-
-// New: Initialize FirebaseUI
-const ui = new firebaseui.auth.AuthUI(auth);
-
 const KEY = 'study-progress-v1';
 const BACKUP_KEY = 'study-progress-backup';
 let state = { subjects: [] };
-let unsubscribe = null; // For real-time listener
 const $ = q => document.querySelector(q);
 const $$ = q => Array.from(document.querySelectorAll(q));
 
-function saveToLocal() { localStorage.setItem(KEY, JSON.stringify(state)); }
+function saveToLocal() {
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
 
 function loadFromLocal() {
   const raw = localStorage.getItem(KEY);
-  if (raw) try { state = JSON.parse(raw); } catch (e) { state = { subjects: [] }; }
-}
-
-async function saveToFirestore() {
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      await db.collection('users').doc(user.uid).set({ state: JSON.stringify(state) });
-    } catch (e) {
-      console.error('Error saving to Firestore:', e);
-    }
-  } else {
-    saveToLocal();
+  if (raw) try {
+    state = JSON.parse(raw);
+  } catch (e) {
+    state = { subjects: [] };
   }
 }
-
-async function loadFromFirestore() {
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      const doc = await db.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        state = JSON.parse(doc.data().state);
-        return true;
-      }
-    } catch (e) {
-      console.error('Error loading from Firestore:', e);
-    }
-  }
-  loadFromLocal();
-  return false;
-}
-
-function migrateLocalToFirestore() {
-  const localData = localStorage.getItem(KEY);
-  if (localData) {
-    state = JSON.parse(localData);
-    saveToFirestore();
-    localStorage.removeItem(KEY); // Clear local after migration
-  }
-}
-
-function updateAuthUI(user) {
-  const signInBtn = $('#signInBtn');
-  const userDisplay = $('#userDisplay');
-  const signOutBtn = $('#signOutBtn');
-  if (user) {
-    const userName = user.displayName || user.email;
-    signInBtn.style.display = 'none';
-    userDisplay.textContent = userName;
-    userDisplay.style.display = 'inline-block';
-    signOutBtn.style.display = 'inline-block';
-    signOutBtn.onclick = () => auth.signOut();
-  } else {
-    signInBtn.style.display = 'inline-block';
-    userDisplay.style.display = 'none';
-    signOutBtn.style.display = 'none';
-    signInBtn.onclick = showSignInModal;
-  }
-}
-
-function updateFooterTip(user) {
-  const tip = $('#footerTip');
-  if (user) {
-    tip.textContent = 'Tip: Add subjects, chapters, and topics to organize your study plan—topics add weight to progress bars for more impactful tracking. Check off completed chapters and topics to track progress. Double-tap or double-click to collapse/expand subjects and chapters for a cleaner view. Drag to reorder items. Data syncs to the cloud ☁️ when signed in.';
-  } else {
-    tip.textContent = 'Tip: Add subjects, chapters, and topics to organize your study plan—topics add weight to progress bars for more impactful tracking. Check off completed chapters and topics to track progress. Double-tap or double-click to collapse/expand subjects and chapters for a cleaner view. Drag to reorder items. ⚠️ Data is saved locally in your browser. So, before clearing your browser cache or data, please make a backup of your data by exporting the json. Thanks!';
-  }
-}
-
-// New: Show the sign-in modal with FirebaseUI
-function showSignInModal() {
-  const modal = $('#signInModal');
-  modal.style.display = 'flex';
-
-  // FirebaseUI config
-  const uiConfig = {
-  signInFlow: 'popup',
-signInOptions: [
-  // Email/password login
-  firebase.auth.EmailAuthProvider.PROVIDER_ID,
-
-  // Google login
-  firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-],
-
-    callbacks: {
-      signInSuccessWithAuthResult: function(authResult) {
-        closeModal();
-        return false; // Don't redirect
-      },
-      uiShown: function() {
-        $('#auth-loader').style.display = 'none';
-      }
-    },
-    tosUrl: 'https://example.com/terms', // Replace with your terms URL if needed
-    privacyPolicyUrl: 'https://example.com/privacy' // Replace with your privacy URL
-  };
-
-  // Start FirebaseUI
-  $('#auth-loader').style.display = 'block';
-  ui.start('#firebaseui-auth-container', uiConfig);
-}
-
-// New: Close modal function
-function closeModal() {
-  const modal = $('#signInModal');
-  modal.style.display = 'none';
-  // Reset FirebaseUI container to avoid reuse issues
-  $('#firebaseui-auth-container').innerHTML = '';
-}
-
-auth.onAuthStateChanged(async (user) => {
-  updateAuthUI(user);
-  updateFooterTip(user);
-  if (unsubscribe) unsubscribe(); // Clean up previous listener
-  if (user) {
-    const loadedFromCloud = await loadFromFirestore();
-    if (!loadedFromCloud) {
-      migrateLocalToFirestore();
-    }
-    // Set up real-time listener for sync across devices
-    unsubscribe = db.collection('users').doc(user.uid).onSnapshot(doc => {
-      if (doc.exists) {
-        state = JSON.parse(doc.data().state);
-        render();
-      }
-    });
-  } else {
-    loadFromLocal();
-  }
-  render();
-});
-
-// New: Modal event listeners
-$('#closeModal').addEventListener('click', closeModal);
-window.addEventListener('click', (e) => {
-  if (e.target === $('#signInModal')) closeModal();
-});
 
 function save() {
-  saveToFirestore();
+  saveToLocal();
 }
 
-function uid(){return Math.random().toString(36).slice(2,9)}
-function closeAllMenus() { $$('.item-menu').forEach(menu => menu.classList.remove('active')); }
+function uid() {
+  return Math.random().toString(36).slice(2, 9);
+}
+
+function closeAllMenus() {
+  $$('.item-menu').forEach(menu => menu.classList.remove('active'));
+}
 
 function computeChapterProgress(ch) {
   let total = 0;
@@ -734,7 +1034,7 @@ function computeChapterProgress(ch) {
     done = ch.done ? 1 : 0;
   }
   const pct = total === 0 ? 0 : Math.round(done / total * 100);
-  return {total, done, pct};
+  return { total, done, pct };
 }
 
 function computeSubjectProgress(subject) {
@@ -746,7 +1046,7 @@ function computeSubjectProgress(subject) {
     done += chStats.done;
   }
   const pct = total === 0 ? 0 : Math.round(done / total * 100);
-  return {total, done, pct};
+  return { total, done, pct };
 }
 
 class DragManager {
@@ -807,7 +1107,6 @@ class DragManager {
     this.dragGhost.style.border = '1px solid var(--accent)';
     this.dragGhost.style.backdropFilter = 'blur(5px)';
     
-    // Remove any interactive elements from the ghost
     const interactiveElements = this.dragGhost.querySelectorAll('button, input, .drag-handle, .item-menu');
     interactiveElements.forEach(el => el.remove());
     
@@ -821,9 +1120,9 @@ class DragManager {
     const clientY = event.clientY || (event.touches && event.touches[0].clientY);
     
     if (clientX !== undefined && clientY !== undefined) {
-        const x = clientX - this.dragGhost.offsetWidth / 2;
-        const y = clientY - this.dragGhost.offsetHeight / 2;
-        this.dragGhost.style.transform = `translate(${x}px, ${y}px)`;
+      const x = clientX - this.dragGhost.offsetWidth / 2;
+      const y = clientY - this.dragGhost.offsetHeight / 2;
+      this.dragGhost.style.transform = `translate(${x}px, ${y}px)`;
     }
     
     this.updateDropZone();
@@ -854,10 +1153,8 @@ class DragManager {
       let distance;
       
       if (container.classList.contains('chapters') || container.classList.contains('topics')) {
-        // For vertical lists, use vertical distance only
         distance = Math.abs(ghostRect.top - siblingRect.top);
       } else {
-        // For grid layouts, use Euclidean distance
         distance = Math.hypot(ghostRect.left - siblingRect.left, ghostRect.top - siblingRect.top);
       }
       
@@ -872,10 +1169,8 @@ class DragManager {
       let insertBefore = false;
       
       if (container.classList.contains('chapters') || container.classList.contains('topics')) {
-        // For vertical lists, check if we're above the middle of the sibling
         insertBefore = ghostRect.top < siblingRect.top + siblingRect.height / 2;
       } else {
-        // For grid layouts, check if we're to the left of the middle of the sibling
         insertBefore = ghostRect.left < siblingRect.left + siblingRect.width / 2;
       }
       
@@ -901,7 +1196,7 @@ class DragManager {
     
     this.draggingElement.classList.add('drag-success');
     setTimeout(() => {
-        if (this.draggingElement) this.draggingElement.classList.remove('drag-success');
+      if (this.draggingElement) this.draggingElement.classList.remove('drag-success');
     }, 400);
     
     this.draggingElement.classList.remove('dragging', 'touch-dragging');
@@ -951,27 +1246,27 @@ class DragManager {
   }
 
   handleMouseMove(event) {
-    if (this.draggingElement) { 
-      this.updateGhostPosition(event); 
+    if (this.draggingElement) {
+      this.updateGhostPosition(event);
     }
   }
-  
+
   handleMouseUp() {
-    if (this.draggingElement) { 
-      this.endDrag(); 
+    if (this.draggingElement) {
+      this.endDrag();
     }
   }
-  
+
   handleTouchMove(event) {
     if (this.draggingElement) {
       this.updateGhostPosition(event);
       event.preventDefault();
     }
   }
-  
+
   handleTouchEnd() {
-    if (this.draggingElement) { 
-      this.endDrag(); 
+    if (this.draggingElement) {
+      this.endDrag();
     }
   }
 }
@@ -982,13 +1277,11 @@ function makeDraggable(element, type, handleSelector) {
   const handle = handleSelector ? element.querySelector(handleSelector) : element;
   if (!handle) return;
   
-  // Mouse events
   handle.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return; // Only left mouse button
+    if (e.button !== 0) return;
     dragManager.startDrag(element, type, e);
   });
   
-  // Touch events with improved long press detection
   let touchTimer;
   let longPressTriggered = false;
   
@@ -997,7 +1290,7 @@ function makeDraggable(element, type, handleSelector) {
     touchTimer = setTimeout(() => {
       longPressTriggered = true;
       dragManager.startDrag(element, type, e);
-    }, 300); // Reduced time for better responsiveness
+    }, 300);
   });
   
   const cancelLongPress = () => {
@@ -1009,23 +1302,21 @@ function makeDraggable(element, type, handleSelector) {
     if (!longPressTriggered) {
       cancelLongPress();
     } else {
-      // If we're already dragging, update position
       dragManager.updateGhostPosition(e);
     }
   });
-
-  // Prevent context menu on long press
+  
   handle.addEventListener('contextmenu', (e) => e.preventDefault());
   handle.classList.add('no-select');
 }
 
 function getProgressColors(pct) {
   if (pct < 30) {
-    return {color1: '#ef4444', color2: '#b91c1c'};
+    return { color1: '#ef4444', color2: '#b91c1c' };
   } else if (pct < 75) {
-    return {color1: '#eab308', color2: '#a16207'};
+    return { color1: '#eab308', color2: '#a16207' };
   } else {
-    return {color1: '#22c55e', color2: '#15803d'};
+    return { color1: '#22c55e', color2: '#15803d' };
   }
 }
 
@@ -1066,7 +1357,7 @@ function restoreScrollPositions(scrollState) {
   });
 }
 
-function render(){
+function render() {
   const scrollState = saveScrollPositions();
   const grid = $('#subjectsGrid');
   grid.innerHTML = '';
@@ -1315,7 +1606,7 @@ function render(){
         addTopicBtn.addEventListener('click', () => {
           const val = topicInput.value.trim();
           if (!val) return;
-          ch.topics.push({id: uid(), name: val, done: false});
+          ch.topics.push({ id: uid(), name: val, done: false });
           topicInput.value = '';
           save();
           render();
@@ -1357,7 +1648,7 @@ function render(){
     el.querySelector('.addChapter').addEventListener('click', () => {
       const val = el.querySelector('.chapterName').value.trim();
       if (!val) return;
-      subj.chapters.push({id: uid(), name: val, done: false, topics: [], expanded: true});
+      subj.chapters.push({ id: uid(), name: val, done: false, topics: [], expanded: true });
       el.querySelector('.chapterName').value = '';
       save();
       render();
@@ -1418,42 +1709,52 @@ function render(){
 
   restoreScrollPositions(scrollState);
 
-  // New: Show mobile guide if applicable
-  if (isMobile && state.subjects.length === 0) {
-    showGuide();
+  if (state.subjects.length === 0) {
+    if (isMobile) {
+      showMobileGuide();
+    } else {
+      showDesktopWelcome();
+    }
+  } else {
+    hideDesktopWelcome();
+    hideMobileGuide();
   }
 }
 
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.item-menu, .chapter-menu-btn')) {
-        closeAllMenus();
-    }
-    if (!e.target.closest('#hamburger, .controls')) {
-      $('.controls').classList.remove('active');
-    }
+  if (!e.target.closest('.item-menu, .chapter-menu-btn')) {
+    closeAllMenus();
+  }
+  if (!e.target.closest('#hamburger, .controls')) {
+    $('.controls').classList.remove('active');
+  }
 });
+
 $('#hamburger').addEventListener('click', (e) => {
   e.stopPropagation();
   $('.controls').classList.toggle('active');
 });
+
 $('#addSubjectBtn').addEventListener('click', () => {
   const n = prompt('Subject name (e.g. Physics)');
   if (!n) return;
-  state.subjects.push({id: uid(), name: n.trim(), chapters: [], expanded: true});
+  state.subjects.push({ id: uid(), name: n.trim(), chapters: [], expanded: true });
   save();
   render();
 });
+
 $('#resetBtn').addEventListener('click', () => {
   if (confirm('Clear all saved data?')) {
-    state = {subjects: []};
+    state = { subjects: [] };
     save();
     sessionStorage.removeItem(BACKUP_KEY);
     $('#importSample').textContent = 'Load Example';
     render();
   }
 });
+
 $('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'study-progress.json';
@@ -1461,6 +1762,7 @@ $('#exportBtn').addEventListener('click', () => {
   a.click();
   a.remove();
 });
+
 $('#import').addEventListener('change', ev => {
   const f = ev.target.files[0];
   if (!f) return;
@@ -1481,6 +1783,7 @@ $('#import').addEventListener('change', ev => {
   r.readAsText(f);
   ev.target.value = '';
 });
+
 $('#importSample').addEventListener('click', e => {
   const btn = e.target;
   const backup = sessionStorage.getItem(BACKUP_KEY);
@@ -1490,41 +1793,64 @@ $('#importSample').addEventListener('click', e => {
     btn.textContent = 'Load Example';
   } else {
     sessionStorage.setItem(BACKUP_KEY, JSON.stringify(state));
-    const sample = { subjects: [
-      {id: uid(), name: 'Physics (Sample)', chapters: [
-        {id: uid(), name: 'Kinematics', done: true, topics: [{id: uid(), name: '1D Motion', done: true}, {id: uid(), name: '2D Motion', done: false}], expanded: true},
-        {id: uid(), name: 'Dynamics', done: false, topics: [{id: uid(), name: "Newton's Laws", done: false}, {id: uid(), name: 'Friction', done: false}], expanded: true},
-        {id: uid(), name: 'Work & Energy', done: false, topics: [], expanded: true}
-      ], expanded: true},
-      {id: uid(), name: 'Chemistry (Sample)', chapters: [
-        {id: uid(), name: 'Atomic Structure', done: true, topics: [{id: uid(), name: 'Bohr Model', done: true}], expanded: true},
-        {id: uid(), name: 'Periodic Table', done: true, topics: [{id: uid(), name: 'Groups', done: true}, {id: uid(), name: 'Periods', done: false}], expanded: true}
-      ], expanded: true},
-      {id: uid(), name: 'Math (Sample)', chapters: [
-        {id: uid(), name: 'Limits', done: false, topics: [], expanded: true},
-        {id: uid(), name: 'Derivatives', done: false, topics: [{id: uid(), name: 'Chain Rule', done: false}], expanded: true}
-      ], expanded: true}
-    ]};
+    const sample = {
+      subjects: [
+        {
+          id: uid(),
+          name: 'Physics (Sample)',
+          chapters: [
+            { id: uid(), name: 'Kinematics', done: true, topics: [{ id: uid(), name: '1D Motion', done: true }, { id: uid(), name: '2D Motion', done: false }], expanded: true },
+            { id: uid(), name: 'Dynamics', done: false, topics: [{ id: uid(), name: "Newton's Laws", done: false }, { id: uid(), name: 'Friction', done: false }], expanded: true },
+            { id: uid(), name: 'Work & Energy', done: false, topics: [], expanded: true }
+          ],
+          expanded: true
+        },
+        {
+          id: uid(),
+          name: 'Chemistry (Sample)',
+          chapters: [
+            { id: uid(), name: 'Atomic Structure', done: true, topics: [{ id: uid(), name: 'Bohr Model', done: true }], expanded: true },
+            { id: uid(), name: 'Periodic Table', done: true, topics: [{ id: uid(), name: 'Groups', done: true }, { id: uid(), name: 'Periods', done: false }], expanded: true }
+          ],
+          expanded: true
+        },
+        {
+          id: uid(),
+          name: 'Math (Sample)',
+          chapters: [
+            { id: uid(), name: 'Limits', done: false, topics: [], expanded: true },
+            { id: uid(), name: 'Derivatives', done: false, topics: [{ id: uid(), name: 'Chain Rule', done: false }], expanded: true }
+          ],
+          expanded: true
+        }
+      ]
+    };
     state = sample;
     btn.textContent = 'Unload Example';
   }
   save();
   render();
 });
+
 $('#shareBtn').addEventListener('click', () => {
   navigator.clipboard.writeText(JSON.stringify(state)).then(() => alert('Copied JSON to clipboard — share it or paste in Import.'));
 });
 
-// New: Mobile guide logic
+// Mobile guide logic
 let currentGuideStep = 0;
 const guideSteps = $$('.step');
 const stepIndicators = $$('.step-indicator');
 
-function showGuide() {
+function showMobileGuide() {
   const modal = $('#guideModal');
   modal.style.display = 'flex';
   currentGuideStep = 0;
   showGuideTab(currentGuideStep);
+}
+
+function hideMobileGuide() {
+  const modal = $('#guideModal');
+  modal.style.display = 'none';
 }
 
 function showGuideTab(n) {
@@ -1560,8 +1886,33 @@ $('#guidePrev').addEventListener('click', () => nextPrevGuide(-1));
 $('#guideNext').addEventListener('click', () => nextPrevGuide(1));
 $('#guideFinish').addEventListener('click', () => nextPrevGuide(1));
 
-// Initial load handled in onAuthStateChanged
-setInterval(save, 10000); // Increased interval to 10 seconds
+// Desktop welcome logic
+function showDesktopWelcome() {
+  const welcome = $('#desktopWelcome');
+  welcome.style.display = 'flex';
+}
+
+function hideDesktopWelcome() {
+  const welcome = $('#desktopWelcome');
+  welcome.style.display = 'none';
+}
+
+$('#dismissDesktopWelcome').addEventListener('click', () => {
+  hideDesktopWelcome();
+});
+
+$('#addFirstSubject').addEventListener('click', () => {
+  const n = prompt('Subject name (e.g. Physics)');
+  if (!n) return;
+  state.subjects.push({ id: uid(), name: n.trim(), chapters: [], expanded: true });
+  save();
+  render();
+});
+
+// Initial load
+loadFromLocal();
+render();
+setInterval(save, 10000);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     save();
