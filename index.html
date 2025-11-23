@@ -100,45 +100,83 @@
             pointer-events: auto;
         }
 
-        /* --- ENHANCED SLIDERS --- */
+        /* --- NEW MODERN "HALO" SLIDERS --- */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
             background: transparent;
-            height: 24px;
+            height: 32px; /* Generous touch target */
             cursor: pointer;
+            margin: 0;
         }
         input[type=range]:focus {
             outline: none;
         }
-        /* Slider Track */
+
+        /* The Track */
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
+            height: 4px; /* Sleek, thin track */
+            border-radius: 2px;
+            /* Dynamic fill: White for progress, faint white for background */
+            background: linear-gradient(to right, 
+                #ffffff var(--progress, 0%), 
+                rgba(255, 255, 255, 0.15) var(--progress, 0%)
+            );
+            border: none;
+            transition: background 0.2s ease;
         }
+
+        /* Hover Effect on Track */
         input[type=range]:hover::-webkit-slider-runnable-track {
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            background: linear-gradient(to right, 
+                #ffffff var(--progress, 0%), 
+                rgba(255, 255, 255, 0.25) var(--progress, 0%)
+            );
         }
-        /* Slider Thumb */
+
+        /* The Thumb (Handle) */
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 18px;
-            width: 18px;
+            height: 16px;
+            width: 16px;
             border-radius: 50%;
             background: #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
-            margin-top: -7px;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* The 'Halo' effect using multiple box shadows */
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.5);
+            margin-top: -6px; /* Centers thumb: (4px track - 16px thumb) / 2 */
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease;
         }
+
+        /* Thumb Interactions */
+        input[type=range]:hover::-webkit-slider-thumb {
+            transform: scale(1.1);
+            /* Halo grows brighter and larger */
+            box-shadow: 0 0 0 6px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.6);
+        }
+        
         input[type=range]:active::-webkit-slider-thumb {
-            transform: scale(1.3);
-            box-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+            transform: scale(0.95);
+            /* Halo tightens and gets more opaque to indicate 'grip' */
+            box-shadow: 0 0 0 8px rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.6);
         }
+        
+        /* Firefox Support */
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, #ffffff var(--progress, 0%), rgba(255,255,255,0.15) var(--progress, 0%));
+            border-radius: 2px;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 16px;
+            width: 16px;
+            border: none;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.5);
+        }
+
 
         /* Other Inputs */
         select {
@@ -299,6 +337,14 @@
                             <input type="range" id="speed-slider" min="1" max="50" value="20">
                         </div>
                     </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-end mb-1">
+                            <span class="text-[10px] text-white/40">Brightness</span>
+                            <span id="brightness-value" class="font-mono text-[10px] text-white/60">100%</span>
+                        </div>
+                        <input type="range" id="brightness-slider" min="10" max="100" value="100">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-6 pt-2">
@@ -350,6 +396,7 @@
             customColor: null,
             waterStyle: 'breathing',
             waterSpeed: 20,
+            waterBrightness: 1.0, 
         };
 
         // --- Persistent Storage Logic ---
@@ -363,8 +410,7 @@
                 customColor: state.customColor,
                 waterStyle: state.waterStyle,
                 waterSpeed: state.waterSpeed,
-                // We don't save active timer state, but we do save which 'mode' user prefers if needed.
-                // Generally safer to restart cleanly but keep durations.
+                waterBrightness: state.waterBrightness,
             };
             localStorage.setItem('focusFlowSettings', JSON.stringify(settings));
         }
@@ -383,6 +429,7 @@
                     state.customColor = parsed.customColor || null;
                     state.waterStyle = parsed.waterStyle || 'breathing';
                     state.waterSpeed = parsed.waterSpeed || 20;
+                    state.waterBrightness = parsed.waterBrightness !== undefined ? parsed.waterBrightness : 1.0;
                     
                     // Reset current session stats based on loaded values
                     state.duration = state.mode === 'focus' ? state.focusDuration : state.breakDuration;
@@ -416,6 +463,10 @@
             sessionBtns: document.querySelectorAll('.session-select'),
             waterStyleSelect: document.getElementById('water-style'),
             speedSlider: document.getElementById('speed-slider'),
+            
+            brightnessSlider: document.getElementById('brightness-slider'),
+            brightnessValue: document.getElementById('brightness-value'),
+
             topControls: document.getElementById('top-controls'),
             bottomControls: document.getElementById('bottom-controls'),
             canvas: document.getElementById('waterCanvas')
@@ -617,9 +668,11 @@
                 ctx.lineTo(0, height);
                 ctx.closePath();
 
-                // Style
-                const opacity = 0.3 + (i * 0.15);
-                ctx.fillStyle = `hsla(${color.h}, ${color.s}%, ${color.l}%, ${opacity})`;
+                // Style & Brightness Application
+                const baseOpacity = 0.3 + (i * 0.15);
+                const adjustedOpacity = baseOpacity * state.waterBrightness;
+                
+                ctx.fillStyle = `hsla(${color.h}, ${color.s}%, ${color.l}%, ${adjustedOpacity})`;
                 ctx.fill();
             });
 
@@ -752,6 +805,10 @@
             els.waterStyleSelect.value = state.waterStyle;
             els.speedSlider.value = state.waterSpeed;
             if(state.customColor) els.colorPicker.value = state.customColor;
+
+            // Update Brightness
+            els.brightnessSlider.value = state.waterBrightness * 100;
+            els.brightnessValue.textContent = `${Math.round(state.waterBrightness * 100)}%`;
             
             // Update Buttons
             els.modeBtns.forEach(btn => {
@@ -770,6 +827,16 @@
                 } else {
                     btn.classList.remove('bg-white/20', 'font-bold', 'shadow');
                 }
+            });
+
+            // Update Slider Visuals (Fill Effect)
+            const allSliders = document.querySelectorAll('input[type="range"]');
+            allSliders.forEach(slider => {
+                const min = parseFloat(slider.min) || 0;
+                const max = parseFloat(slider.max) || 100;
+                const val = parseFloat(slider.value) || 0;
+                const percent = ((val - min) / (max - min)) * 100;
+                slider.style.setProperty('--progress', `${percent}%`);
             });
 
             updateDisplay();
@@ -816,6 +883,17 @@
                 els.modal.classList.remove('modal-enter-active');
                 els.modal.classList.add('modal-enter');
             }
+        });
+
+        // Global Listener for Visual Slider Updates
+        document.querySelectorAll('input[type="range"]').forEach(range => {
+            range.addEventListener('input', () => {
+                const min = parseFloat(range.min) || 0;
+                const max = parseFloat(range.max) || 100;
+                const val = parseFloat(range.value) || 0;
+                const percent = ((val - min) / (max - min)) * 100;
+                range.style.setProperty('--progress', `${percent}%`);
+            });
         });
 
         // Focus Duration Slider
@@ -882,6 +960,12 @@
 
         els.speedSlider.addEventListener('input', (e) => {
             state.waterSpeed = e.target.value;
+            saveSettings();
+        });
+        
+        els.brightnessSlider.addEventListener('input', (e) => {
+            state.waterBrightness = e.target.value / 100;
+            updateSettingsUI();
             saveSettings();
         });
 
