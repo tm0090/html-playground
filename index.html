@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Flow | Modern Pomodoro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Base Imports & Reset */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000000;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 1s ease;
+        }
+
+        /* Canvas Positioning */
+        #waterCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* UI Layers */
+        #app-ui {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        /* The Timer Text */
+        #timer-display {
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            user-select: none;
+            transition: transform 0.3s ease, opacity 0.5s ease;
+        }
+
+        /* Session Status Indicator */
+        #session-status {
+            position: absolute;
+            top: 15%;
+            font-size: 0.85rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            opacity: 0.6;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+        #session-status:hover {
+            opacity: 1;
+            text-shadow: 0 0 15px rgba(255,255,255,0.4);
+        }
+
+        /* Interactive Elements Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .btn-icon {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-icon:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.15);
+        }
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Settings Modal Transition */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        /* --- ENHANCED SLIDERS --- */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            height: 24px;
+            cursor: pointer;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        /* Slider Track */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        input[type=range]:hover::-webkit-slider-runnable-track {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+        /* Slider Thumb */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            margin-top: -7px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        input[type=range]:active::-webkit-slider-thumb {
+            transform: scale(1.3);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+        }
+
+        /* Other Inputs */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem top 50%;
+            background-size: 0.65rem auto;
+            padding-right: 2rem;
+        }
+
+        input[type=color] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: none;
+            cursor: pointer;
+        }
+        input[type=color]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type=color]::-webkit-color-swatch {
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+
+        .distraction-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        @keyframes breathe {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        .breathing {
+            animation: breathe 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="waterCanvas"></canvas>
+
+    <div id="app-ui">
+        
+        <div id="top-controls" class="absolute top-8 w-full flex justify-center opacity-50 text-xs tracking-widest uppercase transition-opacity duration-500">
+            Press <span class="mx-2 font-bold bg-white/20 px-1 rounded">TAB</span> to toggle UI
+        </div>
+
+        <div id="session-status" title="Click Settings to Switch Mode">Focus Session</div>
+
+        <div class="flex-grow flex items-center justify-center w-full relative">
+            <h1 id="timer-display" class="font-bold leading-none breathing">25:00</h1>
+        </div>
+
+        <div id="bottom-controls" class="absolute bottom-12 flex gap-6 items-center transition-all duration-500">
+            <button id="reset-btn" class="btn-icon p-4 rounded-full text-white/70 hover:text-white" title="Reset Current Session">
+                <i class="fa-solid fa-rotate-left text-xl"></i>
+            </button>
+
+            <button id="start-btn" class="btn-icon bg-white text-slate-900 h-20 w-20 rounded-full flex items-center justify-center shadow-lg shadow-white/10 hover:shadow-white/20">
+                <i class="fa-solid fa-play text-3xl ml-1"></i>
+            </button>
+
+            <button id="settings-btn" class="btn-icon p-4 rounded-full text-white/70 hover:text-white" title="Settings">
+                <i class="fa-solid fa-gear text-xl"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-enter transition-all duration-300">
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl mx-4 relative text-sm overflow-y-auto max-h-[90vh]">
+            
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Studio Settings</h2>
+                <button id="close-settings" class="text-white/50 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div class="space-y-8">
+
+                <div class="border-b border-white/10 pb-6">
+                    <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Current Session Mode</label>
+                    <div class="grid grid-cols-2 gap-2 bg-white/10 p-1 rounded-lg">
+                        <button class="session-select px-3 py-2 rounded-md hover:bg-white/10 transition text-center text-xs" data-session="focus">
+                            <i class="fa-solid fa-brain mr-2"></i>Focus
+                        </button>
+                        <button class="session-select px-3 py-2 rounded-md hover:bg-white/10 transition text-center text-xs" data-session="break">
+                            <i class="fa-solid fa-coffee mr-2"></i>Break
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                         <label class="text-xs uppercase tracking-wider text-white/60 font-bold">Focus Duration</label>
+                         <span id="duration-value" class="font-mono text-xs text-white/80">25m</span>
+                    </div>
+                    <input type="range" id="duration-slider" min="1" max="120" value="25">
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                         <label class="text-xs uppercase tracking-wider text-white/60 font-bold">Break Duration</label>
+                         <span id="break-value" class="font-mono text-xs text-white/80">5m</span>
+                    </div>
+                    <input type="range" id="break-slider" min="1" max="30" value="5">
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Display Mode</label>
+                    <div class="grid grid-cols-3 gap-2 bg-white/10 p-1 rounded-lg">
+                        <button class="mode-select px-3 py-2 rounded-md hover:bg-white/10 transition text-center text-xs" data-mode="timer">Timer Only</button>
+                        <button class="mode-select px-3 py-2 rounded-md hover:bg-white/10 transition text-center text-xs" data-mode="water">Water Only</button>
+                        <button class="mode-select bg-white/20 px-3 py-2 rounded-md shadow transition text-center text-xs font-bold" data-mode="hybrid">Hybrid</button>
+                    </div>
+                </div>
+
+                <div class="border-t border-white/10 pt-6">
+                    <label class="block text-xs uppercase tracking-wider text-white/60 mb-3 font-bold">Fluid Physics</label>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <span class="block text-[10px] text-white/40 mb-1">Style</span>
+                            <select id="water-style" class="w-full bg-white/10 border border-white/10 rounded px-2 py-2 text-white focus:outline-none focus:border-white/50 text-xs">
+                                <optgroup label="Classics">
+                                    <option value="breathing">Breathing</option>
+                                    <option value="ocean">Ocean</option>
+                                    <option value="digital">Digital</option>
+                                    <option value="voltage">Voltage</option>
+                                    <option value="minimal">Minimal</option>
+                                </optgroup>
+                                <optgroup label="Geometric">
+                                    <option value="retro">Retro (Square)</option>
+                                    <option value="shard">Shard (Sawtooth)</option>
+                                    <option value="dune">Dune (Pyramid)</option>
+                                    <option value="orbit">Orbit</option>
+                                </optgroup>
+                                <optgroup label="Chaotic">
+                                    <option value="static">Static</option>
+                                    <option value="glitch">Glitch</option>
+                                    <option value="sludge">Sludge</option>
+                                    <option value="flux">Flux</option>
+                                </optgroup>
+                                <optgroup label="Vibrant">
+                                    <option value="bounce">Bounce</option>
+                                    <option value="nebula">Nebula</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-white/40 mb-1">Flow Speed</span>
+                            <input type="range" id="speed-slider" min="1" max="50" value="20">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 pt-2">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Clock Size</label>
+                        <input type="range" id="size-slider" min="2" max="25" step="0.5" value="10">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Clock Font</label>
+                        <input type="text" id="font-input" placeholder="e.g. Lobster" class="w-full bg-white/10 border border-white/10 rounded px-2 py-1 text-white focus:outline-none focus:border-white/50 transition">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-white/10 pt-6">
+                    <label class="block text-xs uppercase tracking-wider text-white/60 font-bold">Override Clock Color</label>
+                    <div class="flex items-center gap-2">
+                        <input type="color" id="color-picker" value="#ffffff">
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-white/10 text-center text-white/30 text-xs">
+                Focus Flow Engine v2.1
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            focusDuration: 25 * 60,
+            breakDuration: 5 * 60,
+            
+            duration: 25 * 60,   // Current total duration of active session
+            timeLeft: 25 * 60,
+            mode: 'focus',       // 'focus' | 'break'
+            
+            isRunning: false,
+            timerId: null,
+            
+            viewMode: 'hybrid',
+            clockSize: 10,
+            font: 'Inter',
+            isUiVisible: true,
+            themeHue: 350, 
+            themeS: 90,    
+            themeL: 60,   
+            customColor: null,
+            waterStyle: 'breathing',
+            waterSpeed: 20,
+        };
+
+        // --- Persistent Storage Logic ---
+        function saveSettings() {
+            const settings = {
+                focusDuration: state.focusDuration,
+                breakDuration: state.breakDuration,
+                viewMode: state.viewMode,
+                clockSize: state.clockSize,
+                font: state.font,
+                customColor: state.customColor,
+                waterStyle: state.waterStyle,
+                waterSpeed: state.waterSpeed,
+                // We don't save active timer state, but we do save which 'mode' user prefers if needed.
+                // Generally safer to restart cleanly but keep durations.
+            };
+            localStorage.setItem('focusFlowSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('focusFlowSettings');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    // Merge saved settings
+                    state.focusDuration = parsed.focusDuration || state.focusDuration;
+                    state.breakDuration = parsed.breakDuration || state.breakDuration;
+                    state.viewMode = parsed.viewMode || 'hybrid';
+                    state.clockSize = parsed.clockSize || 10;
+                    state.font = parsed.font || 'Inter';
+                    state.customColor = parsed.customColor || null;
+                    state.waterStyle = parsed.waterStyle || 'breathing';
+                    state.waterSpeed = parsed.waterSpeed || 20;
+                    
+                    // Reset current session stats based on loaded values
+                    state.duration = state.mode === 'focus' ? state.focusDuration : state.breakDuration;
+                    state.timeLeft = state.duration;
+                } catch (e) {
+                    console.error("Error loading settings", e);
+                }
+            }
+        }
+
+        // --- DOM Elements ---
+        const els = {
+            timerDisplay: document.getElementById('timer-display'),
+            sessionStatus: document.getElementById('session-status'),
+            startBtn: document.getElementById('start-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            settingsBtn: document.getElementById('settings-btn'),
+            closeSettings: document.getElementById('close-settings'),
+            modal: document.getElementById('settings-modal'),
+            
+            durationSlider: document.getElementById('duration-slider'),
+            durationValue: document.getElementById('duration-value'),
+            
+            breakSlider: document.getElementById('break-slider'),
+            breakValue: document.getElementById('break-value'),
+
+            sizeSlider: document.getElementById('size-slider'),
+            fontInput: document.getElementById('font-input'),
+            colorPicker: document.getElementById('color-picker'),
+            modeBtns: document.querySelectorAll('.mode-select'),
+            sessionBtns: document.querySelectorAll('.session-select'),
+            waterStyleSelect: document.getElementById('water-style'),
+            speedSlider: document.getElementById('speed-slider'),
+            topControls: document.getElementById('top-controls'),
+            bottomControls: document.getElementById('bottom-controls'),
+            canvas: document.getElementById('waterCanvas')
+        };
+
+        // --- Canvas & Physics ---
+        const ctx = els.canvas.getContext('2d');
+        let width, height;
+        let waves = [];
+        let time = 0;
+
+        function resize() {
+            width = els.canvas.width = window.innerWidth;
+            height = els.canvas.height = window.innerHeight;
+        }
+
+        // Initialize Waves 
+        function initWaves() {
+            waves = [
+                { y: 0, length: 0.01, amplitude: 15, speed: 1, offset: 0 },
+                { y: 0, length: 0.005, amplitude: 20, speed: 1.5, offset: 100 },
+                { y: 0, length: 0.002, amplitude: 25, speed: 0.5, offset: 200 }
+            ];
+        }
+
+        function getColor(progress) {
+            // Modern "Pleasant" Gradient Logic
+            // 0% (Start) = Rose Red (Hue 350)
+            // 50% (Middle) = Amber/Gold (Hue 40)
+            // 100% (End) = Spring Mint (Hue 160)
+            
+            let h, s, l;
+            
+            if (progress < 0.5) {
+                // Transition Rose (350) to Amber (40)
+                const p = progress * 2; 
+                const startH = -10; 
+                const endH = 40;
+                h = startH + (p * (endH - startH));
+                if (h < 0) h += 360; 
+                
+                s = 90;
+                l = 60 + (p * 5); 
+            } else {
+                // Transition Amber (40) to Mint (160)
+                const p = (progress - 0.5) * 2; 
+                h = 40 + (p * 120); 
+                s = 90 - (p * 10); 
+                l = 65 - (p * 5);  
+            }
+
+            state.themeHue = h;
+            state.themeS = s;
+            state.themeL = l;
+            return { h, s, l };
+        }
+
+        function drawWaves() {
+            ctx.clearRect(0, 0, width, height);
+            
+            const totalDuration = state.duration;
+            const elapsed = totalDuration - state.timeLeft;
+            const progress = state.duration > 0 ? (elapsed / totalDuration) : 0;
+            
+            if (state.viewMode === 'timer') {
+                return requestAnimationFrame(drawWaves);
+            }
+
+            const color = getColor(progress);
+            const baseWaterHeight = height - (height * progress);
+            const speedMult = (state.waterSpeed / 20) * 0.003; 
+
+            waves.forEach((wave, i) => {
+                ctx.beginPath();
+                ctx.moveTo(0, height);
+
+                const style = state.waterStyle;
+                const t = time * speedMult;
+
+                // --- PHYSICS ENGINE ---
+                if (style === 'digital') {
+                    const step = 40;
+                    for (let x = 0; x <= width + step; x += step) {
+                        const y = baseWaterHeight + 
+                                  Math.sin(x * wave.length + t * wave.speed + wave.offset) * wave.amplitude;
+                        ctx.lineTo(x, Math.floor(y / step) * step);
+                        ctx.lineTo(x + step, Math.floor(y / step) * step);
+                    }
+                } 
+                else if (style === 'retro') {
+                    const step = 60;
+                    for (let x = 0; x <= width + step; x += step) {
+                        const s = Math.sin(x * wave.length + t * wave.speed + wave.offset);
+                        const y = baseWaterHeight + (s > 0 ? 1 : -1) * wave.amplitude;
+                        ctx.lineTo(x, y);
+                        ctx.lineTo(x + step, y);
+                    }
+                }
+                else if (style === 'shard') {
+                    const period = 100;
+                    for (let x = 0; x <= width + period; x += period) {
+                        ctx.lineTo(x, baseWaterHeight + wave.amplitude);
+                        ctx.lineTo(x + period, baseWaterHeight - wave.amplitude);
+                    }
+                }
+                else if (style === 'dune') {
+                    const period = 60;
+                    for (let x = 0; x <= width + period; x += 10) {
+                        const s = Math.sin(x * wave.length + t * wave.speed);
+                        const tri = (2 / Math.PI) * Math.asin(s);
+                        ctx.lineTo(x, baseWaterHeight + tri * wave.amplitude * 1.5);
+                    }
+                }
+                else if (style === 'voltage') {
+                    for (let x = 0; x <= width + 20; x += 20) {
+                        const s = Math.sin(x * wave.length + t * wave.speed + wave.offset);
+                        const noise = (s > 0 ? 1 : -1) * Math.abs(s);
+                        const y = baseWaterHeight + noise * wave.amplitude;
+                        ctx.lineTo(x, y);
+                    }
+                }
+                else if (style === 'static') {
+                    for (let x = 0; x <= width + 10; x += 10) {
+                        const noise = Math.random() * wave.amplitude - (wave.amplitude/2);
+                        ctx.lineTo(x, baseWaterHeight + noise);
+                    }
+                }
+                else if (style === 'glitch') {
+                    const step = 50;
+                    for (let x = 0; x <= width + step; x += step) {
+                         const isGlitch = Math.random() > 0.9;
+                         const y = baseWaterHeight + (isGlitch ? (Math.random()*100 - 50) : 0);
+                         ctx.lineTo(x, y);
+                         ctx.lineTo(x + step, y);
+                    }
+                }
+                else if (style === 'minimal') {
+                    for (let x = 0; x <= width + 50; x += 50) {
+                        const y = baseWaterHeight + 
+                                  Math.sin(x * 0.001 + t + wave.offset) * 5;
+                        ctx.lineTo(x, y);
+                    }
+                }
+                else if (style === 'ocean') {
+                    for (let x = 0; x <= width + 10; x += 10) {
+                        const y = baseWaterHeight + 
+                                  Math.sin(x * wave.length + (t * 5) + wave.offset) * wave.amplitude;
+                        ctx.lineTo(x, y);
+                    }
+                }
+                else if (style === 'bounce') {
+                    for (let x = 0; x <= width + 10; x += 10) {
+                        const s = Math.sin(x * wave.length + t * wave.speed + wave.offset);
+                        const y = baseWaterHeight - Math.abs(s) * wave.amplitude * 1.5; 
+                        ctx.lineTo(x, y);
+                    }
+                }
+                else if (style === 'orbit') {
+                    for (let x = 0; x <= width + 10; x += 10) {
+                        const y = baseWaterHeight + 
+                                  Math.sin(x * wave.length + t) * wave.amplitude +
+                                  Math.cos(x * wave.length * 2 + t) * (wave.amplitude * 0.5);
+                        ctx.lineTo(x, y);
+                    }
+                }
+                else if (style === 'sludge') {
+                    for (let x = 0; x <= width + 10; x += 10) {
+                        const s = Math.sin(x * wave.length + t * wave.speed);
+                        const y = baseWaterHeight + (s * s * s) * wave.amplitude;
+                        ctx.lineTo(x, y);
+                    }
+                }
+                else if (style === 'flux') {
+                    for (let x = 0; x <= width + 10; x += 10) {
+                        const ampMod = Math.sin(x * 0.005 + t);
+                        const y = baseWaterHeight + 
+                                  Math.sin(x * wave.length + t * wave.speed) * wave.amplitude * ampMod;
+                        ctx.lineTo(x, y);
+                    }
+                }
+                else if (style === 'nebula') {
+                    for (let x = 0; x <= width + 10; x += 5) {
+                        const y = baseWaterHeight + 
+                                  Math.sin(x * 0.005 + t) * 30 + 
+                                  Math.sin(x * 0.02 + t * 2) * 10;
+                        ctx.lineTo(x, y);
+                    }
+                }
+                else {
+                    // Default: Breathing
+                    for (let x = 0; x <= width + 10; x += 10) {
+                        const y = baseWaterHeight + 
+                                  Math.sin(x * wave.length + t * wave.speed + wave.offset) * wave.amplitude;
+                        ctx.lineTo(x, y);
+                    }
+                }
+
+                ctx.lineTo(width, height);
+                ctx.lineTo(0, height);
+                ctx.closePath();
+
+                // Style
+                const opacity = 0.3 + (i * 0.15);
+                ctx.fillStyle = `hsla(${color.h}, ${color.s}%, ${color.l}%, ${opacity})`;
+                ctx.fill();
+            });
+
+            time++;
+            requestAnimationFrame(drawWaves);
+        }
+
+        // --- Timer Logic ---
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function updateDisplay() {
+            els.timerDisplay.textContent = formatTime(state.timeLeft);
+            const modeText = state.mode === 'focus' ? 'Focus' : 'Break';
+            document.title = `${formatTime(state.timeLeft)} | ${modeText}`;
+            
+            els.timerDisplay.style.opacity = state.viewMode === 'water' ? '0' : '1';
+            
+            // Session Status Text
+            if(state.mode === 'focus') {
+                els.sessionStatus.textContent = "Focus Session";
+                els.sessionStatus.style.color = "rgba(255,255,255,0.6)";
+            } else {
+                els.sessionStatus.textContent = "Break Time";
+                els.sessionStatus.style.color = "#6ee7b7"; // Greenish
+            }
+
+            // Colorize Text
+            if (state.customColor) {
+                els.timerDisplay.style.color = state.customColor;
+            } else {
+                const textL = Math.min(95, state.themeL + 25);
+                els.timerDisplay.style.color = `hsl(${state.themeHue}, ${state.themeS}%, ${textL}%)`;
+            }
+        }
+
+        function toggleTimer() {
+            if (state.isRunning) {
+                clearInterval(state.timerId);
+                state.isRunning = false;
+                els.startBtn.innerHTML = '<i class="fa-solid fa-play text-3xl ml-1"></i>';
+            } else {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(e => console.log(e));
+                }
+
+                state.isRunning = true;
+                els.startBtn.innerHTML = '<i class="fa-solid fa-pause text-3xl"></i>';
+                state.timerId = setInterval(() => {
+                    if (state.timeLeft > 0) {
+                        state.timeLeft--;
+                        updateDisplay();
+                    } else {
+                        finishTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function switchSessionMode(newMode) {
+            // Stop current timer
+            clearInterval(state.timerId);
+            state.isRunning = false;
+            els.startBtn.innerHTML = '<i class="fa-solid fa-play text-3xl ml-1"></i>';
+
+            state.mode = newMode;
+            if(newMode === 'focus') {
+                state.duration = state.focusDuration;
+            } else {
+                state.duration = state.breakDuration;
+            }
+            state.timeLeft = state.duration;
+            
+            updateDisplay();
+            updateSettingsUI();
+        }
+
+        function finishTimer() {
+            clearInterval(state.timerId);
+            state.isRunning = false;
+            els.startBtn.innerHTML = '<i class="fa-solid fa-play text-3xl ml-1"></i>';
+            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+            audio.play();
+            
+            // --- POMODORO LOGIC ---
+            if(state.mode === 'focus') {
+                switchSessionMode('break');
+                alert("Focus Session Complete! Take a break.");
+            } else {
+                switchSessionMode('focus');
+                alert("Break Over! Ready to focus?");
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(state.timerId);
+            state.isRunning = false;
+            
+            // Reset to the start of current mode
+            if(state.mode === 'focus') {
+                state.timeLeft = state.focusDuration;
+                state.duration = state.focusDuration;
+            } else {
+                state.timeLeft = state.breakDuration;
+                state.duration = state.breakDuration;
+            }
+
+            els.startBtn.innerHTML = '<i class="fa-solid fa-play text-3xl ml-1"></i>';
+            updateDisplay();
+        }
+
+        // --- Settings Logic ---
+        function updateSettingsUI() {
+            // Update Sliders
+            els.durationValue.textContent = `${Math.floor(state.focusDuration / 60)}m`;
+            els.breakValue.textContent = `${Math.floor(state.breakDuration / 60)}m`;
+            els.durationSlider.value = state.focusDuration / 60;
+            els.breakSlider.value = state.breakDuration / 60;
+
+            // Update Appearance
+            els.timerDisplay.style.fontSize = `${state.clockSize}rem`;
+            els.sizeSlider.value = state.clockSize;
+            
+            els.timerDisplay.style.fontFamily = state.font;
+            els.fontInput.value = state.font === 'Inter' ? '' : state.font;
+            
+            els.waterStyleSelect.value = state.waterStyle;
+            els.speedSlider.value = state.waterSpeed;
+            if(state.customColor) els.colorPicker.value = state.customColor;
+            
+            // Update Buttons
+            els.modeBtns.forEach(btn => {
+                const mode = btn.dataset.mode;
+                if(mode === state.viewMode) {
+                    btn.classList.add('bg-white/20', 'font-bold', 'shadow');
+                } else {
+                    btn.classList.remove('bg-white/20', 'font-bold', 'shadow');
+                }
+            });
+
+            els.sessionBtns.forEach(btn => {
+                const s = btn.dataset.session;
+                if(s === state.mode) {
+                    btn.classList.add('bg-white/20', 'font-bold', 'shadow');
+                } else {
+                    btn.classList.remove('bg-white/20', 'font-bold', 'shadow');
+                }
+            });
+
+            updateDisplay();
+        }
+
+        function toggleUI() {
+            state.isUiVisible = !state.isUiVisible;
+            const method = state.isUiVisible ? 'remove' : 'add';
+            els.bottomControls.classList[method]('distraction-hidden');
+            els.topControls.classList[method]('distraction-hidden');
+            els.settingsBtn.classList[method]('distraction-hidden');
+            els.sessionStatus.classList[method]('distraction-hidden');
+        }
+
+        function loadFont(fontName) {
+            if(!fontName) return;
+            const link = document.createElement('link');
+            link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(' ', '+')}&display=swap`;
+            link.rel = 'stylesheet';
+            document.head.appendChild(link);
+            state.font = fontName;
+            updateSettingsUI();
+            saveSettings();
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('resize', resize);
+        els.startBtn.addEventListener('click', toggleTimer);
+        els.resetBtn.addEventListener('click', resetTimer);
+        
+        els.settingsBtn.addEventListener('click', () => {
+            els.modal.classList.remove('modal-enter');
+            els.modal.classList.add('modal-enter-active');
+        });
+        
+        els.closeSettings.addEventListener('click', () => {
+            els.modal.classList.remove('modal-enter-active');
+            els.modal.classList.add('modal-enter');
+        });
+
+        // Close Modal when clicking outside (on the backdrop)
+        els.modal.addEventListener('click', (e) => {
+            if (e.target === els.modal) {
+                els.modal.classList.remove('modal-enter-active');
+                els.modal.classList.add('modal-enter');
+            }
+        });
+
+        // Focus Duration Slider
+        els.durationSlider.addEventListener('input', (e) => {
+            state.focusDuration = e.target.value * 60;
+            if (!state.isRunning && state.mode === 'focus') {
+                state.timeLeft = state.focusDuration;
+                state.duration = state.focusDuration;
+            }
+            updateSettingsUI();
+            saveSettings();
+        });
+
+        // Break Duration Slider
+        els.breakSlider.addEventListener('input', (e) => {
+            state.breakDuration = e.target.value * 60;
+            if (!state.isRunning && state.mode === 'break') {
+                state.timeLeft = state.breakDuration;
+                state.duration = state.breakDuration;
+            }
+            updateSettingsUI();
+            saveSettings();
+        });
+
+        // Manual Session Switching
+        els.sessionBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchSessionMode(btn.dataset.session);
+            });
+        });
+
+        els.sizeSlider.addEventListener('input', (e) => {
+            state.clockSize = e.target.value;
+            updateSettingsUI();
+            saveSettings();
+        });
+
+        let fontTimeout;
+        els.fontInput.addEventListener('input', (e) => {
+            clearTimeout(fontTimeout);
+            fontTimeout = setTimeout(() => {
+                loadFont(e.target.value);
+            }, 800);
+        });
+
+        els.colorPicker.addEventListener('input', (e) => {
+            state.customColor = e.target.value;
+            updateDisplay();
+            saveSettings();
+        });
+
+        els.modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.viewMode = btn.dataset.mode;
+                updateSettingsUI();
+                saveSettings();
+            });
+        });
+
+        els.waterStyleSelect.addEventListener('change', (e) => {
+            state.waterStyle = e.target.value;
+            saveSettings();
+        });
+
+        els.speedSlider.addEventListener('input', (e) => {
+            state.waterSpeed = e.target.value;
+            saveSettings();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Tab') {
+                e.preventDefault();
+                toggleUI();
+            }
+        });
+
+        // --- Init ---
+        loadSettings(); // Load prefs first
+        loadFont(state.font); // Load font if saved
+        resize();
+        initWaves();
+        requestAnimationFrame(drawWaves);
+        updateSettingsUI();
+    </script>
+</body>
+</html>
