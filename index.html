@@ -40,7 +40,7 @@
             align-items: center;
             justify-content: center;
             transition: opacity 0.5s ease;
-        }
+        } 
 
         /* The Timer Text */
         #timer-display {
@@ -228,7 +228,7 @@
     <div id="app-ui">
         
         <div id="top-controls" class="absolute top-8 w-full flex justify-center opacity-50 text-xs tracking-widest uppercase transition-opacity duration-500">
-            Press <span class="mx-2 font-bold bg-white/20 px-1 rounded">TAB</span> to toggle UI
+            Press <span class="mx-2 font-bold bg-white/20 px-1 rounded">TAB</span> to toggle UI, <span class="mx-2 font-bold bg-white/20 px-1 rounded">SPACE</span> to Play/Pause
         </div>
 
         <div id="session-status" title="Click Settings to Switch Mode">Focus Session</div>
@@ -973,6 +973,15 @@
             if (e.code === 'Tab') {
                 e.preventDefault();
                 toggleUI();
+            }
+            // Start/Stop with Spacebar
+            if (e.code === 'Space') {
+                // If user is typing in the font input, don't toggle timer
+                if (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text') {
+                    return;
+                }
+                e.preventDefault(); // Prevent scrolling
+                toggleTimer();
             }
         });
 
