@@ -133,6 +133,27 @@
             opacity: 1;
         }
 
+        /* Color Picker Reset */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            padding: 0;
+            background: none;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0; 
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
         /* Typography */
         .countdown-number {
             font-size: clamp(1.5rem, 3.5vw, 2.5rem);
@@ -342,6 +363,70 @@
                         </div>
                     </div>
 
+                    <!-- NEW SECTION: Status Conditions & Colors -->
+                    <div>
+                        <h3 class="text-base font-bold text-indigo-400 uppercase tracking-widest mb-4">Status Thresholds & Colors</h3>
+                        <div class="space-y-3 p-1">
+                            
+                            <!-- Urgent Row -->
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                                <div class="flex-1">
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Urgent (< Days)</label>
+                                    <input type="number" id="urgent-days" min="1" max="30"
+                                        class="glass-input w-full p-2 rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
+                                    <div class="flex justify-center">
+                                        <input type="color" id="urgent-color">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Soon Row -->
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                                <div class="flex-1">
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Soon (< Days)</label>
+                                    <input type="number" id="soon-days" min="1" max="90"
+                                        class="glass-input w-full p-2 rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
+                                    <div class="flex justify-center">
+                                        <input type="color" id="soon-color">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- On Track Row (No numeric input needed, it's the default) -->
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                                <div class="flex-1 flex items-center">
+                                    <span class="text-gray-300 text-sm font-medium">On Track (Default)</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
+                                    <div class="flex justify-center">
+                                        <input type="color" id="ontrack-color">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Expired Row -->
+                             <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                                <div class="flex-1 flex items-center">
+                                    <span class="text-gray-300 text-sm font-medium">Expired</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
+                                    <div class="flex justify-center">
+                                        <input type="color" id="expired-color">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End New Section -->
+
                     <!-- Import/Export Section -->
                     <div>
                         <h3 class="text-base font-bold text-indigo-400 uppercase tracking-widest mb-4">Data Backup</h3>
@@ -381,7 +466,7 @@
     <!-- JavaScript Logic -->
     <script type="module">
         const COUNTDOWN_STORAGE_KEY = 'COUNTDOWN_TRACKER_DATA';
-        const SETTINGS_STORAGE_KEY = 'COUNTDOWN_TRACKER_SETTINGS';
+        const SETTINGS_STORAGE_KEY = 'COUNTDOWN_TRACKER_SETTINGS_V2'; // Version bumped to ensure fresh defaults load if needed
         
         const defaultSettings = {
             siteTitleFont: 'Inter',
@@ -390,6 +475,13 @@
             showHours: true,
             showMinutes: true,
             showSeconds: true,
+            // New defaults
+            urgentDays: 4,
+            soonDays: 15,
+            urgentColor: '#f87171', // Red-400
+            soonColor: '#facc15',   // Yellow-400
+            onTrackColor: '#34d399',// Emerald-400
+            expiredColor: '#ef4444' // Red-500
         };
 
         let activeCountdowns = []; 
@@ -411,15 +503,44 @@
         
         const settingsModalEl = document.getElementById('settings-modal');
         const settingsModalContentEl = document.getElementById('settings-modal-content');
+        
+        // Settings Inputs
         const siteTitleFontInput = document.getElementById('site-title-font');
         const headingFontInput = document.getElementById('heading-font');
         const countdownFontInput = document.getElementById('countdown-font');
         const toggleHoursInput = document.getElementById('toggle-hours');
         const toggleMinutesInput = document.getElementById('toggle-minutes');
         const toggleSecondsInput = document.getElementById('toggle-seconds');
+        
+        // New Settings Inputs
+        const urgentDaysInput = document.getElementById('urgent-days');
+        const soonDaysInput = document.getElementById('soon-days');
+        const urgentColorInput = document.getElementById('urgent-color');
+        const soonColorInput = document.getElementById('soon-color');
+        const onTrackColorInput = document.getElementById('ontrack-color');
+        const expiredColorInput = document.getElementById('expired-color');
+
         const fontImportsContainer = document.getElementById('font-imports');
 
         const cleanFontName = (name) => name.trim().replace(/\s+/g, '+');
+
+        // Helper to convert HEX to RGBA for glass effects
+        const hexToRgba = (hex, alpha) => {
+            let r = 0, g = 0, b = 0;
+            if (!hex) return `rgba(0,0,0,${alpha})`;
+            
+            // Handle hex shorthand
+            if (hex.length === 4) {
+                r = parseInt(hex[1] + hex[1], 16);
+                g = parseInt(hex[2] + hex[2], 16);
+                b = parseInt(hex[3] + hex[3], 16);
+            } else if (hex.length === 7) {
+                r = parseInt(hex.substring(1, 3), 16);
+                g = parseInt(hex.substring(3, 5), 16);
+                b = parseInt(hex.substring(5, 7), 16);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
 
         const loadFontAndApplyCss = (fontName, cssVar) => {
             const cleanName = cleanFontName(fontName);
@@ -443,7 +564,13 @@
         const loadSettings = () => {
             const storedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
             try {
-                currentSettings = storedSettings ? { ...defaultSettings, ...JSON.parse(storedSettings) } : defaultSettings;
+                if (storedSettings) {
+                    const parsed = JSON.parse(storedSettings);
+                    // Merge with defaults to ensure new fields exist if loading old data
+                    currentSettings = { ...defaultSettings, ...parsed };
+                } else {
+                    currentSettings = defaultSettings;
+                }
             } catch (e) {
                 console.error("Error loading settings:", e);
                 currentSettings = defaultSettings;
@@ -457,6 +584,14 @@
             currentSettings.showHours = toggleHoursInput.checked;
             currentSettings.showMinutes = toggleMinutesInput.checked;
             currentSettings.showSeconds = toggleSecondsInput.checked;
+            
+            // Save new fields
+            currentSettings.urgentDays = urgentDaysInput.value;
+            currentSettings.soonDays = soonDaysInput.value;
+            currentSettings.urgentColor = urgentColorInput.value;
+            currentSettings.soonColor = soonColorInput.value;
+            currentSettings.onTrackColor = onTrackColorInput.value;
+            currentSettings.expiredColor = expiredColorInput.value;
 
             try {
                 localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(currentSettings));
@@ -564,39 +699,29 @@
             return { isPast: false, days, hours, minutes, seconds, totalDays: distance / (1000 * 60 * 60 * 24) };
         };
 
-        // Determine styling based on urgency
+        // Determine styling based on dynamic settings
         const getStatusStyles = (totalDays, isPast) => {
+            const { urgentDays, soonDays, urgentColor, soonColor, onTrackColor, expiredColor } = currentSettings;
+
             if (isPast) {
                  return {
-                    border: 'border-red-500/50',
-                    shadow: 'shadow-[0_0_15px_rgba(239,68,68,0.15)]',
-                    text: 'text-red-400',
-                    pill: 'bg-red-500/20 text-red-300 border-red-500/20',
+                    colorHex: expiredColor || '#ef4444',
                     label: 'EXPIRED'
                  };
             }
-            if (totalDays < 4) {
+            if (totalDays < parseFloat(urgentDays)) {
                  return {
-                    border: 'border-red-500/60',
-                    shadow: 'shadow-[0_0_20px_rgba(248,113,113,0.15)]',
-                    text: 'text-red-400',
-                    pill: 'bg-red-500/10 text-red-300 border-red-500/20',
+                    colorHex: urgentColor || '#f87171',
                     label: 'URGENT'
                  };
-            } else if (totalDays < 15) {
+            } else if (totalDays < parseFloat(soonDays)) {
                  return {
-                    border: 'border-yellow-400/50',
-                    shadow: 'shadow-[0_0_20px_rgba(250,204,21,0.1)]',
-                    text: 'text-yellow-400',
-                    pill: 'bg-yellow-400/10 text-yellow-300 border-yellow-400/20',
+                    colorHex: soonColor || '#facc15',
                     label: 'SOON'
                  };
             } else {
                  return {
-                    border: 'border-emerald-500/40',
-                    shadow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]',
-                    text: 'text-emerald-400',
-                    pill: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+                    colorHex: onTrackColor || '#34d399',
                     label: 'ON TRACK'
                  };
             }
@@ -667,14 +792,22 @@
                 const time = calculateRemainingTime(targetDate);
                 const styles = getStatusStyles(time.totalDays, time.isPast);
                 
+                // Dynamic Styles based on chosen colors
+                const mainColor = styles.colorHex;
+                const borderStyle = `border-color: ${hexToRgba(mainColor, 0.4)}`;
+                const shadowStyle = `box-shadow: 0 0 20px ${hexToRgba(mainColor, 0.1)}`;
+                const pillStyle = `background-color: ${hexToRgba(mainColor, 0.1)}; color: ${hexToRgba(mainColor, 0.9)}; border-color: ${hexToRgba(mainColor, 0.2)}`;
+                const textStyle = `color: ${mainColor}`;
+
                 const countdownDiv = document.createElement('div');
                 countdownDiv.id = `countdown-${id}`;
                 // Staggered animation
                 countdownDiv.style.animationDelay = `${index * 50}ms`;
                 
-                // Dynamic styling on the wrapper
-                countdownDiv.className = `glass-card p-6 rounded-2xl animate-fade-in-up relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10 border ${styles.border} ${styles.shadow}`;
-                
+                // Dynamic styling on the wrapper using inline styles for color logic
+                countdownDiv.className = `glass-card p-6 rounded-2xl animate-fade-in-up relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border`;
+                countdownDiv.style.cssText = `${borderStyle}; ${shadowStyle}; transition: all 0.3s ease;`;
+
                 const displayDate = new Date(targetDate).toLocaleString('en-US', {
                     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
                 });
@@ -685,7 +818,9 @@
                     .filter(unit => unit.show)
                     .map(unit => `
                         <div class="p-2.5 bg-black/30 rounded-xl border border-white/5 backdrop-blur-md">
-                            <div class="countdown-number font-mono ${styles.text} font-black tracking-tighter tabular-nums leading-none" data-unit="${unit.key}">--</div>
+                            <div class="countdown-number font-mono font-black tracking-tighter tabular-nums leading-none" 
+                                 style="${textStyle}" 
+                                 data-unit="${unit.key}">--</div>
                             <div class="text-[9px] font-bold text-gray-500 tracking-widest mt-1.5 opacity-80">${unit.label}</div>
                         </div>
                     `)
@@ -700,7 +835,7 @@
                     <div class="flex justify-between items-start mb-5">
                         <div class="pr-2 w-full overflow-hidden">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${styles.pill} tracking-wider">${styles.label}</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border tracking-wider" style="${pillStyle}">${styles.label}</span>
                             </div>
                             <h3 class="text-xl font-bold text-white/95 truncate leading-tight tracking-tight">${headline}</h3>
                             <p class="text-xs font-medium text-gray-400 mt-1 flex items-center gap-1.5">
@@ -739,17 +874,27 @@
                 if (!timerDisplayEl || !wrapperEl) return;
 
                 const time = calculateRemainingTime(targetDate);
-                const numberElements = timerDisplayEl.querySelectorAll('.countdown-number');
                 const styles = getStatusStyles(time.totalDays, time.isPast);
+                
+                // Dynamic styling strings
+                const mainColor = styles.colorHex;
+                const borderStyle = `border-color: ${hexToRgba(mainColor, 0.4)}`;
+                const shadowStyle = `box-shadow: 0 0 20px ${hexToRgba(mainColor, 0.1)}`;
+                const textStyle = `color: ${mainColor}`;
 
                 if (time.isPast && !timerDisplayEl.classList.contains('deadline-passed')) {
+                    const expiredBg = hexToRgba(mainColor, 0.1);
+                    const expiredBorder = hexToRgba(mainColor, 0.2);
+                    
                     timerDisplayEl.innerHTML = `
-                        <div class="col-span-full py-3 bg-red-500/10 rounded-xl border border-red-500/20 animate-pulse">
-                            <p class="text-center text-base font-bold text-red-400 tracking-wide uppercase">Time's Up</p>
+                        <div class="col-span-full py-3 rounded-xl border animate-pulse" style="background-color: ${expiredBg}; border-color: ${expiredBorder}">
+                            <p class="text-center text-base font-bold tracking-wide uppercase" style="color: ${mainColor}">Time's Up</p>
                         </div>`;
                     timerDisplayEl.classList.add('deadline-passed');
-                    // Update wrapper border to expired state
-                    wrapperEl.className = `glass-card p-6 rounded-2xl relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border ${styles.border} ${styles.shadow}`;
+                    
+                    // Update wrapper
+                    wrapperEl.className = `glass-card p-6 rounded-2xl relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border`;
+                    wrapperEl.style.cssText = `${borderStyle}; ${shadowStyle};`;
                 
                 } else if (!time.isPast) {
                     const unitElements = timerDisplayEl.querySelectorAll('[data-unit]');
@@ -757,9 +902,8 @@
                     unitElements.forEach(el => {
                         const unit = el.getAttribute('data-unit');
                         el.textContent = String(time[unit]).padStart(2, '0');
-                        
-                        // Ensure text color matches urgency
-                        el.className = `countdown-number font-mono font-black tracking-tighter tabular-nums leading-none ${styles.text}`;
+                        // Apply dynamic color
+                        el.style.color = mainColor;
                     });
 
                     // Handle only days visible case
@@ -827,6 +971,14 @@
             toggleHoursInput.checked = currentSettings.showHours;
             toggleMinutesInput.checked = currentSettings.showMinutes;
             toggleSecondsInput.checked = currentSettings.showSeconds;
+            
+            // Populate New Fields
+            urgentDaysInput.value = currentSettings.urgentDays;
+            soonDaysInput.value = currentSettings.soonDays;
+            urgentColorInput.value = currentSettings.urgentColor;
+            soonColorInput.value = currentSettings.soonColor;
+            onTrackColorInput.value = currentSettings.onTrackColor;
+            expiredColorInput.value = currentSettings.expiredColor;
 
             settingsModalEl.classList.remove('hidden');
             setTimeout(() => {
@@ -892,14 +1044,10 @@
                     // Reset input
                     input.value = '';
                     
-                    // Update form inputs to reflect imported settings if modal is open
+                    // Update form inputs if open
                     if (!settingsModalEl.classList.contains('hidden')) {
-                         siteTitleFontInput.value = currentSettings.siteTitleFont === defaultSettings.siteTitleFont ? '' : currentSettings.siteTitleFont;
-                         headingFontInput.value = currentSettings.headingFont === defaultSettings.headingFont ? '' : currentSettings.headingFont;
-                         countdownFontInput.value = currentSettings.countdownFont === defaultSettings.countdownFont ? '' : currentSettings.countdownFont;
-                         toggleHoursInput.checked = currentSettings.showHours;
-                         toggleMinutesInput.checked = currentSettings.showMinutes;
-                         toggleSecondsInput.checked = currentSettings.showSeconds;
+                        // Re-run show logic to populate fields
+                        showSettingsModal();
                     }
 
                 } catch (err) {
