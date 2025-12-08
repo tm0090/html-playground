@@ -139,13 +139,14 @@
         input[type="color"] {
             -webkit-appearance: none;
             border: none;
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             overflow: hidden;
             padding: 0;
             background: none;
             cursor: pointer;
+            vertical-align: middle;
         }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch {
@@ -169,34 +170,6 @@
             z-index: 50;
             box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.6);
         }
-
-        /* Toggles */
-        input[type="checkbox"].toggle-switch {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 44px;
-            height: 24px;
-            background-color: #374151;
-            border-radius: 9999px; /* Changed from 12px to 9999px for perfect pill shape on all devices */
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 0; /* Reset margin */
-        }
-        input[type="checkbox"].toggle-switch:checked { background-color: #6366f1; }
-        input[type="checkbox"].toggle-switch::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background-color: white;
-            border-radius: 50%;
-            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        input[type="checkbox"].toggle-switch:checked::after { transform: translateX(20px); }
     </style>
     <div id="font-imports"></div>
 </head>
@@ -292,6 +265,7 @@
             
             <form id="settings-form">
                 <div class="space-y-8">
+                    <!-- Typography Section -->
                     <div>
                         <h2 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Typography</h2>
                         <div class="space-y-4">
@@ -315,73 +289,91 @@
                         </div>
                     </div>
 
+                    <!-- Visible Units Section -->
                     <div>
                         <h3 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Visible Units</h3>
-                        <div class="space-y-2">
+                        <div class="space-y-3">
+                            <!-- Toggle Item: Hours -->
                             <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition">
                                 <span class="text-gray-300 text-sm font-medium">Hours</span>
-                                <input type="checkbox" id="toggle-hours" class="toggle-switch">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-hours" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
                             </div>
+                            <!-- Toggle Item: Minutes -->
                             <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition">
                                 <span class="text-gray-300 text-sm font-medium">Minutes</span>
-                                <input type="checkbox" id="toggle-minutes" class="toggle-switch">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-minutes" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
                             </div>
+                            <!-- Toggle Item: Seconds -->
                             <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition">
                                 <span class="text-gray-300 text-sm font-medium">Seconds</span>
-                                <input type="checkbox" id="toggle-seconds" class="toggle-switch">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-seconds" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Status & Colors Section -->
                     <div>
                         <h3 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Status & Colors</h3>
                         <div class="space-y-3">
+                            <!-- Urgent Row -->
                             <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                                <div class="flex-1">
-                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Urgent (< Days)</label>
+                                <div class="flex-1 min-w-0">
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 truncate">Urgent (Days &lt;)</label>
                                     <input type="number" id="urgent-days" min="1" max="30"
-                                        class="glass-input w-full p-2 rounded-lg text-sm text-center font-bold">
+                                        class="glass-input w-full p-2.5 rounded-lg text-sm font-bold text-center">
                                 </div>
-                                <div>
-                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
+                                <div class="flex flex-col items-center flex-shrink-0">
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Color</label>
                                     <div class="flex justify-center bg-white/5 p-1 rounded-full">
                                         <input type="color" id="urgent-color">
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Soon Row -->
                             <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                                <div class="flex-1">
-                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Soon (< Days)</label>
+                                <div class="flex-1 min-w-0">
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 truncate">Soon (Days &lt;)</label>
                                     <input type="number" id="soon-days" min="1" max="90"
-                                        class="glass-input w-full p-2 rounded-lg text-sm text-center font-bold">
+                                        class="glass-input w-full p-2.5 rounded-lg text-sm font-bold text-center">
                                 </div>
-                                <div>
-                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
+                                <div class="flex flex-col items-center flex-shrink-0">
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Color</label>
                                     <div class="flex justify-center bg-white/5 p-1 rounded-full">
                                         <input type="color" id="soon-color">
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- On Track Row -->
                             <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                                <div class="flex-1 flex items-center pl-2">
+                                <div class="flex-1 pl-2">
                                     <span class="text-gray-300 text-sm font-bold">On Track</span>
                                 </div>
-                                <div>
-                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
+                                <div class="flex flex-col items-center flex-shrink-0">
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Color</label>
                                     <div class="flex justify-center bg-white/5 p-1 rounded-full">
                                         <input type="color" id="ontrack-color">
                                     </div>
                                 </div>
                             </div>
                             
+                            <!-- Expired Row -->
                             <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                                <div class="flex-1 flex items-center pl-2">
+                                <div class="flex-1 pl-2">
                                     <span class="text-gray-300 text-sm font-bold">Expired</span>
                                 </div>
-                                <div>
-                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
+                                <div class="flex flex-col items-center flex-shrink-0">
+                                    <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Color</label>
                                     <div class="flex justify-center bg-white/5 p-1 rounded-full">
                                         <input type="color" id="expired-color">
                                     </div>
@@ -390,16 +382,17 @@
                         </div>
                     </div>
                     
+                    <!-- Data Backup Section -->
                     <div>
                         <h3 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Data Backup</h3>
                         <div class="grid grid-cols-2 gap-4">
                             <button type="button" onclick="exportData()" 
-                                class="flex items-center justify-center gap-2 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-indigo-500/50 transition-all group active:scale-95">
+                                class="flex items-center justify-center gap-2 p-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-indigo-500/50 transition-all group active:scale-95">
                                 <i data-lucide="upload" class="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors"></i>
                                 <span class="text-sm text-gray-300 font-bold">Export</span>
                             </button>
                             <button type="button" onclick="document.getElementById('import-file').click()" 
-                                class="flex items-center justify-center gap-2 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-indigo-500/50 transition-all group active:scale-95">
+                                class="flex items-center justify-center gap-2 p-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-indigo-500/50 transition-all group active:scale-95">
                                 <i data-lucide="download" class="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors"></i>
                                 <span class="text-sm text-gray-300 font-bold">Import</span>
                             </button>
