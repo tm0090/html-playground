@@ -2,24 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Deadline Dashboard</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Lucide Icons for aesthetic components -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Set up Tailwind configuration for custom colors and fonts -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'primary': '#818cf8', // Indigo 400 (Lighter for dark mode)
-                        'secondary': '#a5b4fc', // Indigo 300
-                        'accent': '#c084fc', // Purple 400 for gradients
-                        'dark-bg': '#050505', // Almost Black
-                        'card-bg': 'rgba(255, 255, 255, 0.03)', // Glass effect base
-                        'text-light': '#f3f4f6', // Gray 100
+                        'primary': '#818cf8', 
+                        'secondary': '#a5b4fc', 
+                        'accent': '#c084fc', 
+                        'dark-bg': '#050505', 
+                        'card-bg': 'rgba(255, 255, 255, 0.03)', 
+                        'text-light': '#f3f4f6', 
                     },
                     fontFamily: {
                         display: ['var(--site-title-font)', 'Inter', 'sans-serif'],
@@ -27,25 +24,14 @@
                         mono: ['var(--countdown-font)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
                     },
                     animation: {
-                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                        'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'float': 'float 6s ease-in-out infinite',
                         'bounce-subtle': 'bounceSubtle 3s infinite ease-in-out',
-                        'spin-slow': 'spin 12s linear infinite',
                     },
                     keyframes: {
                         fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.2)' },
-                            '100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.6), 0 0 10px rgba(99, 102, 241, 0.4)' }
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
+                            '0%': { opacity: '0', transform: 'translateY(30px) scale(0.98)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
                         },
                         bounceSubtle: {
                              '0%, 100%': { transform: 'translateY(-5%)' },
@@ -69,96 +55,106 @@
         body {
             background-color: #050505;
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%), 
-                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08), transparent 25%);
+                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 35%), 
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08), transparent 35%);
             background-attachment: fixed;
+            -webkit-tap-highlight-color: transparent; /* Remove blue highlight on tap */
         }
 
-        /* Custom Scrollbar for Body */
-        body::-webkit-scrollbar {
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
             width: 6px;
         }
-        body::-webkit-scrollbar-thumb {
+        ::-webkit-scrollbar-thumb {
             background-color: #374151;
             border-radius: 4px;
         }
-        body::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
             background-color: transparent;
         }
 
-        /* Custom Scrollbar for Modal content */
-        .modal-scroll::-webkit-scrollbar {
-            width: 5px;
-        }
-        .modal-scroll::-webkit-scrollbar-thumb {
-            background-color: #4b5563;
-            border-radius: 4px;
-        }
-        .modal-scroll::-webkit-scrollbar-track {
-            background-color: rgba(255,255,255,0.02);
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        /* Card Glassmorphism - Border handled via Tailwind now */
+        /* SMOOTH CARD STYLES */
         .glass-card {
-            background: rgba(10, 10, 10, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            /* border set in JS dynamically */
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle default border */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Spring-like transition */
+            position: relative;
+            overflow: hidden;
         }
         
-        /* Modern Inputs */
+        /* HOVER GLOW LOGIC */
+        .glass-card:hover {
+            border-color: var(--glow-color);
+            box-shadow: 
+                0 0 25px var(--glow-color-soft),
+                inset 0 0 10px var(--glow-color-soft);
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        /* Constant styling for expired cards */
+        .glass-card.is-expired {
+            border-color: var(--glow-color);
+            box-shadow: 0 0 15px var(--glow-color-soft);
+        }
+        
+        /* Mobile Touch Optimizations */
+        @media (max-width: 768px) {
+            .glass-card:active {
+                transform: scale(0.98);
+            }
+            /* Make inputs larger for touch */
+            input, button {
+                min-height: 44px; 
+            }
+        }
+
         .glass-input {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #f3f4f6;
-            color-scheme: dark; /* Ensures calendar icon is white in browsers */
+            color-scheme: dark;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
         .glass-input:focus {
             border-color: #818cf8;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
         }
         
-        /* Fix for date inputs on mobile/dark mode */
         input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
             opacity: 0.6;
             cursor: pointer;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator:hover,
-        input[type="time"]::-webkit-calendar-picker-indicator:hover {
-            opacity: 1;
+            padding: 5px; /* Larger touch target */
         }
 
         /* Color Picker Reset */
         input[type="color"] {
             -webkit-appearance: none;
             border: none;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             overflow: hidden;
             padding: 0;
             background: none;
             cursor: pointer;
         }
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0; 
-        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch {
             border: none;
             border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.2);
         }
 
-        /* Typography */
         .countdown-number {
-            font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+            font-size: clamp(1.75rem, 3.5vw, 2.75rem);
             line-height: 1;
             letter-spacing: -0.05em;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
         /* FAB */
@@ -167,141 +163,111 @@
             bottom: 32px;
             right: 32px;
             z-index: 50;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.6);
         }
 
         /* Toggles */
         input[type="checkbox"].toggle-switch {
             appearance: none;
             -webkit-appearance: none;
-            width: 40px;
-            height: 22px;
+            width: 44px;
+            height: 24px;
             background-color: #374151;
-            border-radius: 11px;
+            border-radius: 12px;
             position: relative;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        input[type="checkbox"].toggle-switch:checked {
-            background-color: #6366f1;
-        }
+        input[type="checkbox"].toggle-switch:checked { background-color: #6366f1; }
         input[type="checkbox"].toggle-switch::after {
             content: '';
             position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 16px;
-            height: 16px;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
             background-color: white;
             border-radius: 50%;
             transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
-        input[type="checkbox"].toggle-switch:checked::after {
-            transform: translateX(18px);
-        }
-        
-        /* Tutorial styles */
-        .step-circle {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
+        input[type="checkbox"].toggle-switch:checked::after { transform: translateX(20px); }
     </style>
     <div id="font-imports"></div>
 </head>
 <body class="font-sans text-text-light min-h-screen p-4 sm:p-6 selection:bg-indigo-500 selection:text-white">
 
-    <!-- Decorative ambient light spots -->
-    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <!-- Ambient Light Blob -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-    <!-- Header -->
-    <header class="mb-8 text-center relative max-w-7xl mx-auto pt-4 md:pt-8 flex flex-col items-center z-10">
-        <!-- Settings Button -->
-        <button id="settings-button" onclick="showSettingsModal()" class="absolute top-4 right-0 p-2 text-gray-400 hover:text-white hover:bg-white/5 transition duration-200 rounded-full">
-            <i data-lucide="settings-2" class="w-5 h-5"></i>
+    <header class="mb-10 text-center relative max-w-7xl mx-auto pt-4 md:pt-8 flex flex-col items-center z-10">
+        <button id="settings-button" onclick="showSettingsModal()" class="absolute top-4 right-0 p-3 text-gray-400 hover:text-white hover:bg-white/5 transition duration-200 rounded-full active:scale-95">
+            <i data-lucide="settings-2" class="w-6 h-6"></i>
         </button>
         
-        <!-- Enhanced Heading (Smaller & Moved Up) -->
         <div class="inline-block relative mb-2">
-           <h1 class="text-4xl md:text-5xl font-display font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-200 via-white to-purple-200 tracking-tighter drop-shadow-xl -mt-[20px]">
-    Deadline Dashboard
-</h1>
-
-
+           <h1 class="text-4xl md:text-5xl font-display font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-200 via-white to-purple-200 tracking-tighter drop-shadow-2xl">
+                Deadline<br class="md:hidden">Dashboard
+            </h1>
         </div>
         
-        <p class="text-secondary/60 text-sm md:text-base max-w-lg mx-auto font-light tracking-wide">
-            Prioritize. Execute. Finish.
+        <p class="text-secondary/60 text-sm md:text-base max-w-lg mx-auto font-light tracking-wide mt-2">
+            Prioritize | Execute | Finish
         </p>
     </header>
 
-    <!-- Countdown List Container -->
-    <main id="countdown-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-7xl mx-auto pb-24 px-2">
-        <!-- Dynamic Content -->
+    <main id="countdown-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto pb-24 px-2">
         <div id="loading-spinner" class="col-span-full flex flex-col justify-center items-center py-20">
-            <div class="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
-            <span class="text-sm text-secondary/60 font-medium tracking-wider uppercase">Loading Trackers</span>
+            <div class="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+            <span class="text-sm text-secondary/60 font-medium tracking-wider uppercase animate-pulse">Loading Trackers...</span>
         </div>
     </main>
     
-    <!-- Floating Action Button -->
     <button id="add-button-fab" onclick="showModal()" 
-            class="group p-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full transition-all duration-300 ease-out transform hover:scale-110 active:scale-95 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50">
-        <i data-lucide="plus" class="w-6 h-6 transition-transform duration-300 group-hover:rotate-90"></i>
+            class="group p-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full transition-all duration-300 ease-out transform hover:scale-110 active:scale-95">
+        <i data-lucide="plus" class="w-7 h-7 transition-transform duration-300 group-hover:rotate-90"></i>
     </button>
 
-    <!-- Modal for Adding/Editing -->
+    <!-- Create/Edit Modal -->
     <div id="countdown-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300" onclick="hideModal()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300" onclick="hideModal()"></div>
         
-        <!-- Content -->
-        <div class="glass-card p-8 rounded-2xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0 relative z-10 border border-white/10 bg-[#0a0a0a]" id="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-white tracking-tight" id="modal-title">New Timer</h2>
-                <button onclick="hideModal()" class="text-gray-500 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div class="glass-card p-8 rounded-3xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0 relative z-10 bg-[#0a0a0a]" id="modal-content">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-white tracking-tight" id="modal-title">New Timer</h2>
+                <button onclick="hideModal()" class="text-gray-500 hover:text-white transition p-2 hover:bg-white/10 rounded-full"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             
             <form id="countdown-form">
                 <input type="hidden" id="doc-id">
                 
-                <div class="mb-5">
-                    <label for="headline" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Event Title</label>
+                <div class="mb-6">
+                    <label for="headline" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Event Title</label>
                     <input type="text" id="headline" required placeholder="e.g. Physics exam"
-                        class="glass-input w-full p-3 rounded-xl focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder-gray-600 text-sm">
+                        class="glass-input w-full p-4 rounded-xl focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder-gray-600 text-base font-medium">
                 </div>
 
-                <!-- Refined Date/Time Input -->
                 <div class="mb-8">
-                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Deadline</label>
-                    <div class="grid grid-cols-2 gap-3">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Deadline</label>
+                    <div class="grid grid-cols-2 gap-4">
                         <div class="relative">
                             <input type="date" id="target-date-part" required
-                                class="glass-input w-full p-3 rounded-xl focus:ring-2 focus:ring-indigo-500/50 transition-all text-gray-300 text-sm cursor-pointer">
+                                class="glass-input w-full p-4 rounded-xl focus:ring-2 focus:ring-indigo-500/50 transition-all text-gray-300 text-sm cursor-pointer">
                         </div>
                         <div class="relative">
                             <input type="time" id="target-time-part" required
-                                class="glass-input w-full p-3 rounded-xl focus:ring-2 focus:ring-indigo-500/50 transition-all text-gray-300 text-sm cursor-pointer">
+                                class="glass-input w-full p-4 rounded-xl focus:ring-2 focus:ring-indigo-500/50 transition-all text-gray-300 text-sm cursor-pointer">
                         </div>
                     </div>
-                    <p class="text-[13px] text-gray-500 mt-2 flex items-center gap-1">
-                        <i data-lucide="info" class="w-3 h-3"></i> System will alert when time expires
-                    </p>
                 </div>
 
-                <div class="flex justify-end gap-3">
+                <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="hideModal()"
-                        class="px-4 py-2.5 text-xs text-gray-400 hover:text-white transition duration-200 font-medium uppercase tracking-wide">
+                        class="px-5 py-3 text-xs text-gray-400 hover:text-white transition duration-200 font-bold uppercase tracking-wide rounded-xl hover:bg-white/5">
                         Cancel
                     </button>
                     <button type="submit" id="save-button"
-                        class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-900/20 transition-all duration-200 font-semibold text-sm transform hover:-translate-y-0.5">
+                        class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-900/30 transition-all duration-200 font-bold text-sm transform hover:-translate-y-0.5 active:translate-y-0">
                         Create
                     </button>
                 </div>
@@ -311,145 +277,136 @@
     
     <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300" onclick="hideSettingsModal()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300" onclick="hideSettingsModal()"></div>
         
-        <!-- Modified: Reduced max-width to max-w-md, added max-h, overflow-y-auto, and reduced padding to p-6 -->
-        <div class="glass-card p-6 rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto modal-scroll transform transition-all duration-300 scale-95 opacity-0 relative z-10 bg-[#0a0a0a] border border-white/10" id="settings-modal-content">
+        <div class="glass-card p-6 rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto modal-scroll transform transition-all duration-300 scale-95 opacity-0 relative z-10 bg-[#0a0a0a]" id="settings-modal-content">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-white tracking-tight">Settings</h2>
-                <button onclick="hideSettingsModal()" class="text-gray-500 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="hideSettingsModal()" class="text-gray-500 hover:text-white transition p-2 hover:bg-white/10 rounded-full"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             
             <form id="settings-form">
-                <div class="space-y-6">
+                <div class="space-y-8">
                     <div>
-                        <h2 class="text-base font-bold text-indigo-400 uppercase tracking-widest mb-4">Typography</h2>
+                        <h2 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Typography</h2>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-[12px] uppercase font-bold text-gray-500 mb-2">Site Title Font</label>
+                                <label class="block text-[11px] uppercase font-bold text-gray-500 mb-2">Site Title Font</label>
                                 <input type="text" id="site-title-font" placeholder="Google Font Name (e.g. Oswald)"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    class="glass-input w-full p-3 rounded-xl text-sm">
                             </div>
                             <div class="grid grid-cols-1 gap-4">
                                 <div>
-                                    <label class="block text-[12px] uppercase font-bold text-gray-500 mb-2">Card Headings Font</label>
+                                    <label class="block text-[11px] uppercase font-bold text-gray-500 mb-2">Card Headings Font</label>
                                     <input type="text" id="heading-font" placeholder="Google Font Name"
-                                        class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                        class="glass-input w-full p-3 rounded-xl text-sm">
                                 </div>
                                 <div>
-                                    <label class="block text-[12px] uppercase font-bold text-gray-500 mb-2">Numbers Font</label>
+                                    <label class="block text-[11px] uppercase font-bold text-gray-500 mb-2">Numbers Font</label>
                                     <input type="text" id="countdown-font" placeholder="Google Font Name"
-                                        class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                        class="glass-input w-full p-3 rounded-xl text-sm">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h3 class="text-base font-bold text-indigo-400 uppercase tracking-widest mb-4">Visible Units</h3>
+                        <h3 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Visible Units</h3>
                         <div class="space-y-2">
-                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5 hover:border-white/10 transition">
-                                <span class="text-gray-300 text-sm flex items-center gap-2">Hours</span>
+                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition">
+                                <span class="text-gray-300 text-sm font-medium">Hours</span>
                                 <input type="checkbox" id="toggle-hours" class="toggle-switch">
                             </div>
-                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5 hover:border-white/10 transition">
-                                <span class="text-gray-300 text-sm flex items-center gap-2">Minutes</span>
+                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition">
+                                <span class="text-gray-300 text-sm font-medium">Minutes</span>
                                 <input type="checkbox" id="toggle-minutes" class="toggle-switch">
                             </div>
-                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5 hover:border-white/10 transition">
-                                <span class="text-gray-300 text-sm flex items-center gap-2">Seconds</span>
+                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition">
+                                <span class="text-gray-300 text-sm font-medium">Seconds</span>
                                 <input type="checkbox" id="toggle-seconds" class="toggle-switch">
                             </div>
                         </div>
                     </div>
 
-                    <!-- NEW SECTION: Status Conditions & Colors -->
                     <div>
-                        <h3 class="text-base font-bold text-indigo-400 uppercase tracking-widest mb-4">Status Thresholds & Colors</h3>
-                        <div class="space-y-3 p-1">
-                            
-                            <!-- Urgent Row -->
-                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                        <h3 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Status & Colors</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
                                 <div class="flex-1">
                                     <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Urgent (< Days)</label>
                                     <input type="number" id="urgent-days" min="1" max="30"
-                                        class="glass-input w-full p-2 rounded-lg text-sm">
+                                        class="glass-input w-full p-2 rounded-lg text-sm text-center font-bold">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
-                                    <div class="flex justify-center">
+                                    <div class="flex justify-center bg-white/5 p-1 rounded-full">
                                         <input type="color" id="urgent-color">
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Soon Row -->
-                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
                                 <div class="flex-1">
                                     <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Soon (< Days)</label>
                                     <input type="number" id="soon-days" min="1" max="90"
-                                        class="glass-input w-full p-2 rounded-lg text-sm">
+                                        class="glass-input w-full p-2 rounded-lg text-sm text-center font-bold">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
-                                    <div class="flex justify-center">
+                                    <div class="flex justify-center bg-white/5 p-1 rounded-full">
                                         <input type="color" id="soon-color">
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- On Track Row (No numeric input needed, it's the default) -->
-                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
-                                <div class="flex-1 flex items-center">
-                                    <span class="text-gray-300 text-sm font-medium">On Track (Default)</span>
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                <div class="flex-1 flex items-center pl-2">
+                                    <span class="text-gray-300 text-sm font-bold">On Track</span>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
-                                    <div class="flex justify-center">
+                                    <div class="flex justify-center bg-white/5 p-1 rounded-full">
                                         <input type="color" id="ontrack-color">
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Expired Row -->
-                             <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
-                                <div class="flex-1 flex items-center">
-                                    <span class="text-gray-300 text-sm font-medium">Expired</span>
+                            
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                <div class="flex-1 flex items-center pl-2">
+                                    <span class="text-gray-300 text-sm font-bold">Expired</span>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1 text-center">Color</label>
-                                    <div class="flex justify-center">
+                                    <div class="flex justify-center bg-white/5 p-1 rounded-full">
                                         <input type="color" id="expired-color">
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- End New Section -->
-
-                    <!-- Import/Export Section -->
+                    
                     <div>
-                        <h3 class="text-base font-bold text-indigo-400 uppercase tracking-widest mb-4">Data Backup</h3>
+                        <h3 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Data Backup</h3>
                         <div class="grid grid-cols-2 gap-4">
                             <button type="button" onclick="exportData()" 
-                                class="flex items-center justify-center gap-2 p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-indigo-500/50 transition-all group">
+                                class="flex items-center justify-center gap-2 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-indigo-500/50 transition-all group active:scale-95">
                                 <i data-lucide="upload" class="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors"></i>
-                                <span class="text-sm text-gray-300 font-medium">Export</span>
+                                <span class="text-sm text-gray-300 font-bold">Export</span>
                             </button>
                             <button type="button" onclick="document.getElementById('import-file').click()" 
-                                class="flex items-center justify-center gap-2 p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-indigo-500/50 transition-all group">
+                                class="flex items-center justify-center gap-2 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-indigo-500/50 transition-all group active:scale-95">
                                 <i data-lucide="download" class="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors"></i>
-                                <span class="text-sm text-gray-300 font-medium">Import</span>
+                                <span class="text-sm text-gray-300 font-bold">Import</span>
                             </button>
                             <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(this)">
                         </div>
-                        <p id="import-status" class="text-[10px] text-center mt-2 h-4 text-emerald-400 font-medium opacity-0 transition-opacity"></p>
+                        <p id="import-status" class="text-[10px] text-center mt-2 h-4 text-emerald-400 font-bold opacity-0 transition-opacity"></p>
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-white/10">
                     <button type="button" onclick="saveSettings()"
-                        class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-900/20 transition duration-200 font-medium text-sm">
+                        class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-900/20 transition duration-200 font-bold text-sm transform hover:-translate-y-0.5 active:translate-y-0">
                         Apply Changes
                     </button>
                 </div>
@@ -457,16 +414,14 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="mt-20 text-center pb-8">
         <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest opacity-50 mb-1">Data is saved in the browser's local storage</p>
         <p class="text-xs text-indigo-400/80 font-medium">Made with ♥️ by Tamim</p>
     </footer>
 
-    <!-- JavaScript Logic -->
     <script type="module">
         const COUNTDOWN_STORAGE_KEY = 'COUNTDOWN_TRACKER_DATA';
-        const SETTINGS_STORAGE_KEY = 'COUNTDOWN_TRACKER_SETTINGS_V2'; // Version bumped to ensure fresh defaults load if needed
+        const SETTINGS_STORAGE_KEY = 'COUNTDOWN_TRACKER_SETTINGS_V2';
         
         const defaultSettings = {
             siteTitleFont: 'Inter',
@@ -475,13 +430,12 @@
             showHours: true,
             showMinutes: true,
             showSeconds: true,
-            // New defaults
             urgentDays: 4,
             soonDays: 15,
-            urgentColor: '#f87171', // Red-400
-            soonColor: '#facc15',   // Yellow-400
-            onTrackColor: '#34d399',// Emerald-400
-            expiredColor: '#ef4444' // Red-500
+            urgentColor: '#f87171', 
+            soonColor: '#facc15',   
+            onTrackColor: '#34d399',
+            expiredColor: '#ef4444' 
         };
 
         let activeCountdowns = []; 
@@ -494,13 +448,9 @@
         const countdownModalContentEl = document.getElementById('modal-content');
         const countdownForm = document.getElementById('countdown-form');
         const headlineInput = document.getElementById('headline');
-        
-        // Split inputs
         const targetDatePartInput = document.getElementById('target-date-part');
         const targetTimePartInput = document.getElementById('target-time-part');
-        
         const docIdInput = document.getElementById('doc-id');
-        
         const settingsModalEl = document.getElementById('settings-modal');
         const settingsModalContentEl = document.getElementById('settings-modal-content');
         
@@ -512,7 +462,6 @@
         const toggleMinutesInput = document.getElementById('toggle-minutes');
         const toggleSecondsInput = document.getElementById('toggle-seconds');
         
-        // New Settings Inputs
         const urgentDaysInput = document.getElementById('urgent-days');
         const soonDaysInput = document.getElementById('soon-days');
         const urgentColorInput = document.getElementById('urgent-color');
@@ -521,15 +470,11 @@
         const expiredColorInput = document.getElementById('expired-color');
 
         const fontImportsContainer = document.getElementById('font-imports');
-
         const cleanFontName = (name) => name.trim().replace(/\s+/g, '+');
 
-        // Helper to convert HEX to RGBA for glass effects
         const hexToRgba = (hex, alpha) => {
             let r = 0, g = 0, b = 0;
             if (!hex) return `rgba(0,0,0,${alpha})`;
-            
-            // Handle hex shorthand
             if (hex.length === 4) {
                 r = parseInt(hex[1] + hex[1], 16);
                 g = parseInt(hex[2] + hex[2], 16);
@@ -566,7 +511,6 @@
             try {
                 if (storedSettings) {
                     const parsed = JSON.parse(storedSettings);
-                    // Merge with defaults to ensure new fields exist if loading old data
                     currentSettings = { ...defaultSettings, ...parsed };
                 } else {
                     currentSettings = defaultSettings;
@@ -584,8 +528,6 @@
             currentSettings.showHours = toggleHoursInput.checked;
             currentSettings.showMinutes = toggleMinutesInput.checked;
             currentSettings.showSeconds = toggleSecondsInput.checked;
-            
-            // Save new fields
             currentSettings.urgentDays = urgentDaysInput.value;
             currentSettings.soonDays = soonDaysInput.value;
             currentSettings.urgentColor = urgentColorInput.value;
@@ -672,7 +614,7 @@
                         activeCountdowns = activeCountdowns.filter(c => c.id !== docId);
                         saveCountdowns();
                         renderCountdowns();
-                    }, 200);
+                    }, 300);
                 } else {
                      activeCountdowns = activeCountdowns.filter(c => c.id !== docId);
                      saveCountdowns();
@@ -699,31 +641,18 @@
             return { isPast: false, days, hours, minutes, seconds, totalDays: distance / (1000 * 60 * 60 * 24) };
         };
 
-        // Determine styling based on dynamic settings
         const getStatusStyles = (totalDays, isPast) => {
             const { urgentDays, soonDays, urgentColor, soonColor, onTrackColor, expiredColor } = currentSettings;
 
             if (isPast) {
-                 return {
-                    colorHex: expiredColor || '#ef4444',
-                    label: 'EXPIRED'
-                 };
+                 return { colorHex: expiredColor || '#ef4444', label: 'EXPIRED' };
             }
             if (totalDays < parseFloat(urgentDays)) {
-                 return {
-                    colorHex: urgentColor || '#f87171',
-                    label: 'URGENT'
-                 };
+                 return { colorHex: urgentColor || '#f87171', label: 'URGENT' };
             } else if (totalDays < parseFloat(soonDays)) {
-                 return {
-                    colorHex: soonColor || '#facc15',
-                    label: 'SOON'
-                 };
+                 return { colorHex: soonColor || '#facc15', label: 'SOON' };
             } else {
-                 return {
-                    colorHex: onTrackColor || '#34d399',
-                    label: 'ON TRACK'
-                 };
+                 return { colorHex: onTrackColor || '#34d399', label: 'ON TRACK' };
             }
         };
 
@@ -731,26 +660,15 @@
             countdownListEl.innerHTML = ''; 
 
             if (activeCountdowns.length === 0) {
-                // VISUALLY IMPROVED EMPTY STATE / TUTORIAL
                 countdownListEl.innerHTML = `
                     <div class="col-span-full flex flex-col items-center justify-center min-h-[50vh] animate-fade-in-up">
-                        <!-- Icon Container -->
-                        <div class="relative group cursor-pointer transition-transform duration-500" onclick="showModal()">
-                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur-[40px] opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                            <div class="relative w-24 h-24 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center shadow-2xl backdrop-blur-sm group-hover:-translate-y-2 transition duration-500">
+                        <div class="relative group cursor-pointer transition-transform duration-500 hover:scale-105" onclick="showModal()">
+                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur-[50px] opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                            <div class="relative w-24 h-24 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center shadow-2xl backdrop-blur-sm">
                                 <i data-lucide="plus" class="w-10 h-10 text-indigo-400 group-hover:text-white transition duration-500"></i>
-                            </div>
-                            
-                            <!-- Floating Elements decorating the icon -->
-                            <div class="absolute -top-4 -right-4 w-12 h-12 bg-gray-900/80 border border-white/10 rounded-2xl flex items-center justify-center animate-bounce-subtle shadow-lg">
-                                 <i data-lucide="clock" class="w-5 h-5 text-purple-400"></i>
-                            </div>
-                            <div class="absolute -bottom-2 -left-4 w-10 h-10 bg-gray-900/80 border border-white/10 rounded-xl flex items-center justify-center animate-bounce-subtle shadow-lg" style="animation-delay: 1s">
-                                 <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i>
                             </div>
                         </div>
 
-                        <!-- Text -->
                         <h2 class="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-white/50 mt-10 mb-3 text-center tracking-tight">
                             Ready to Start?
                         </h2>
@@ -758,12 +676,10 @@
                             Your dashboard is currently empty. Add a target date to begin tracking your deadlines with precision.
                         </p>
 
-                        <!-- Action Button -->
                         <button onclick="showModal()" class="group relative px-8 py-4 bg-white text-black rounded-xl font-bold tracking-wide overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] transition-all duration-300 hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95">
                             <span class="relative z-10 flex items-center gap-2">
                                 Create New Timer <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
                             </span>
-                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-200 via-white to-purple-200 opacity-0 group-hover:opacity-100 transition duration-300"></div>
                         </button>
                     </div>
                 `;
@@ -778,7 +694,6 @@
                 { key: 'seconds', label: 'SEC', show: currentSettings.showSeconds }
             ];
 
-            // Sort: Past events at bottom, then by closest date
             const sortedCountdowns = [...activeCountdowns].sort((a, b) => {
                  const timeA = new Date(a.targetDate).getTime();
                  const timeB = new Date(b.targetDate).getTime();
@@ -787,29 +702,35 @@
 
             sortedCountdowns.forEach((item, index) => {
                 const { id, headline, targetDate } = item;
-                
-                // Pre-calculate status for initial rendering style
                 const time = calculateRemainingTime(targetDate);
                 const styles = getStatusStyles(time.totalDays, time.isPast);
                 
-                // Dynamic Styles based on chosen colors
                 const mainColor = styles.colorHex;
-                const borderStyle = `border-color: ${hexToRgba(mainColor, 0.4)}`;
-                const shadowStyle = `box-shadow: 0 0 20px ${hexToRgba(mainColor, 0.1)}`;
+                // REMOVED constant shadow. Only setting variables for CSS to use on hover.
+                const glowColor = mainColor;
+                const glowColorSoft = hexToRgba(mainColor, 0.4);
+                
                 const pillStyle = `background-color: ${hexToRgba(mainColor, 0.1)}; color: ${hexToRgba(mainColor, 0.9)}; border-color: ${hexToRgba(mainColor, 0.2)}`;
                 const textStyle = `color: ${mainColor}`;
-
+                
                 const countdownDiv = document.createElement('div');
                 countdownDiv.id = `countdown-${id}`;
-                // Staggered animation
                 countdownDiv.style.animationDelay = `${index * 50}ms`;
                 
-                // Dynamic styling on the wrapper using inline styles for color logic
-                countdownDiv.className = `glass-card p-6 rounded-2xl animate-fade-in-up relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border`;
-                countdownDiv.style.cssText = `${borderStyle}; ${shadowStyle}; transition: all 0.3s ease;`;
+                // Pass dynamic colors as CSS variables
+                countdownDiv.style.setProperty('--glow-color', glowColor);
+                countdownDiv.style.setProperty('--glow-color-soft', glowColorSoft);
+                
+                // Add specific class for expired items if we want them to always glow a bit (optional, kept subtle)
+                const expiredClass = time.isPast ? 'is-expired' : '';
+                countdownDiv.className = `glass-card p-6 rounded-3xl animate-fade-in-up group ${expiredClass}`; 
 
                 const displayDate = new Date(targetDate).toLocaleString('en-US', {
-                    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: 'numeric', 
+                    minute: '2-digit'
                 });
 
                 const safeHeadline = headline.replace(/'/g, "&apos;");
@@ -817,11 +738,11 @@
                 const gridItems = units
                     .filter(unit => unit.show)
                     .map(unit => `
-                        <div class="p-2.5 bg-black/30 rounded-xl border border-white/5 backdrop-blur-md">
-                            <div class="countdown-number font-mono font-black tracking-tighter tabular-nums leading-none" 
+                        <div class="p-3 bg-black/40 rounded-2xl border border-white/5 backdrop-blur-md">
+                            <div class="countdown-number font-mono font-black tracking-tighter tabular-nums leading-none mb-1" 
                                  style="${textStyle}" 
                                  data-unit="${unit.key}">--</div>
-                            <div class="text-[9px] font-bold text-gray-500 tracking-widest mt-1.5 opacity-80">${unit.label}</div>
+                            <div class="text-[10px] font-bold text-gray-500 tracking-widest opacity-70">${unit.label}</div>
                         </div>
                     `)
                     .join('');
@@ -832,23 +753,24 @@
                                     activeUnitCount === 2 ? 'grid-cols-2' : 'grid-cols-1';
 
                 countdownDiv.innerHTML = `
-                    <div class="flex justify-between items-start mb-5">
+                    <div class="flex justify-between items-start mb-6">
                         <div class="pr-2 w-full overflow-hidden">
-                            <div class="flex items-center gap-2 mb-1">
+                            <div class="flex items-center gap-2 mb-2">
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border tracking-wider" style="${pillStyle}">${styles.label}</span>
                             </div>
                             <h3 class="text-xl font-bold text-white/95 truncate leading-tight tracking-tight">${headline}</h3>
-                            <p class="text-xs font-medium text-gray-400 mt-1 flex items-center gap-1.5">
-                                <i data-lucide="calendar-clock" class="w-3 h-3"></i> ${displayDate}
+                            <p class="text-xs font-medium text-gray-400 mt-1.5 flex items-center gap-1.5">
+                                <i data-lucide="calendar-clock" class="w-3.5 h-3.5 opacity-70"></i> ${displayDate}
                             </p>
                         </div>
                         
-                        <div class="flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                            <button class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition" onclick="editCountdown('${id}', '${safeHeadline}', '${targetDate}')">
-                                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                        <!-- Actions: Hidden on desktop (group-hover), Visible on mobile (md:...) -->
+                        <div class="flex flex-col space-y-1 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200">
+                            <button class="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-white/10 transition active:scale-95" onclick="editCountdown('${id}', '${safeHeadline}', '${targetDate}')">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
                             </button>
-                            <button class="text-gray-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition" onclick="deleteCountdown('${id}')">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            <button class="text-gray-400 hover:text-red-400 p-2 rounded-xl hover:bg-red-500/10 transition active:scale-95" onclick="deleteCountdown('${id}')">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
@@ -876,40 +798,47 @@
                 const time = calculateRemainingTime(targetDate);
                 const styles = getStatusStyles(time.totalDays, time.isPast);
                 
-                // Dynamic styling strings
                 const mainColor = styles.colorHex;
-                const borderStyle = `border-color: ${hexToRgba(mainColor, 0.4)}`;
-                const shadowStyle = `box-shadow: 0 0 20px ${hexToRgba(mainColor, 0.1)}`;
-                const textStyle = `color: ${mainColor}`;
+                const glowColor = mainColor;
+                const glowColorSoft = hexToRgba(mainColor, 0.4);
+
+                // Update CSS Variables dynamically in case color changed
+                wrapperEl.style.setProperty('--glow-color', glowColor);
+                wrapperEl.style.setProperty('--glow-color-soft', glowColorSoft);
 
                 if (time.isPast && !timerDisplayEl.classList.contains('deadline-passed')) {
                     const expiredBg = hexToRgba(mainColor, 0.1);
                     const expiredBorder = hexToRgba(mainColor, 0.2);
                     
                     timerDisplayEl.innerHTML = `
-                        <div class="col-span-full py-3 rounded-xl border animate-pulse" style="background-color: ${expiredBg}; border-color: ${expiredBorder}">
+                        <div class="col-span-full py-4 rounded-xl border animate-pulse" style="background-color: ${expiredBg}; border-color: ${expiredBorder}">
                             <p class="text-center text-base font-bold tracking-wide uppercase" style="color: ${mainColor}">Time's Up</p>
                         </div>`;
                     timerDisplayEl.classList.add('deadline-passed');
-                    
-                    // Update wrapper
-                    wrapperEl.className = `glass-card p-6 rounded-2xl relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border`;
-                    wrapperEl.style.cssText = `${borderStyle}; ${shadowStyle};`;
+                    wrapperEl.classList.add('is-expired');
                 
                 } else if (!time.isPast) {
-                    const unitElements = timerDisplayEl.querySelectorAll('[data-unit]');
+                    // Remove expired class if user updated date to future
+                    wrapperEl.classList.remove('is-expired');
                     
-                    unitElements.forEach(el => {
-                        const unit = el.getAttribute('data-unit');
-                        el.textContent = String(time[unit]).padStart(2, '0');
-                        // Apply dynamic color
-                        el.style.color = mainColor;
-                    });
-
-                    // Handle only days visible case
-                    if (time.days > 0 && !currentSettings.showHours && !currentSettings.showMinutes && !currentSettings.showSeconds) {
-                         const daysEl = timerDisplayEl.querySelector('[data-unit="days"]');
-                         if (daysEl) daysEl.textContent = Math.ceil(time.totalDays);
+                    // If returning from expired state, we'd need to re-render grid, but simplest is just update text
+                    // NOTE: If structure changed (Time's Up -> Grid), renderCountdowns handles it on next full render/edit
+                    // For pure time updates:
+                    const unitElements = timerDisplayEl.querySelectorAll('[data-unit]');
+                    if(unitElements.length > 0) {
+                        unitElements.forEach(el => {
+                            const unit = el.getAttribute('data-unit');
+                            el.textContent = String(time[unit]).padStart(2, '0');
+                            el.style.color = mainColor;
+                        });
+                        
+                         if (time.days > 0 && !currentSettings.showHours && !currentSettings.showMinutes && !currentSettings.showSeconds) {
+                             const daysEl = timerDisplayEl.querySelector('[data-unit="days"]');
+                             if (daysEl) daysEl.textContent = Math.ceil(time.totalDays);
+                        }
+                    } else if (timerDisplayEl.classList.contains('deadline-passed')) {
+                        // Was passed, now future (e.g. quick edit without full reload), force full re-render
+                        renderCountdowns();
                     }
                 }
             });
@@ -922,17 +851,13 @@
             docIdInput.value = id || '';
             headlineInput.value = headline;
             
-            // Set Date/Time Values (split ISO string)
             if (targetDate) {
                 const dateObj = new Date(targetDate);
-                // Fix timezone offset issues for local input
                 const offset = dateObj.getTimezoneOffset() * 60000;
                 const localISOTime = (new Date(dateObj - offset)).toISOString().slice(0, -1);
-                
-                targetDatePartInput.value = localISOTime.substring(0, 10); // YYYY-MM-DD
-                targetTimePartInput.value = localISOTime.substring(11, 16); // HH:MM
+                targetDatePartInput.value = localISOTime.substring(0, 10);
+                targetTimePartInput.value = localISOTime.substring(11, 16);
             } else {
-                // Set default to today + 12:00
                 const now = new Date();
                 const year = now.getFullYear();
                 const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -972,7 +897,6 @@
             toggleMinutesInput.checked = currentSettings.showMinutes;
             toggleSecondsInput.checked = currentSettings.showSeconds;
             
-            // Populate New Fields
             urgentDaysInput.value = currentSettings.urgentDays;
             soonDaysInput.value = currentSettings.soonDays;
             urgentColorInput.value = currentSettings.urgentColor;
@@ -995,7 +919,6 @@
             }, 300);
         };
 
-        // Export Data Logic
         window.exportData = () => {
             const data = {
                 settings: currentSettings,
@@ -1005,12 +928,11 @@
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
             downloadAnchorNode.setAttribute("download", "deadline_dashboard_backup.json");
-            document.body.appendChild(downloadAnchorNode); // required for firefox
+            document.body.appendChild(downloadAnchorNode); 
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
         };
 
-        // Import Data Logic
         window.importData = (input) => {
             const file = input.files[0];
             if (!file) return;
@@ -1030,30 +952,25 @@
                         localStorage.setItem(COUNTDOWN_STORAGE_KEY, JSON.stringify(activeCountdowns));
                     }
                     
-                    // Refresh UI
                     applySettings();
                     renderCountdowns();
                     
-                    // Show success feedback
                     const statusEl = document.getElementById('import-status');
                     statusEl.textContent = "Backup restored successfully!";
-                    statusEl.className = "text-[10px] text-center mt-2 h-4 text-emerald-400 font-medium transition-opacity";
+                    statusEl.className = "text-[10px] text-center mt-2 h-4 text-emerald-400 font-bold transition-opacity";
                     statusEl.classList.remove('opacity-0');
                     setTimeout(() => statusEl.classList.add('opacity-0'), 3000);
                     
-                    // Reset input
                     input.value = '';
                     
-                    // Update form inputs if open
                     if (!settingsModalEl.classList.contains('hidden')) {
-                        // Re-run show logic to populate fields
                         showSettingsModal();
                     }
 
                 } catch (err) {
                     console.error("Import failed:", err);
                     const statusEl = document.getElementById('import-status');
-                    statusEl.className = "text-[10px] text-center mt-2 h-4 text-red-400 font-medium transition-opacity";
+                    statusEl.className = "text-[10px] text-center mt-2 h-4 text-red-400 font-bold transition-opacity";
                     statusEl.textContent = "Invalid file format.";
                     statusEl.classList.remove('opacity-0');
                     setTimeout(() => statusEl.classList.add('opacity-0'), 3000);
@@ -1066,13 +983,10 @@
             e.preventDefault();
             const id = docIdInput.value;
             const headline = headlineInput.value;
-            
-            // Combine Date and Time
             const datePart = targetDatePartInput.value;
             const timePart = targetTimePartInput.value;
             
             if (headline && datePart && timePart) {
-                // Create Date Object
                 const combinedDate = new Date(`${datePart}T${timePart}`);
                 saveCountdown(id, headline, combinedDate.toISOString());
             }
