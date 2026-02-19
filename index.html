@@ -1,278 +1,395 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Workspace</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <style>
-        :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f1f5f9;
-            --text-dim: #94a3b8;
-            --accent: #38bdf8;
-            --danger: #f43f5e;
-            --edit: #10b981;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', -apple-system, system-ui, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 80px 24px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            width: 100%;
-            max-width: 850px;
-            margin-bottom: 48px;
-        }
-
-        .title-section h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: -0.025em;
-            margin: 0 0 8px 0;
-        }
-
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn {
-            background: var(--card);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-dim);
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .btn:hover {
-            border-color: var(--accent);
-            color: var(--text);
-            background: #243147;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: var(--bg);
-            border: none;
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            background: #7dd3fc;
-            color: var(--bg);
-        }
-
-        #link-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 24px;
-            width: 100%;
-            max-width: 850px;
-        }
-
-        .link-card {
-            background: var(--card);
-            padding: 32px 16px 24px;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            cursor: grab;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255,255,255,0.05);
-            text-decoration: none;
-        }
-
-        .link-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(255,255,255,0.15);
-            background: #243147;
-        }
-
-        .favicon {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 16px;
-            border-radius: 10px;
-            background: #0f172a;
-            padding: 4px;
-        }
-
-        .label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-dim);
-            text-align: center;
-            width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .link-card:hover .label { color: var(--text); }
-
-        .controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 6px;
-            opacity: 0;
-        }
-
-        .link-card:hover .controls { opacity: 1; }
-
-        .icon-btn {
-            width: 26px;
-            height: 26px;
-            background: var(--bg);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            border: 1px solid transparent;
-        }
-
-        .delete-btn:hover { color: var(--danger); border-color: var(--danger); }
-        .edit-btn:hover { color: var(--edit); border-color: var(--edit); }
-
-        input[type="file"] { display: none; }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <div class="title-section">
-            <h1>Workspace</h1>
-            <div class="actions">
-                <button class="btn" onclick="exportLinks()">Export</button>
-                <button class="btn" onclick="document.getElementById('importFile').click()">Import</button>
-                <input type="file" id="importFile" accept=".json" onchange="importLinks(event)">
-            </div>
-        </div>
-        <button class="btn btn-primary" onclick="addLink()">+ Add Link</button>
-    </div>
-
-    <div id="link-container"></div>
-
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
-        let links = JSON.parse(localStorage.getItem('myLinks')) || [
-            { name: 'GST Physics', url: 'https://khanacademy.org' },
-            { name: 'Chemistry Prep', url: 'https://chemguide.co.uk' }
-        ];
-
-        const container = document.getElementById('link-container');
-
-        function render() {
-            container.innerHTML = '';
-            links.forEach((link, index) => {
-                let domain;
-                try { domain = new URL(link.url).hostname; } catch(e) { domain = 'link'; }
-                
-                const card = document.createElement('div');
-                card.className = 'link-card';
-                card.innerHTML = `
-                    <div class="controls">
-                        <div class="icon-btn edit-btn" onclick="editLink(event, ${index})">✎</div>
-                        <div class="icon-btn delete-btn" onclick="deleteLink(event, ${index})">×</div>
-                    </div>
-                    <img class="favicon" src="https://www.google.com/s2/favicons?domain=${domain}&sz=128">
-                    <span class="label">${link.name}</span>
-                `;
-                card.onclick = () => window.open(link.url, '_blank');
-                container.appendChild(card);
-            });
-            localStorage.setItem('myLinks', JSON.stringify(links));
-        }
-
-        function addLink() {
-            const url = prompt("URL (include https://):");
-            if (url) {
-                const name = prompt("Name:");
-                if (name) {
-                    links.push({ name, url });
-                    render();
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.2s ease-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
                 }
             }
         }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(56, 189, 248, 0.15);
+        }
 
-        function editLink(event, index) {
-            event.stopPropagation();
-            const newName = prompt("Edit Name:", links[index].name);
-            if (newName) {
-                links[index].name = newName;
-                render();
+        /* Hide drag ghost image artifacts */
+        .sortable-ghost { opacity: 0.4; background: #334155; }
+        .sortable-drag { cursor: grabbing; opacity: 1; background: #1e293b; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen selection:bg-cyan-500/30 selection:text-cyan-200 flex flex-col items-center pt-16 pb-12 px-4 sm:px-6 relative overflow-x-hidden">
+
+    <!-- Ambient Background Glow -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <!-- Header Section -->
+    <header class="w-full max-w-5xl mb-12 flex flex-col md:flex-row justify-between items-center gap-6 animate-fade-in">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400 tracking-tight">
+                Workspace
+            </h1>
+            <p class="text-slate-400 text-sm mt-1">Manage your study resources & links</p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <button onclick="triggerImport()" class="group flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-all text-sm font-medium text-slate-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Import
+            </button>
+            <input type="file" id="importFile" accept=".json" class="hidden" onchange="importLinks(event)">
+
+            <button onclick="exportLinks()" class="group flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-all text-sm font-medium text-slate-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                Export
+            </button>
+
+            <button onclick="openModal()" class="flex items-center gap-2 px-5 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all transform hover:scale-105 active:scale-95 text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add Link
+            </button>
+        </div>
+    </header>
+
+    <!-- Grid Container -->
+    <main id="link-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full max-w-5xl animate-slide-up pb-20">
+        <!-- Links will be injected here -->
+    </main>
+
+    <!-- Modal Overlay -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300" onclick="closeModal()"></div>
+    
+    <!-- Modal Content -->
+    <div id="modal-content" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 hidden opacity-0 scale-95 transition-all duration-300 p-6">
+        <h2 id="modal-title" class="text-xl font-semibold mb-6 text-white">Add New Link</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Title</label>
+                <input type="text" id="input-name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all" placeholder="e.g. Physics Prep">
+            </div>
+            
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">URL</label>
+                <input type="url" id="input-url" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all" placeholder="https://example.com">
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-8">
+            <button onclick="closeModal()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium">Cancel</button>
+            <button onclick="saveLink()" class="px-6 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all text-sm">Save Link</button>
+        </div>
+    </div>
+
+    <!-- Empty State Template -->
+    <template id="empty-state">
+        <div class="col-span-full flex flex-col items-center justify-center py-20 text-center opacity-60">
+            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                <svg class="text-slate-500" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            </div>
+            <h3 class="text-lg font-medium text-slate-300">No links yet</h3>
+            <p class="text-slate-500 text-sm mt-1">Add your first link to get started</p>
+        </div>
+    </template>
+
+    <script>
+        // State
+        let links = JSON.parse(localStorage.getItem('myLinks')) || [
+            { id: '1', name: 'GST Physics', url: 'https://khanacademy.org' },
+            { id: '2', name: 'Chemistry Prep', url: 'https://chemguide.co.uk' }
+        ];
+        
+        let editingId = null; // Track if we are editing an existing item
+
+        const container = document.getElementById('link-container');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalContent = document.getElementById('modal-content');
+        const nameInput = document.getElementById('input-name');
+        const urlInput = document.getElementById('input-url');
+        const modalTitle = document.getElementById('modal-title');
+
+        // --- Rendering ---
+
+        function getFavicon(url) {
+            try {
+                const domain = new URL(url).hostname;
+                return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            } catch (e) {
+                return 'https://www.google.com/s2/favicons?domain=google.com&sz=64'; // Fallback
             }
         }
 
+        function getDomain(url) {
+            try {
+                return new URL(url).hostname.replace('www.', '');
+            } catch (e) {
+                return url;
+            }
+        }
+
+        function render() {
+            container.innerHTML = '';
+
+            if (links.length === 0) {
+                const template = document.getElementById('empty-state');
+                container.appendChild(template.content.cloneNode(true));
+                return;
+            }
+
+            links.forEach((link, index) => {
+                const card = document.createElement('div');
+                card.className = 'glass-card group relative p-5 rounded-2xl flex flex-col items-start h-full min-h-[140px] cursor-pointer select-none';
+                card.setAttribute('data-id', link.id || index); // Use ID for sortable
+                
+                card.innerHTML = `
+                    <!-- Action Buttons (Hidden by default, shown on hover) -->
+                    <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                        <button onclick="openModal(event, ${index})" class="p-1.5 rounded-md text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors" title="Edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button onclick="deleteLink(event, ${index})" class="p-1.5 rounded-md text-slate-400 hover:text-rose-500 hover:bg-slate-800 transition-colors" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex items-start justify-between w-full mb-4 pointer-events-none">
+                        <div class="w-12 h-12 rounded-xl bg-slate-800/80 p-2 border border-slate-700/50 flex items-center justify-center">
+                            <img src="${getFavicon(link.url)}" class="w-8 h-8 object-contain rounded-sm" onerror="this.src='https://www.google.com/s2/favicons?domain=google.com&sz=64'">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-auto pointer-events-none w-full overflow-hidden">
+                        <h3 class="font-semibold text-lg text-slate-100 truncate w-full" title="${link.name}">${link.name}</h3>
+                        <p class="text-xs text-slate-500 truncate mt-0.5 font-medium">${getDomain(link.url)}</p>
+                    </div>
+                `;
+
+                // Handle click on card (open link), ignore if clicking buttons
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('button')) {
+                        window.open(link.url, '_blank');
+                    }
+                });
+
+                container.appendChild(card);
+            });
+
+            localStorage.setItem('myLinks', JSON.stringify(links));
+        }
+
+        // --- Logic ---
+
+        function openModal(e = null, index = null) {
+            if (e) e.stopPropagation();
+            
+            modalBackdrop.classList.remove('hidden');
+            modalContent.classList.remove('hidden');
+            
+            // Small delay to allow display:block to apply before opacity transition
+            setTimeout(() => {
+                modalBackdrop.classList.remove('opacity-0');
+                modalContent.classList.remove('opacity-0', 'scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+
+            if (index !== null) {
+                // Edit Mode
+                editingId = index;
+                modalTitle.innerText = "Edit Link";
+                nameInput.value = links[index].name;
+                urlInput.value = links[index].url;
+            } else {
+                // Add Mode
+                editingId = null;
+                modalTitle.innerText = "Add New Link";
+                nameInput.value = '';
+                urlInput.value = '';
+            }
+            
+            nameInput.focus();
+        }
+
+        function closeModal() {
+            modalBackdrop.classList.add('opacity-0');
+            modalContent.classList.add('opacity-0', 'scale-95');
+            modalContent.classList.remove('scale-100');
+            
+            setTimeout(() => {
+                modalBackdrop.classList.add('hidden');
+                modalContent.classList.add('hidden');
+            }, 300);
+        }
+
+        function saveLink() {
+            const name = nameInput.value.trim();
+            let url = urlInput.value.trim();
+
+            if (!name || !url) return alert('Please fill in both fields.');
+
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+
+            if (editingId !== null) {
+                // Update
+                links[editingId] = { ...links[editingId], name, url };
+            } else {
+                // Create
+                links.push({ id: Date.now().toString(), name, url });
+            }
+
+            render();
+            closeModal();
+        }
+
+        // Enter key to save
+        modalContent.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') saveLink();
+            if (e.key === 'Escape') closeModal();
+        });
+
         function deleteLink(event, index) {
             event.stopPropagation();
-            if(confirm("Remove this link?")) {
+            if (confirm("Are you sure you want to remove this link?")) {
                 links.splice(index, 1);
                 render();
             }
         }
 
         function exportLinks() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(links));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(links, null, 2));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "links_backup.json");
+            downloadAnchorNode.setAttribute("download", `workspace_backup_${new Date().toISOString().slice(0,10)}.json`);
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
         }
 
+        function triggerImport() {
+            document.getElementById('importFile').click();
+        }
+
         function importLinks(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (Array.isArray(imported)) {
-                        links = imported;
+                        // Merge or Replace? Let's confirm or just append to avoid data loss, 
+                        // but user usually expects replacement on restore.
+                        // Let's replace for simplicity as per original, but add IDs if missing.
+                        links = imported.map((l, i) => ({...l, id: l.id || Date.now().toString() + i}));
                         render();
+                    } else {
+                        alert("Invalid JSON format");
                     }
                 } catch (err) {
-                    alert("Invalid file format.");
+                    alert("Error reading file");
                 }
+                // Reset input so same file can be selected again
+                event.target.value = '';
             };
-            reader.readAsText(event.target.files[0]);
+            reader.readAsText(file);
         }
 
+        // --- Initialization ---
+
         Sortable.create(container, {
-            animation: 300,
+            animation: 200,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            delay: 100, // slight delay prevents accidental drag on click
+            delayOnTouchOnly: true,
             onEnd: function() {
+                // Reorder array based on DOM
                 const newOrder = [];
-                container.querySelectorAll('.label').forEach(el => {
-                    const link = links.find(l => l.name === el.innerText);
+                const cards = container.querySelectorAll('.glass-card');
+                
+                cards.forEach(card => {
+                    // Match by URL/Name since we don't store ID in DOM text
+                    // Better approach: use the data-id we added
+                    const id = card.getAttribute('data-id'); // We need to ensure we used IDs
+                    // Fallback to finding by name if ID logic fails in old data
+                    const name = card.querySelector('h3').innerText;
+                    const link = links.find(l => (l.id && l.id == id) || l.name === name);
                     if(link) newOrder.push(link);
                 });
+                
                 links = newOrder;
                 localStorage.setItem('myLinks', JSON.stringify(links));
             }
         });
 
+        // Initial Render
         render();
+
     </script>
 </body>
 </html>
