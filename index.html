@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workspace</title>
+    <title id="tab-title">Workspace</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SortableJS -->
@@ -75,6 +75,29 @@
         /* Hide drag ghost image artifacts */
         .sortable-ghost { opacity: 0.4; background: #334155; }
         .sortable-drag { cursor: grabbing; opacity: 1; background: #1e293b; }
+
+        /* Title & Subtitle Edit Fixes */
+        .editable-text {
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .editable-text:focus {
+            background-clip: unset !important;
+            -webkit-background-clip: unset !important;
+            color: #22d3ee !important;
+            background-color: rgba(34, 211, 238, 0.1);
+            border-radius: 4px;
+            padding: 0 4px;
+            box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+        }
+
+        /* Subtitle specific focus */
+        .subtitle-edit:focus {
+            color: #94a3b8 !important; /* Lighter slate for subtitle focus */
+            background-color: rgba(148, 163, 184, 0.1);
+            box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen selection:bg-cyan-500/30 selection:text-cyan-200 flex flex-col items-center pt-16 pb-12 px-4 sm:px-6 relative overflow-x-hidden">
@@ -87,11 +110,32 @@
 
     <!-- Header Section -->
     <header class="w-full max-w-5xl mb-12 flex flex-col md:flex-row justify-between items-center gap-6 animate-fade-in">
-        <div>
-            <h1 class="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400 tracking-tight">
-                Workspace
-            </h1>
-            <p class="text-slate-400 text-sm mt-1">Manage your study resources & links</p>
+        <div class="flex flex-col items-center md:items-start">
+            <div class="flex items-center group gap-2">
+                <h1 id="main-title" 
+                    contenteditable="true" 
+                    spellcheck="false"
+                    class="editable-text text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400 tracking-tight cursor-text transition-all"
+                    onblur="saveHeaderData()"
+                    onkeydown="handleTextKeydown(event)"
+                    onclick="selectAllOnFocus(this)">
+                    Workspace
+                </h1>
+                <button onclick="document.getElementById('main-title').focus()" class="p-1 rounded-md text-slate-600 opacity-0 group-hover:opacity-100 hover:text-cyan-400 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+            </div>
+            <div class="flex items-center group gap-2 mt-1">
+                <p id="sub-title" 
+                    contenteditable="true" 
+                    spellcheck="false"
+                    class="editable-text subtitle-edit text-slate-400 text-sm cursor-text transition-all"
+                    onblur="saveHeaderData()"
+                    onkeydown="handleTextKeydown(event)"
+                    onclick="selectAllOnFocus(this)">
+                    Manage your study resources & links
+                </p>
+            </div>
         </div>
         
         <div class="flex items-center gap-3">
@@ -161,7 +205,9 @@
             { id: '2', name: 'Chemistry Prep', url: 'https://chemguide.co.uk' }
         ];
         
-        let editingId = null; // Track if we are editing an existing item
+        let workspaceTitle = localStorage.getItem('workspaceTitle') || 'Workspace';
+        let workspaceSubtitle = localStorage.getItem('workspaceSubtitle') || 'Manage your study resources & links';
+        let editingId = null; 
 
         const container = document.getElementById('link-container');
         const modalBackdrop = document.getElementById('modal-backdrop');
@@ -169,6 +215,54 @@
         const nameInput = document.getElementById('input-name');
         const urlInput = document.getElementById('input-url');
         const modalTitle = document.getElementById('modal-title');
+        const mainTitle = document.getElementById('main-title');
+        const subTitleElement = document.getElementById('sub-title');
+        const tabTitle = document.getElementById('tab-title');
+
+        // --- Header Management ---
+
+        function initHeader() {
+            mainTitle.innerText = workspaceTitle;
+            subTitleElement.innerText = workspaceSubtitle;
+            tabTitle.innerText = workspaceTitle;
+        }
+
+        function saveHeaderData() {
+            const newTitle = mainTitle.innerText.trim();
+            const newSubtitle = subTitleElement.innerText.trim();
+
+            if (newTitle) {
+                workspaceTitle = newTitle;
+                tabTitle.innerText = newTitle;
+                localStorage.setItem('workspaceTitle', newTitle);
+            } else {
+                mainTitle.innerText = workspaceTitle; 
+            }
+
+            if (newSubtitle) {
+                workspaceSubtitle = newSubtitle;
+                localStorage.setItem('workspaceSubtitle', newSubtitle);
+            } else {
+                subTitleElement.innerText = workspaceSubtitle;
+            }
+        }
+
+        function handleTextKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.target.blur();
+            }
+        }
+
+        function selectAllOnFocus(element) {
+            setTimeout(() => {
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }, 10);
+        }
 
         // --- Rendering ---
 
@@ -177,7 +271,7 @@
                 const domain = new URL(url).hostname;
                 return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
             } catch (e) {
-                return 'https://www.google.com/s2/favicons?domain=google.com&sz=64'; // Fallback
+                return 'https://www.google.com/s2/favicons?domain=google.com&sz=64';
             }
         }
 
@@ -201,10 +295,9 @@
             links.forEach((link, index) => {
                 const card = document.createElement('div');
                 card.className = 'glass-card group relative p-5 rounded-2xl flex flex-col items-start h-full min-h-[140px] cursor-pointer select-none';
-                card.setAttribute('data-id', link.id || index); // Use ID for sortable
+                card.setAttribute('data-id', link.id || index);
                 
                 card.innerHTML = `
-                    <!-- Action Buttons (Hidden by default, shown on hover) -->
                     <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                         <button onclick="openModal(event, ${index})" class="p-1.5 rounded-md text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors" title="Edit">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -214,7 +307,6 @@
                         </button>
                     </div>
 
-                    <!-- Content -->
                     <div class="flex items-start justify-between w-full mb-4 pointer-events-none">
                         <div class="w-12 h-12 rounded-xl bg-slate-800/80 p-2 border border-slate-700/50 flex items-center justify-center">
                             <img src="${getFavicon(link.url)}" class="w-8 h-8 object-contain rounded-sm" onerror="this.src='https://www.google.com/s2/favicons?domain=google.com&sz=64'">
@@ -227,7 +319,6 @@
                     </div>
                 `;
 
-                // Handle click on card (open link), ignore if clicking buttons
                 card.addEventListener('click', (e) => {
                     if (!e.target.closest('button')) {
                         window.open(link.url, '_blank');
@@ -248,7 +339,6 @@
             modalBackdrop.classList.remove('hidden');
             modalContent.classList.remove('hidden');
             
-            // Small delay to allow display:block to apply before opacity transition
             setTimeout(() => {
                 modalBackdrop.classList.remove('opacity-0');
                 modalContent.classList.remove('opacity-0', 'scale-95');
@@ -256,13 +346,11 @@
             }, 10);
 
             if (index !== null) {
-                // Edit Mode
                 editingId = index;
                 modalTitle.innerText = "Edit Link";
                 nameInput.value = links[index].name;
                 urlInput.value = links[index].url;
             } else {
-                // Add Mode
                 editingId = null;
                 modalTitle.innerText = "Add New Link";
                 nameInput.value = '';
@@ -287,17 +375,15 @@
             const name = nameInput.value.trim();
             let url = urlInput.value.trim();
 
-            if (!name || !url) return alert('Please fill in both fields.');
+            if (!name || !url) return;
 
             if (!/^https?:\/\//i.test(url)) {
                 url = 'https://' + url;
             }
 
             if (editingId !== null) {
-                // Update
                 links[editingId] = { ...links[editingId], name, url };
             } else {
-                // Create
                 links.push({ id: Date.now().toString(), name, url });
             }
 
@@ -305,7 +391,6 @@
             closeModal();
         }
 
-        // Enter key to save
         modalContent.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveLink();
             if (e.key === 'Escape') closeModal();
@@ -313,17 +398,20 @@
 
         function deleteLink(event, index) {
             event.stopPropagation();
-            if (confirm("Are you sure you want to remove this link?")) {
-                links.splice(index, 1);
-                render();
-            }
+            links.splice(index, 1);
+            render();
         }
 
         function exportLinks() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(links, null, 2));
+            const exportData = {
+                title: workspaceTitle,
+                subtitle: workspaceSubtitle,
+                links: links
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `workspace_backup_${new Date().toISOString().slice(0,10)}.json`);
+            downloadAnchorNode.setAttribute("download", `${workspaceTitle.toLowerCase().replace(/\s+/g, '_')}_backup.json`);
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -341,19 +429,28 @@
             reader.onload = function(e) {
                 try {
                     const imported = JSON.parse(e.target.result);
+                    let importedLinks = [];
+                    
                     if (Array.isArray(imported)) {
-                        // Merge or Replace? Let's confirm or just append to avoid data loss, 
-                        // but user usually expects replacement on restore.
-                        // Let's replace for simplicity as per original, but add IDs if missing.
-                        links = imported.map((l, i) => ({...l, id: l.id || Date.now().toString() + i}));
+                        importedLinks = imported;
+                    } else if (imported.links && Array.isArray(imported.links)) {
+                        importedLinks = imported.links;
+                        if (imported.title) {
+                            workspaceTitle = imported.title;
+                            workspaceSubtitle = imported.subtitle || workspaceSubtitle;
+                            initHeader();
+                            localStorage.setItem('workspaceTitle', workspaceTitle);
+                            localStorage.setItem('workspaceSubtitle', workspaceSubtitle);
+                        }
+                    }
+
+                    if (importedLinks.length > 0) {
+                        links = importedLinks.map((l, i) => ({...l, id: l.id || Date.now().toString() + i}));
                         render();
-                    } else {
-                        alert("Invalid JSON format");
                     }
                 } catch (err) {
-                    alert("Error reading file");
+                    console.error("Import failed", err);
                 }
-                // Reset input so same file can be selected again
                 event.target.value = '';
             };
             reader.readAsText(file);
@@ -365,29 +462,22 @@
             animation: 200,
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
-            delay: 100, // slight delay prevents accidental drag on click
+            delay: 100,
             delayOnTouchOnly: true,
             onEnd: function() {
-                // Reorder array based on DOM
                 const newOrder = [];
                 const cards = container.querySelectorAll('.glass-card');
-                
                 cards.forEach(card => {
-                    // Match by URL/Name since we don't store ID in DOM text
-                    // Better approach: use the data-id we added
-                    const id = card.getAttribute('data-id'); // We need to ensure we used IDs
-                    // Fallback to finding by name if ID logic fails in old data
-                    const name = card.querySelector('h3').innerText;
-                    const link = links.find(l => (l.id && l.id == id) || l.name === name);
+                    const id = card.getAttribute('data-id');
+                    const link = links.find(l => l.id == id);
                     if(link) newOrder.push(link);
                 });
-                
                 links = newOrder;
                 localStorage.setItem('myLinks', JSON.stringify(links));
             }
         });
 
-        // Initial Render
+        initHeader();
         render();
 
     </script>
