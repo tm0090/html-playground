@@ -1,310 +1,278 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Clock</title>
-  <style>
-    :root {
-      --text-color: #00ffcc;
-      --shadow-color: #00ff99;
-      --bg-color: #111;
-      --glass-blur: blur(15px);
-      --font-family: 'Orbitron', sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --accent: #38bdf8;
+            --danger: #f43f5e;
+            --edit: #10b981;
+        }
 
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      font-family: var(--font-family);
-      background: var(--bg-color);
-      color: var(--text-color);
-      transition: background 0.4s, color 0.4s;
-      overflow: hidden;
-    }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 80px 24px;
+        }
 
-    #app {
-      height: 100%;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      backdrop-filter: var(--glass-blur);
-      background: rgba(0, 0, 0, 0.6);
-      padding: 30px;
-      box-sizing: border-box;
-      text-align: center;
-    }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: 100%;
+            max-width: 850px;
+            margin-bottom: 48px;
+        }
 
-    #clock {
-      font-size: 8vw;
-      text-shadow: 0 0 25px var(--shadow-color);
-      display: flex;
-      align-items: baseline;
-      justify-content: center;
-      gap: 10px;
-    }
+        .title-section h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            margin: 0 0 8px 0;
+        }
 
-    #mainTime {
-      flex-shrink: 0;
-    }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
 
-    #ampm {
-      font-size: 0.8vw;
-      opacity: 0.8;
-      text-transform: uppercase;
-    }
+        .btn {
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-dim);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
 
-    #settingsBtn {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      font-size: 2rem;
-      cursor: pointer;
-      user-select: none;
-    }
+        .btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+            background: #243147;
+        }
 
-    #settingsPanel {
-      position: absolute;
-      top: 60px;
-      right: 20px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid #aaa;
-      backdrop-filter: blur(15px);
-      padding: 15px;
-      border-radius: 10px;
-      display: none;
-      z-index: 99;
-      width: 280px;
-      text-align: left;
-    }
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            font-weight: 600;
+        }
 
-    .setting-group {
-      margin-bottom: 12px;
-    }
+        .btn-primary:hover {
+            background: #7dd3fc;
+            color: var(--bg);
+        }
 
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-size: 0.9rem;
-    }
+        #link-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 850px;
+        }
 
-    input[type="color"],
-    input[type="text"],
-    input[type="range"] {
-      width: 100%;
-      padding: 5px;
-      font-size: 0.9rem;
-      box-sizing: border-box;
-    }
+        .link-card {
+            background: var(--card);
+            padding: 32px 16px 24px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            cursor: grab;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.05);
+            text-decoration: none;
+        }
 
-    input[type="checkbox"] {
-      transform: scale(1.3);
-      margin-right: 6px;
-    }
+        .link-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255,255,255,0.15);
+            background: #243147;
+        }
 
-    body.light-mode {
-      --bg-color: #f2f2f2;
-      --text-color: #111;
-      --shadow-color: #005500;
-    }
+        .favicon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 16px;
+            border-radius: 10px;
+            background: #0f172a;
+            padding: 4px;
+        }
 
-    body.light-mode #app {
-      background: rgba(255 255 255 / 0.7);
-    }
+        .label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            text-align: center;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-    body.light-mode #settingsPanel {
-      background: rgba(255 255 255 / 0.95);
-      border-color: #444;
-      color: #111;
-    }
-  </style>
+        .link-card:hover .label { color: var(--text); }
+
+        .controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+        }
+
+        .link-card:hover .controls { opacity: 1; }
+
+        .icon-btn {
+            width: 26px;
+            height: 26px;
+            background: var(--bg);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .delete-btn:hover { color: var(--danger); border-color: var(--danger); }
+        .edit-btn:hover { color: var(--edit); border-color: var(--edit); }
+
+        input[type="file"] { display: none; }
+    </style>
 </head>
 <body>
-<div id="app">
-  <div id="settingsBtn" title="Settings">⚙</div>
 
-  <div id="settingsPanel">
-    <div class="setting-group">
-      <label for="bgColor">Background Color:</label>
-      <input type="color" id="bgColor" />
+    <div class="header">
+        <div class="title-section">
+            <h1>Workspace</h1>
+            <div class="actions">
+                <button class="btn" onclick="exportLinks()">Export</button>
+                <button class="btn" onclick="document.getElementById('importFile').click()">Import</button>
+                <input type="file" id="importFile" accept=".json" onchange="importLinks(event)">
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="addLink()">+ Add Link</button>
     </div>
 
-    <div class="setting-group">
-      <label for="textColor">Text Color:</label>
-      <input type="color" id="textColor" />
-    </div>
+    <div id="link-container"></div>
 
-    <div class="setting-group">
-      <label for="clockColor">Clock Shadow Color:</label>
-      <input type="color" id="clockColor" />
-    </div>
+    <script>
+        let links = JSON.parse(localStorage.getItem('myLinks')) || [
+            { name: 'GST Physics', url: 'https://khanacademy.org' },
+            { name: 'Chemistry Prep', url: 'https://chemguide.co.uk' }
+        ];
 
-    <div class="setting-group">
-      <label for="fontFamily">Font Family (Google Fonts):</label>
-      <input type="text" id="fontFamily" placeholder="e.g. Orbitron" />
-    </div>
+        const container = document.getElementById('link-container');
 
-    <div class="setting-group">
-      <label for="clockSize">Clock Size </label>
-      <input type="range" id="clockSize" min="5" max="50" value="8" />
-    </div>
+        function render() {
+            container.innerHTML = '';
+            links.forEach((link, index) => {
+                let domain;
+                try { domain = new URL(link.url).hostname; } catch(e) { domain = 'link'; }
+                
+                const card = document.createElement('div');
+                card.className = 'link-card';
+                card.innerHTML = `
+                    <div class="controls">
+                        <div class="icon-btn edit-btn" onclick="editLink(event, ${index})">✎</div>
+                        <div class="icon-btn delete-btn" onclick="deleteLink(event, ${index})">×</div>
+                    </div>
+                    <img class="favicon" src="https://www.google.com/s2/favicons?domain=${domain}&sz=128">
+                    <span class="label">${link.name}</span>
+                `;
+                card.onclick = () => window.open(link.url, '_blank');
+                container.appendChild(card);
+            });
+            localStorage.setItem('myLinks', JSON.stringify(links));
+        }
 
-    <div class="setting-group">
-      <label><input type="checkbox" id="showSeconds" checked /> Show Seconds</label>
-    </div>
+        function addLink() {
+            const url = prompt("URL (include https://):");
+            if (url) {
+                const name = prompt("Name:");
+                if (name) {
+                    links.push({ name, url });
+                    render();
+                }
+            }
+        }
 
-    <div class="setting-group">
-      <label><input type="checkbox" id="format12h" /> 12-Hour Format</label>
-    </div>
+        function editLink(event, index) {
+            event.stopPropagation();
+            const newName = prompt("Edit Name:", links[index].name);
+            if (newName) {
+                links[index].name = newName;
+                render();
+            }
+        }
 
-    <div class="setting-group">
-      <label><input type="checkbox" id="darkModeToggle" /> Dark Mode</label>
-    </div>
-  </div>
+        function deleteLink(event, index) {
+            event.stopPropagation();
+            if(confirm("Remove this link?")) {
+                links.splice(index, 1);
+                render();
+            }
+        }
 
-  <div id="clock">
-    <span id="mainTime">00:00:00</span>
-    <span id="ampm"></span>
-  </div>
-</div>
+        function exportLinks() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(links));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "links_backup.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
 
-<script>
-  const clock = document.getElementById('clock');
-  const settingsBtn = document.getElementById('settingsBtn');
-  const settingsPanel = document.getElementById('settingsPanel');
-  const bgColor = document.getElementById('bgColor');
-  const textColor = document.getElementById('textColor');
-  const clockColor = document.getElementById('clockColor');
-  const fontFamily = document.getElementById('fontFamily');
-  const clockSize = document.getElementById('clockSize');
-  const darkModeToggle = document.getElementById('darkModeToggle');
-  const showSeconds = document.getElementById('showSeconds');
-  const format12h = document.getElementById('format12h');
-  const mainTime = document.getElementById('mainTime');
-  const ampm = document.getElementById('ampm');
+        function importLinks(event) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        links = imported;
+                        render();
+                    }
+                } catch (err) {
+                    alert("Invalid file format.");
+                }
+            };
+            reader.readAsText(event.target.files[0]);
+        }
 
-  let fontLinkTag = null;
+        Sortable.create(container, {
+            animation: 300,
+            onEnd: function() {
+                const newOrder = [];
+                container.querySelectorAll('.label').forEach(el => {
+                    const link = links.find(l => l.name === el.innerText);
+                    if(link) newOrder.push(link);
+                });
+                links = newOrder;
+                localStorage.setItem('myLinks', JSON.stringify(links));
+            }
+        });
 
-  function updateTime() {
-    const now = new Date();
-    const showSec = showSeconds.checked;
-    const is12h = format12h.checked;
-
-    let hours = now.getHours();
-    let minutes = now.getMinutes();
-    let seconds = now.getSeconds();
-    let ampmText = '';
-
-    if (is12h) {
-      ampmText = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours === 0 ? 12 : hours;
-    }
-
-    const h = String(hours).padStart(2, '0');
-    const m = String(minutes).padStart(2, '0');
-    const s = String(seconds).padStart(2, '0');
-
-    const timeStr = showSec ? `${h}:${m}:${s}` : `${h}:${m}`;
-
-    mainTime.textContent = timeStr;
-    ampm.textContent = is12h ? ampmText : '';
-  }
-
-  setInterval(updateTime, 1000);
-  updateTime();
-
-  settingsBtn.onclick = () => {
-    settingsPanel.style.display = (settingsPanel.style.display === 'block') ? 'none' : 'block';
-  };
-
-  function loadFont(font) {
-    if (!font) {
-      if (fontLinkTag) {
-        fontLinkTag.remove();
-        fontLinkTag = null;
-      }
-      document.documentElement.style.setProperty('--font-family', `'Orbitron', sans-serif`);
-      return;
-    }
-    const formattedFont = font.trim().replace(/ /g, '+');
-    const url = `https://fonts.googleapis.com/css2?family=${formattedFont}&display=swap`;
-
-    if (fontLinkTag) fontLinkTag.remove();
-
-    fontLinkTag = document.createElement('link');
-    fontLinkTag.rel = 'stylesheet';
-    fontLinkTag.href = url;
-    document.head.appendChild(fontLinkTag);
-
-    document.documentElement.style.setProperty('--font-family', `'${font.trim()}', sans-serif`);
-  }
-
-  function savePrefs() {
-    localStorage.setItem('liveClockPrefs', JSON.stringify({
-      bgColor: bgColor.value,
-      textColor: textColor.value,
-      clockColor: clockColor.value,
-      fontFamily: fontFamily.value,
-      clockSize: clockSize.value,
-      darkMode: darkModeToggle.checked,
-      showSeconds: showSeconds.checked,
-      format12h: format12h.checked
-    }));
-  }
-
-  function loadPrefs() {
-    const prefs = JSON.parse(localStorage.getItem('liveClockPrefs'));
-    if (!prefs) return;
-
-    bgColor.value = prefs.bgColor || '#111111';
-    textColor.value = prefs.textColor || '#00ffcc';
-    clockColor.value = prefs.clockColor || '#00ff99';
-    fontFamily.value = prefs.fontFamily || '';
-    clockSize.value = prefs.clockSize || 8;
-    darkModeToggle.checked = prefs.darkMode || false;
-    showSeconds.checked = prefs.showSeconds !== false;
-    format12h.checked = prefs.format12h || false;
-
-    applyPrefs();
-  }
-
-  function applyPrefs() {
-    document.body.style.background = bgColor.value;
-    document.body.style.color = textColor.value;
-    clock.style.textShadow = `0 0 25px ${clockColor.value}`;
-    clock.style.fontSize = `${clockSize.value}vw`;
-    ampm.style.fontSize = `${(clockSize.value * 0.1)}vw`;
-
-    if (darkModeToggle.checked) {
-      document.body.classList.add('dark-mode');
-      document.body.classList.remove('light-mode');
-    } else {
-      document.body.classList.add('light-mode');
-      document.body.classList.remove('dark-mode');
-    }
-
-    loadFont(fontFamily.value);
-    updateTime();
-  }
-
-  [
-    bgColor,
-    textColor,
-    clockColor,
-    fontFamily,
-    clockSize,
-    darkModeToggle,
-    showSeconds,
-    format12h
-  ].forEach(el => el.addEventListener('input', () => {
-    applyPrefs();
-    savePrefs();
-  }));
-
-  loadPrefs();
-</script>
+        render();
+    </script>
 </body>
 </html>
