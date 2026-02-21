@@ -86,11 +86,16 @@
             box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
         }
 
+        .calculate-btn.paused-active {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
         /* Pulse animation for the tracking dot */
         @keyframes pulse-ring {
-            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
-            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
         .tracking-dot {
             animation: pulse-ring 2s infinite;
@@ -136,8 +141,8 @@
                         <span class="absolute right-8 top-1/2 -translate-y-1/2 text-sky-400 font-black text-2xl">x</span>
                     </div>
                 </div>
-                <button id="calcBtn" onclick="activateLiveSystem()" class="calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl shadow-sky-500/30 text-xl uppercase tracking-widest">
-                    Calculate
+                <button id="calcBtn" onclick="toggleLiveSystem()" class="calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl shadow-sky-500/30 text-xl uppercase tracking-widest">
+                    Start Tracking
                 </button>
             </div>
 
@@ -146,8 +151,10 @@
                 <div class="result-box p-8 rounded-[2rem]">
                     <div class="flex justify-between items-center mb-3">
                         <p class="text-xs text-sky-400 font-black uppercase tracking-[0.2em]">Time Remaining</p>
-                        <div class="flex items-center gap-2 text-xs text-sky-400 font-bold uppercase tracking-wider bg-sky-400/10 px-3 py-1 rounded-full hidden" id="liveBadge">
-                            <span class="w-2 h-2 rounded-full bg-sky-400 tracking-dot"></span> Tracking
+                        <!-- Dynamic Live Badge -->
+                        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full hidden" id="liveBadge">
+                            <span class="w-2 h-2 rounded-full" id="liveDot"></span> 
+                            <span id="liveText">Tracking</span>
                         </div>
                     </div>
                     <h2 id="remainingDisplay" class="text-4xl font-bold text-white">0h 0m 0s</h2>
@@ -169,6 +176,7 @@
 
     <script>
         let isSystemLive = false;
+        let isPaused = false;
         let clockInterval;
         let exactCurrentSeconds = 0;
         let targetFinishTimestamp = 0;
@@ -203,22 +211,67 @@
             });
         });
 
-        function activateLiveSystem() {
-            isSystemLive = true;
-            
+        function toggleLiveSystem() {
             const btn = document.getElementById('calcBtn');
-            btn.innerText = "Tracking...";
-            btn.classList.add('live-active');
-            
-            document.getElementById('liveBadge').classList.remove('hidden');
-            document.getElementById('results').classList.remove('hidden');
+            const badge = document.getElementById('liveBadge');
+            const badgeDot = document.getElementById('liveDot');
+            const badgeText = document.getElementById('liveText');
+            const results = document.getElementById('results');
 
-            performCalculations(false);
+            // If completely stopped, start it
+            if (!isSystemLive) {
+                isSystemLive = true;
+                isPaused = false;
+                
+                // Update Button UI to Active
+                btn.innerText = "Pause";
+                btn.className = "calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl text-xl uppercase tracking-widest live-active";
+                
+                // Update Badge UI to Tracking
+                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-400";
+                badgeDot.className = "w-2 h-2 rounded-full bg-emerald-400 tracking-dot";
+                badgeText.innerText = "Tracking";
+                badge.classList.remove('hidden');
+                
+                results.classList.remove('hidden');
 
-            if (clockInterval) clearInterval(clockInterval);
-            clockInterval = setInterval(() => {
-                if (isSystemLive) performCalculations(true); 
-            }, 1000);
+                performCalculations(false);
+
+                if (clockInterval) clearInterval(clockInterval);
+                clockInterval = setInterval(() => {
+                    if (isSystemLive) performCalculations(true); 
+                }, 1000);
+
+            // If running, pause it
+            } else if (!isPaused) {
+                isPaused = true;
+                
+                // Update Button UI to Paused
+                btn.innerText = "Resume";
+                btn.className = "calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl text-xl uppercase tracking-widest paused-active";
+                
+                // Update Badge UI to Paused
+                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-400/10 text-amber-400";
+                badgeDot.className = "w-2 h-2 rounded-full bg-amber-400"; // removed tracking-dot (pulse)
+                badgeText.innerText = "Paused";
+                
+                lastTickTime = Date.now(); // Sync time so it doesn't jump
+
+            // If paused, resume it
+            } else {
+                isPaused = false;
+                
+                // Update Button UI to Active
+                btn.innerText = "Pause";
+                btn.className = "calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl text-xl uppercase tracking-widest live-active";
+                
+                // Update Badge UI to Tracking
+                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-400";
+                badgeDot.className = "w-2 h-2 rounded-full bg-emerald-400 tracking-dot";
+                badgeText.innerText = "Tracking";
+
+                lastTickTime = Date.now(); // Reset tick time so gap during pause isn't applied
+            }
         }
 
         function performCalculations(isTickUpdate = false) {
@@ -230,6 +283,7 @@
             const speed = parseFloat(document.getElementById('speed').value) || 1;
 
             if (!isTickUpdate) {
+                // Initial load or manual input change
                 const curH = parseInt(document.getElementById('currH').value) || 0;
                 const curM = parseInt(document.getElementById('currM').value) || 0;
                 const curS = parseInt(document.getElementById('currS').value) || 0;
@@ -241,26 +295,38 @@
                 const actualSecondsToWait = secondsLeft / speed;
                 targetFinishTimestamp = Date.now() + (actualSecondsToWait * 1000);
             } else {
+                // Interval Tick
                 const now = Date.now();
                 const elapsedRealSeconds = (now - lastTickTime) / 1000;
                 lastTickTime = now;
                 
-                exactCurrentSeconds += (elapsedRealSeconds * speed);
-                
-                if (exactCurrentSeconds >= durationTotalSeconds) {
-                    exactCurrentSeconds = durationTotalSeconds;
-                    clearInterval(clockInterval);
-                    isSystemLive = false;
+                // Only increment progress if NOT paused
+                if (!isPaused) {
+                    exactCurrentSeconds += (elapsedRealSeconds * speed);
                     
-                    const btn = document.getElementById('calcBtn');
-                    btn.innerText = "Finished!";
-                    btn.classList.remove('live-active');
-                    document.getElementById('liveBadge').classList.add('hidden');
+                    if (exactCurrentSeconds >= durationTotalSeconds) {
+                        exactCurrentSeconds = durationTotalSeconds;
+                        clearInterval(clockInterval);
+                        isSystemLive = false;
+                        isPaused = false;
+                        
+                        const btn = document.getElementById('calcBtn');
+                        btn.innerText = "Finished!";
+                        btn.className = "calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl text-xl uppercase tracking-widest";
+                        document.getElementById('liveBadge').classList.add('hidden');
+                    }
+
+                    document.getElementById('currH').value = Math.floor(exactCurrentSeconds / 3600);
+                    document.getElementById('currM').value = Math.floor((exactCurrentSeconds % 3600) / 60);
+                    document.getElementById('currS').value = Math.floor(exactCurrentSeconds % 60);
                 }
 
-                document.getElementById('currH').value = Math.floor(exactCurrentSeconds / 3600);
-                document.getElementById('currM').value = Math.floor((exactCurrentSeconds % 3600) / 60);
-                document.getElementById('currS').value = Math.floor(exactCurrentSeconds % 60);
+                // Regardless of pause, recalculate the finish time!
+                // If paused, Date.now() keeps growing while exactCurrentSeconds remains the same,
+                // elegantly pushing your finish time back in real-time.
+                const secondsLeft = Math.max(0, durationTotalSeconds - exactCurrentSeconds);
+                const actualSecondsToWait = secondsLeft / speed;
+                targetFinishTimestamp = Date.now() + (actualSecondsToWait * 1000);
             }
 
             if (durationTotalSeconds <= exactCurrentSeconds && !isTickUpdate) {
