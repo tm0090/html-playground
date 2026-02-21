@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Finish Calculator</title>
+    <title>Dynamic Video Finish Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -49,8 +49,8 @@
             border: 2px solid #334155;
             color: white;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 1.5rem; /* Even bigger text */
-            cursor: auto; /* Reset mouse icon to default */
+            font-size: 1.5rem;
+            cursor: auto;
         }
 
         input:focus {
@@ -64,6 +64,7 @@
         .result-box {
             background: rgba(56, 189, 248, 0.08);
             border-left: 6px solid #38bdf8;
+            transition: all 0.3s ease;
         }
 
         .animate-fade-in {
@@ -77,6 +78,22 @@
 
         .calculate-btn {
             background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .calculate-btn.live-active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Pulse animation for the tracking dot */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+        .tracking-dot {
+            animation: pulse-ring 2s infinite;
         }
     </style>
 </head>
@@ -119,7 +136,7 @@
                         <span class="absolute right-8 top-1/2 -translate-y-1/2 text-sky-400 font-black text-2xl">x</span>
                     </div>
                 </div>
-                <button onclick="calculate()" class="calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl shadow-sky-500/30 text-xl uppercase tracking-widest">
+                <button id="calcBtn" onclick="activateLiveSystem()" class="calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl shadow-sky-500/30 text-xl uppercase tracking-widest">
                     Calculate
                 </button>
             </div>
@@ -127,7 +144,12 @@
             <!-- Results Section -->
             <div id="results" class="hidden space-y-6 animate-fade-in pt-6">
                 <div class="result-box p-8 rounded-[2rem]">
-                    <p class="text-xs text-sky-400 font-black uppercase tracking-[0.2em] mb-3">Time Remaining</p>
+                    <div class="flex justify-between items-center mb-3">
+                        <p class="text-xs text-sky-400 font-black uppercase tracking-[0.2em]">Time Remaining</p>
+                        <div class="flex items-center gap-2 text-xs text-sky-400 font-bold uppercase tracking-wider bg-sky-400/10 px-3 py-1 rounded-full hidden" id="liveBadge">
+                            <span class="w-2 h-2 rounded-full bg-sky-400 tracking-dot"></span> Tracking
+                        </div>
+                    </div>
                     <h2 id="remainingDisplay" class="text-4xl font-bold text-white">0h 0m 0s</h2>
                     <p class="text-base text-slate-400 mt-2 font-medium">Watching at <span id="speedLabel" class="text-sky-300 font-bold">1.0</span>x speed</p>
                 </div>
@@ -146,39 +168,60 @@
     </div>
 
     <script>
-        // Setup Scroll Wheel Input for all number inputs
+        let isSystemLive = false;
+        let clockInterval;
+        let exactCurrentSeconds = 0;
+        let targetFinishTimestamp = 0;
+        let lastTickTime = 0;
+
+        // 1. Setup Input Event Listeners for Instant "Dynamic" Updates
         document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', () => {
+                if (isSystemLive) performCalculations(false);
+            });
+
             input.addEventListener('wheel', (e) => {
-                e.preventDefault(); // Prevent page scroll
+                e.preventDefault();
                 
                 const step = parseFloat(input.step) || 1;
                 const direction = e.deltaY > 0 ? -1 : 1;
                 let newValue = parseFloat(input.value || 0) + (direction * step);
 
-                // Handle constraints
-                if (input.min !== "" && newValue < parseFloat(input.min)) newValue = parseFloat(input.min);
-                if (input.max !== "" && newValue > parseFloat(input.max)) newValue = parseFloat(input.max);
+                const min = input.hasAttribute('min') ? parseFloat(input.min) : -Infinity;
+                const max = input.hasAttribute('max') ? parseFloat(input.max) : Infinity;
+                
+                if (newValue < min) newValue = min;
+                if (newValue > max) newValue = max;
 
-                // For decimals (speed), fix the precision
                 if (step < 1) {
                     input.value = newValue.toFixed(2);
                 } else {
                     input.value = Math.round(newValue);
                 }
 
-                // Auto-calculate on scroll for better UX
-                calculate();
+                if (isSystemLive) performCalculations(false);
             });
         });
 
-        function calculate() {
-            // Get current progress in seconds
-            const curH = parseInt(document.getElementById('currH').value) || 0;
-            const curM = parseInt(document.getElementById('currM').value) || 0;
-            const curS = parseInt(document.getElementById('currS').value) || 0;
-            const currentTotalSeconds = (curH * 3600) + (curM * 60) + curS;
+        function activateLiveSystem() {
+            isSystemLive = true;
+            
+            const btn = document.getElementById('calcBtn');
+            btn.innerText = "Tracking...";
+            btn.classList.add('live-active');
+            
+            document.getElementById('liveBadge').classList.remove('hidden');
+            document.getElementById('results').classList.remove('hidden');
 
-            // Get total duration in seconds
+            performCalculations(false);
+
+            if (clockInterval) clearInterval(clockInterval);
+            clockInterval = setInterval(() => {
+                if (isSystemLive) performCalculations(true); 
+            }, 1000);
+        }
+
+        function performCalculations(isTickUpdate = false) {
             const totH = parseInt(document.getElementById('totalH').value) || 0;
             const totM = parseInt(document.getElementById('totalM').value) || 0;
             const totS = parseInt(document.getElementById('totalS').value) || 0;
@@ -186,18 +229,48 @@
 
             const speed = parseFloat(document.getElementById('speed').value) || 1;
 
-            if (durationTotalSeconds <= currentTotalSeconds) {
-                if (durationTotalSeconds > 0) {
-                    showError("Progress exceeds total duration!");
+            if (!isTickUpdate) {
+                const curH = parseInt(document.getElementById('currH').value) || 0;
+                const curM = parseInt(document.getElementById('currM').value) || 0;
+                const curS = parseInt(document.getElementById('currS').value) || 0;
+                exactCurrentSeconds = (curH * 3600) + (curM * 60) + curS;
+                
+                lastTickTime = Date.now();
+                
+                const secondsLeft = Math.max(0, durationTotalSeconds - exactCurrentSeconds);
+                const actualSecondsToWait = secondsLeft / speed;
+                targetFinishTimestamp = Date.now() + (actualSecondsToWait * 1000);
+            } else {
+                const now = Date.now();
+                const elapsedRealSeconds = (now - lastTickTime) / 1000;
+                lastTickTime = now;
+                
+                exactCurrentSeconds += (elapsedRealSeconds * speed);
+                
+                if (exactCurrentSeconds >= durationTotalSeconds) {
+                    exactCurrentSeconds = durationTotalSeconds;
+                    clearInterval(clockInterval);
+                    isSystemLive = false;
+                    
+                    const btn = document.getElementById('calcBtn');
+                    btn.innerText = "Finished!";
+                    btn.classList.remove('live-active');
+                    document.getElementById('liveBadge').classList.add('hidden');
                 }
+
+                document.getElementById('currH').value = Math.floor(exactCurrentSeconds / 3600);
+                document.getElementById('currM').value = Math.floor((exactCurrentSeconds % 3600) / 60);
+                document.getElementById('currS').value = Math.floor(exactCurrentSeconds % 60);
+            }
+
+            if (durationTotalSeconds <= exactCurrentSeconds && !isTickUpdate) {
+                if (durationTotalSeconds > 0) showError("Progress exceeds total duration!");
                 return;
             }
 
-            // Real time calculation
-            const secondsLeft = durationTotalSeconds - currentTotalSeconds;
+            const secondsLeft = Math.max(0, durationTotalSeconds - exactCurrentSeconds);
             const actualSecondsToWait = secondsLeft / speed;
 
-            // Format Remaining Time
             const remH = Math.floor(actualSecondsToWait / 3600);
             const remM = Math.floor((actualSecondsToWait % 3600) / 60);
             const remS = Math.floor(actualSecondsToWait % 60);
@@ -205,28 +278,20 @@
             document.getElementById('remainingDisplay').innerText = `${remH}h ${remM}m ${remS}s`;
             document.getElementById('speedLabel').innerText = speed.toFixed(2);
 
-            // Clock Finish Time
-            const now = new Date();
-            const finishDate = new Date(now.getTime() + (actualSecondsToWait * 1000));
-            
+            const finishDate = new Date(targetFinishTimestamp);
             const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
             document.getElementById('finishClockDisplay').innerText = finishDate.toLocaleTimeString([], options);
             
-            // Check if it finishes another day
-            const isTomorrow = finishDate.getDate() !== now.getDate();
+            const isTomorrow = finishDate.getDate() !== new Date().getDate();
             document.getElementById('finishDateLabel').innerText = isTomorrow ? "Finishing tomorrow" : "Finishing today";
-            document.getElementById('finishDateLabel').classList.toggle('text-amber-400', isTomorrow);
-
-            // Show results
-            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('finishDateLabel').className = `text-base mt-2 italic font-medium ${isTomorrow ? 'text-amber-400' : 'text-slate-400'}`;
         }
 
         function showError(msg) {
-            const results = document.getElementById('results');
-            results.classList.remove('hidden');
             document.getElementById('remainingDisplay').innerText = "Invalid Range";
             document.getElementById('finishClockDisplay').innerText = "Check times";
             document.getElementById('finishDateLabel').innerText = msg;
+            document.getElementById('finishDateLabel').className = "text-base mt-2 italic font-medium text-amber-400";
         }
     </script>
 </body>
