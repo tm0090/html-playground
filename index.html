@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="tab-title">Workspace</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SortableJS -->
+    
+    <!-- SortableJS for Drag & Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
     <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -20,24 +28,31 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        slate: {
-                            850: '#151e2e',
-                            900: '#0f172a',
-                            950: '#020617',
-                        }
+                        surface: '#09090b', 
+                        surfaceHover: '#121214', 
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.2s ease-out',
-                        'slide-up': 'slideUp 0.3s ease-out',
+                        'fade-in': 'fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-down': 'slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'stagger-up': 'staggerUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-slow': 'pulseSlow 4s ease-in-out infinite',
                     },
                     keyframes: {
                         fadeIn: {
                             '0%': { opacity: '0' },
                             '100%': { opacity: '1' },
                         },
-                        slideUp: {
-                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                        slideDown: {
+                            '0%': { transform: 'translateY(-20px)', opacity: '0' },
                             '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        staggerUp: {
+                            '0%': { transform: 'translateY(30px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        pulseSlow: {
+                            '0%, 100%': { opacity: '0.4' },
+                            '50%': { opacity: '0.8' },
                         }
                     }
                 }
@@ -45,213 +60,332 @@
         }
     </script>
     <style>
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
-        /* Glassmorphism Utilities */
-        .glass {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .glass-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .glass-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(56, 189, 248, 0.3);
-            box-shadow: 0 10px 30px -10px rgba(56, 189, 248, 0.15);
+        body { 
+            background-color: #000000;
+            color: #ededed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            letter-spacing: -0.015em;
         }
 
-        /* Hide drag ghost image artifacts */
-        .sortable-ghost { opacity: 0.4; background: #334155; }
-        .sortable-drag { cursor: grabbing; opacity: 1; background: #1e293b; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+        ::selection { background: rgba(255,255,255,0.15); color: #fff; }
 
-        /* Title & Subtitle Edit Fixes */
-        .editable-text {
-            outline: none;
-            transition: all 0.2s ease;
-        }
-        
-        .editable-text:focus {
-            background-clip: unset !important;
-            -webkit-background-clip: unset !important;
-            color: #22d3ee !important;
-            background-color: rgba(34, 211, 238, 0.1);
-            border-radius: 4px;
-            padding: 0 4px;
-            box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+        /* Premium Card Architecture - Scaled Up */
+        .premium-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px; /* Larger radius */
+            padding: 1px; /* Border width */
+            overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Subtitle specific focus */
-        .subtitle-edit:focus {
-            color: #94a3b8 !important; /* Lighter slate for subtitle focus */
-            background-color: rgba(148, 163, 184, 0.1);
-            box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
+        .premium-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            z-index: 10;
+        }
+
+        /* Isolated Border Glow - Only triggers on hover */
+        .premium-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y), 
+                rgba(255, 255, 255, 0.4), 
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .premium-card:hover::before {
+            opacity: 1; /* Only illuminate the hovered card */
+        }
+
+        /* Inner Surface */
+        .premium-card-inner {
+            background: #09090b; 
+            border-radius: 23px;
+            position: relative;
+            height: 100%;
+            z-index: 1;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.04);
+            transition: background 0.4s ease;
+        }
+
+        .premium-card:hover .premium-card-inner {
+            background: #111113; 
+        }
+
+        /* Inner Spot Light */
+        .premium-card-inner::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(
+                400px circle at var(--mouse-x) var(--mouse-y), 
+                rgba(255, 255, 255, 0.04), 
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .premium-card:hover .premium-card-inner::before { opacity: 1; }
+
+        /* Sortable States */
+        .sortable-ghost { opacity: 0.05; transform: scale(0.95); }
+        .sortable-drag { cursor: grabbing !important; box-shadow: 0 40px 80px rgba(0,0,0,0.9); }
+
+        /* Seamless Nav */
+        .glass-nav {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(32px) saturate(200%);
+            -webkit-backdrop-filter: blur(32px) saturate(200%);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        /* Cmd Input */
+        .cmd-input {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: all 0.3s ease;
+        }
+        .cmd-input:focus-within {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 0 20px rgba(255,255,255,0.03);
+        }
+
+        [contenteditable] { outline: none; transition: opacity 0.2s; }
+        [contenteditable]:focus { opacity: 0.7; }
+
+        /* Soft global light */
+        .ambient-glow {
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vw;
+            height: 60vh;
+            background: radial-gradient(ellipse at top, rgba(255,255,255,0.04), transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+            filter: blur(120px);
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen selection:bg-cyan-500/30 selection:text-cyan-200 flex flex-col items-center pt-16 pb-12 px-4 sm:px-6 relative overflow-x-hidden">
+<body class="min-h-screen flex flex-col relative selection:bg-white/20">
 
-    <!-- Ambient Background Glow -->
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 rounded-full blur-[120px]"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px]"></div>
-    </div>
+    <div class="ambient-glow animate-pulse-slow"></div>
 
-    <!-- Header Section -->
-    <header class="w-full max-w-5xl mb-12 flex flex-col md:flex-row justify-between items-center gap-6 animate-fade-in">
-        <div class="flex flex-col items-center md:items-start">
-            <div class="flex items-center group gap-2">
+    <!-- Sticky Command Bar -->
+    <nav class="glass-nav sticky top-0 z-40 w-full animate-slide-down">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-6 min-w-0">
+                <div class="hidden sm:block">
+                    <!-- Updated to AM/PM -->
+                    <div id="live-time" class="text-xs font-mono text-zinc-500 tracking-wider">00:00 AM</div>
+                </div>
+                <div class="h-6 w-px bg-white/[0.06] hidden sm:block"></div>
                 <h1 id="main-title" 
                     contenteditable="true" 
                     spellcheck="false"
-                    class="editable-text text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400 tracking-tight cursor-text transition-all"
+                    class="text-lg font-medium text-zinc-100 truncate cursor-text"
                     onblur="saveHeaderData()"
                     onkeydown="handleTextKeydown(event)"
                     onclick="selectAllOnFocus(this)">
                     Workspace
                 </h1>
-                <button onclick="document.getElementById('main-title').focus()" class="p-1 rounded-md text-slate-600 opacity-0 group-hover:opacity-100 hover:text-cyan-400 transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+
+            <div class="flex items-center gap-4 w-full sm:w-auto justify-end">
+                
+                <div class="relative w-full max-w-[260px] group cmd-input rounded-2xl flex items-center px-4 py-2.5 cursor-text" onclick="document.getElementById('search-input').focus()">
+                    <i class="ph ph-magnifying-glass text-zinc-500 group-focus-within:text-zinc-300"></i>
+                    <input type="text" id="search-input" oninput="filterLinks()" placeholder="Search..." class="bg-transparent border-none outline-none text-sm text-white placeholder-zinc-600 w-full ml-3">
+                    <div class="hidden sm:flex items-center justify-center bg-white/5 rounded px-2 py-0.5 text-[10px] font-mono text-zinc-500 border border-white/5">/</div>
+                </div>
+
+                <div class="h-6 w-px bg-white/[0.06] mx-1 hidden sm:block"></div>
+
+                <button onclick="triggerImport()" class="p-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all" title="Import Data">
+                    <i class="ph ph-download-simple text-xl"></i>
+                </button>
+                <input type="file" id="importFile" accept=".json" class="hidden" onchange="importLinks(event)">
+
+                <button onclick="exportLinks()" class="p-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all" title="Export Data">
+                    <i class="ph ph-upload-simple text-xl"></i>
+                </button>
+
+                <!-- Thicker, bolder add button -->
+                <button onclick="openModal()" class="ml-2 px-5 py-2.5 bg-white text-black text-sm font-semibold rounded-2xl hover:bg-zinc-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
+                    <i class="ph ph-plus text-lg"></i>
+                    <span class="hidden sm:inline">Add Link</span>
                 </button>
             </div>
-            <div class="flex items-center group gap-2 mt-1">
-                <p id="sub-title" 
-                    contenteditable="true" 
-                    spellcheck="false"
-                    class="editable-text subtitle-edit text-slate-400 text-sm cursor-text transition-all"
-                    onblur="saveHeaderData()"
-                    onkeydown="handleTextKeydown(event)"
-                    onclick="selectAllOnFocus(this)">
-                    Manage your study resources & links
-                </p>
-            </div>
         </div>
+    </nav>
+
+    <!-- Main Grid Area -->
+    <main class="flex-1 w-full max-w-7xl mx-auto px-6 lg:px-12 py-12 z-10 flex flex-col">
         
-        <div class="flex items-center gap-3">
-            <button onclick="triggerImport()" class="group flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-all text-sm font-medium text-slate-300">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                Import
-            </button>
-            <input type="file" id="importFile" accept=".json" class="hidden" onchange="importLinks(event)">
+        <p id="sub-title" 
+            contenteditable="true" 
+            spellcheck="false"
+            class="text-zinc-500 text-base mb-10 max-w-2xl cursor-text animate-fade-in"
+            onblur="saveHeaderData()"
+            onkeydown="handleTextKeydown(event)"
+            onclick="selectAllOnFocus(this)">
+            Curate your essential tools, repositories, and daily drivers.
+        </p>
 
-            <button onclick="exportLinks()" class="group flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-all text-sm font-medium text-slate-300">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                Export
-            </button>
-
-            <button onclick="openModal()" class="flex items-center gap-2 px-5 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all transform hover:scale-105 active:scale-95 text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Add Link
-            </button>
+        <!-- Adjusted to fewer columns for larger cards -->
+        <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-20 w-full flex-1">
+            <!-- Cards Injected Here -->
         </div>
-    </header>
-
-    <!-- Grid Container -->
-    <main id="link-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full max-w-5xl animate-slide-up pb-20">
-        <!-- Links will be injected here -->
     </main>
 
-    <!-- Modal Overlay -->
-    <div id="modal-backdrop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300" onclick="closeModal()"></div>
+    <!-- Modal -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden opacity-0 transition-opacity duration-400" onclick="closeModal()"></div>
     
-    <!-- Modal Content -->
-    <div id="modal-content" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 hidden opacity-0 scale-95 transition-all duration-300 p-6">
-        <h2 id="modal-title" class="text-xl font-semibold mb-6 text-white">Add New Link</h2>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Title</label>
-                <input type="text" id="input-name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all" placeholder="e.g. Physics Prep">
-            </div>
-            
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">URL</label>
-                <input type="url" id="input-url" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all" placeholder="https://example.com">
-            </div>
-        </div>
+    <div id="modal-content" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-[#09090b] border border-white/5 rounded-[28px] shadow-[0_40px_100px_rgba(0,0,0,1)] z-50 hidden opacity-0 scale-95 transition-all duration-400 p-8 overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-white/[0.02] blur-3xl rounded-full pointer-events-none"></div>
 
-        <div class="flex justify-end gap-3 mt-8">
-            <button onclick="closeModal()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium">Cancel</button>
-            <button onclick="saveLink()" class="px-6 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all text-sm">Save Link</button>
+        <div class="relative z-10">
+            <h2 id="modal-title" class="text-2xl font-medium text-white mb-8 tracking-tight">New Link</h2>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">Title</label>
+                    <div class="cmd-input rounded-2xl p-1">
+                        <input type="text" id="input-name" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. GitHub">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">URL</label>
+                    <div class="cmd-input rounded-2xl p-1">
+                        <input type="url" id="input-url" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-10">
+                <button onclick="closeModal()" class="flex-1 px-5 py-3.5 rounded-2xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
+                <button onclick="saveLink()" class="flex-1 px-5 py-3.5 rounded-2xl bg-white text-black font-semibold hover:bg-zinc-200 transition-colors text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)]">Save Link</button>
+            </div>
         </div>
     </div>
 
-    <!-- Empty State Template -->
+    <!-- Refined Empty State -->
     <template id="empty-state">
-        <div class="col-span-full flex flex-col items-center justify-center py-20 text-center opacity-60">
-            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                <svg class="text-slate-500" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        <div class="col-span-full flex flex-col items-center justify-center py-20 lg:py-40 text-center opacity-0 animate-fade-in h-full">
+            <div class="relative w-24 h-24 mb-8">
+                <!-- Glowing rings -->
+                <div class="absolute inset-0 border border-white/[0.03] rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
+                <div class="absolute inset-2 border border-white/[0.05] rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] animation-delay-200"></div>
+                <!-- Core icon -->
+                <div class="absolute inset-4 rounded-full bg-white/[0.02] border border-white/[0.08] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] backdrop-blur-xl z-10">
+                    <i class="ph ph-infinity text-3xl text-zinc-400"></i>
+                </div>
             </div>
-            <h3 class="text-lg font-medium text-slate-300">No links yet</h3>
-            <p class="text-slate-500 text-sm mt-1">Add your first link to get started</p>
+            <h3 class="text-2xl font-medium text-zinc-100 mb-2 tracking-tight">Your space is empty</h3>
+            <p class="text-zinc-500 text-base max-w-sm mb-8 leading-relaxed">Begin by curating your essential resources. Hit <kbd class="px-2 py-1 bg-white/[0.03] border border-white/[0.05] rounded-md text-xs font-mono ml-1 shadow-sm">Add Link</kbd> to build your environment.</p>
+            <button onclick="openModal()" class="px-6 py-3 bg-white/[0.03] border border-white/[0.08] text-white text-sm font-medium rounded-2xl hover:bg-white/[0.08] transition-all flex items-center gap-2">
+                <i class="ph ph-plus"></i> Add First Link
+            </button>
         </div>
     </template>
 
     <script>
-        // State
-        let links = JSON.parse(localStorage.getItem('myLinks')) || [
-            { id: '1', name: 'GST Physics', url: 'https://khanacademy.org' },
-            { id: '2', name: 'Chemistry Prep', url: 'https://chemguide.co.uk' }
-        ];
+        // --- State Management ---
+        // Changed to start completely empty (0 pre-saved links)
+        let links = JSON.parse(localStorage.getItem('premiumLinks')) || [];
         
-        let workspaceTitle = localStorage.getItem('workspaceTitle') || 'Workspace';
-        let workspaceSubtitle = localStorage.getItem('workspaceSubtitle') || 'Manage your study resources & links';
+        let workspaceTitle = localStorage.getItem('p_workspaceTitle') || 'Workspace';
+        let workspaceSubtitle = localStorage.getItem('p_workspaceSubtitle') || 'Curate your essential tools, repositories, and daily drivers.';
         let editingId = null; 
 
-        const container = document.getElementById('link-container');
-        const modalBackdrop = document.getElementById('modal-backdrop');
-        const modalContent = document.getElementById('modal-content');
-        const nameInput = document.getElementById('input-name');
-        const urlInput = document.getElementById('input-url');
-        const modalTitle = document.getElementById('modal-title');
-        const mainTitle = document.getElementById('main-title');
-        const subTitleElement = document.getElementById('sub-title');
-        const tabTitle = document.getElementById('tab-title');
+        const grid = document.getElementById('cards-grid');
+        const searchInput = document.getElementById('search-input');
 
-        // --- Header Management ---
+        // --- AM/PM Live Clock ---
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            document.getElementById('live-time').innerText = `${timeStr} — ${dateStr}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
+        function getDomain(url) {
+            try { return new URL(url).hostname.replace('www.', ''); } 
+            catch { return url; }
+        }
+
+        function getFavicon(url) {
+            try {
+                const domain = new URL(url).hostname;
+                return `https://icon.horse/icon/${domain}`; 
+            } catch {
+                return 'https://www.google.com/s2/favicons?domain=google.com&sz=128';
+            }
+        }
+
+        // --- Mouse Tracking (Only updates vars, CSS :hover controls visibility) ---
+        grid.addEventListener('mousemove', e => {
+            const cards = document.querySelectorAll('.premium-card');
+            for(const card of cards) {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            }
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== searchInput && !document.activeElement.isContentEditable && document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+
+        // --- Header Editing ---
         function initHeader() {
-            mainTitle.innerText = workspaceTitle;
-            subTitleElement.innerText = workspaceSubtitle;
-            tabTitle.innerText = workspaceTitle;
+            document.getElementById('main-title').innerText = workspaceTitle;
+            document.getElementById('sub-title').innerText = workspaceSubtitle;
+            document.getElementById('tab-title').innerText = workspaceTitle;
         }
 
         function saveHeaderData() {
-            const newTitle = mainTitle.innerText.trim();
-            const newSubtitle = subTitleElement.innerText.trim();
+            workspaceTitle = document.getElementById('main-title').innerText.trim() || 'Workspace';
+            workspaceSubtitle = document.getElementById('sub-title').innerText.trim() || 'Curate your essential tools.';
+            
+            document.getElementById('main-title').innerText = workspaceTitle;
+            document.getElementById('sub-title').innerText = workspaceSubtitle;
+            document.getElementById('tab-title').innerText = workspaceTitle;
 
-            if (newTitle) {
-                workspaceTitle = newTitle;
-                tabTitle.innerText = newTitle;
-                localStorage.setItem('workspaceTitle', newTitle);
-            } else {
-                mainTitle.innerText = workspaceTitle; 
-            }
-
-            if (newSubtitle) {
-                workspaceSubtitle = newSubtitle;
-                localStorage.setItem('workspaceSubtitle', newSubtitle);
-            } else {
-                subTitleElement.innerText = workspaceSubtitle;
-            }
+            localStorage.setItem('p_workspaceTitle', workspaceTitle);
+            localStorage.setItem('p_workspaceSubtitle', workspaceSubtitle);
         }
 
         function handleTextKeydown(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.target.blur();
-            }
+            if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
         }
 
         function selectAllOnFocus(element) {
@@ -264,134 +398,132 @@
             }, 10);
         }
 
-        // --- Rendering ---
+        // --- Rendering Engine ---
+        function render(filteredLinks = links) {
+            grid.innerHTML = '';
 
-        function getFavicon(url) {
-            try {
-                const domain = new URL(url).hostname;
-                return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-            } catch (e) {
-                return 'https://www.google.com/s2/favicons?domain=google.com&sz=64';
-            }
-        }
-
-        function getDomain(url) {
-            try {
-                return new URL(url).hostname.replace('www.', '');
-            } catch (e) {
-                return url;
-            }
-        }
-
-        function render() {
-            container.innerHTML = '';
-
-            if (links.length === 0) {
-                const template = document.getElementById('empty-state');
-                container.appendChild(template.content.cloneNode(true));
+            if (filteredLinks.length === 0) {
+                grid.appendChild(document.getElementById('empty-state').content.cloneNode(true));
+                grid.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+                grid.classList.add('flex', 'items-center', 'justify-center');
                 return;
+            } else {
+                grid.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+                grid.classList.remove('flex', 'items-center', 'justify-center');
             }
 
-            links.forEach((link, index) => {
-                const card = document.createElement('div');
-                card.className = 'glass-card group relative p-5 rounded-2xl flex flex-col items-start h-full min-h-[140px] cursor-pointer select-none';
-                card.setAttribute('data-id', link.id || index);
+            filteredLinks.forEach((link, index) => {
+                const realIndex = links.findIndex(l => l.id === link.id);
                 
+                const card = document.createElement('div');
+                card.className = `premium-card opacity-0 animate-stagger-up group cursor-pointer`;
+                card.style.animationDelay = `${index * 50}ms`;
+                card.setAttribute('data-id', link.id);
+                
+                // Larger cards: p-6 instead of p-5, bigger icons, bigger text
                 card.innerHTML = `
-                    <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                        <button onclick="openModal(event, ${index})" class="p-1.5 rounded-md text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
-                        <button onclick="deleteLink(event, ${index})" class="p-1.5 rounded-md text-slate-400 hover:text-rose-500 hover:bg-slate-800 transition-colors" title="Delete">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                        </button>
-                    </div>
-
-                    <div class="flex items-start justify-between w-full mb-4 pointer-events-none">
-                        <div class="w-12 h-12 rounded-xl bg-slate-800/80 p-2 border border-slate-700/50 flex items-center justify-center">
-                            <img src="${getFavicon(link.url)}" class="w-8 h-8 object-contain rounded-sm" onerror="this.src='https://www.google.com/s2/favicons?domain=google.com&sz=64'">
+                    <div class="premium-card-inner p-6 flex flex-col relative min-h-[160px]">
+                        
+                        <!-- Top actions -->
+                        <div class="absolute top-5 right-5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                            <button onclick="openModal(event, ${realIndex})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all backdrop-blur-md" title="Edit">
+                                <i class="ph ph-pencil-simple text-base"></i>
+                            </button>
+                            <button onclick="deleteLink(event, ${realIndex})" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all backdrop-blur-md" title="Delete">
+                                <i class="ph ph-trash text-base"></i>
+                            </button>
                         </div>
-                    </div>
-                    
-                    <div class="mt-auto pointer-events-none w-full overflow-hidden">
-                        <h3 class="font-semibold text-lg text-slate-100 truncate w-full" title="${link.name}">${link.name}</h3>
-                        <p class="text-xs text-slate-500 truncate mt-0.5 font-medium">${getDomain(link.url)}</p>
+
+                        <!-- Big Icon -->
+                        <div class="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-[1.05] group-hover:bg-white/[0.05] transition-all duration-400 relative z-10">
+                            <img src="${getFavicon(link.url)}" class="w-7 h-7 object-contain drop-shadow-md" onerror="this.src='https://www.google.com/s2/favicons?domain=google.com&sz=128'">
+                        </div>
+                        
+                        <!-- Text -->
+                        <div class="mt-6 min-w-0 relative z-10 pointer-events-none pr-8">
+                            <h3 class="text-lg font-semibold text-zinc-100 truncate tracking-tight">${link.name}</h3>
+                            <p class="text-sm font-medium text-zinc-500 truncate mt-1 group-hover:text-zinc-400 transition-colors">${getDomain(link.url)}</p>
+                        </div>
+                        
+                        <!-- Arrow -->
+                        <div class="absolute bottom-6 right-6 text-zinc-600 opacity-0 -translate-x-3 translate-y-3 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-400 pointer-events-none z-10">
+                            <i class="ph ph-arrow-up-right text-xl"></i>
+                        </div>
                     </div>
                 `;
 
                 card.addEventListener('click', (e) => {
-                    if (!e.target.closest('button')) {
-                        window.open(link.url, '_blank');
-                    }
+                    if (!e.target.closest('button')) window.open(link.url, '_blank');
                 });
 
-                container.appendChild(card);
+                grid.appendChild(card);
             });
 
-            localStorage.setItem('myLinks', JSON.stringify(links));
+            localStorage.setItem('premiumLinks', JSON.stringify(links));
         }
 
-        // --- Logic ---
+        // --- Search ---
+        function filterLinks() {
+            const query = searchInput.value.toLowerCase();
+            render(links.filter(l => l.name.toLowerCase().includes(query) || l.url.toLowerCase().includes(query)));
+        }
+
+        // --- Modal Control ---
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalContent = document.getElementById('modal-content');
+        const nameInput = document.getElementById('input-name');
+        const urlInput = document.getElementById('input-url');
 
         function openModal(e = null, index = null) {
             if (e) e.stopPropagation();
             
             modalBackdrop.classList.remove('hidden');
             modalContent.classList.remove('hidden');
+            void modalContent.offsetWidth; 
             
-            setTimeout(() => {
-                modalBackdrop.classList.remove('opacity-0');
-                modalContent.classList.remove('opacity-0', 'scale-95');
-                modalContent.classList.add('scale-100');
-            }, 10);
+            modalBackdrop.classList.remove('opacity-0');
+            modalContent.classList.remove('opacity-0', 'scale-95');
 
             if (index !== null) {
                 editingId = index;
-                modalTitle.innerText = "Edit Link";
+                document.getElementById('modal-title').innerText = "Edit Link";
                 nameInput.value = links[index].name;
                 urlInput.value = links[index].url;
             } else {
                 editingId = null;
-                modalTitle.innerText = "Add New Link";
+                document.getElementById('modal-title').innerText = "New Link";
                 nameInput.value = '';
                 urlInput.value = '';
             }
-            
-            nameInput.focus();
+            setTimeout(() => nameInput.focus(), 100);
         }
 
         function closeModal() {
             modalBackdrop.classList.add('opacity-0');
             modalContent.classList.add('opacity-0', 'scale-95');
-            modalContent.classList.remove('scale-100');
-            
             setTimeout(() => {
                 modalBackdrop.classList.add('hidden');
                 modalContent.classList.add('hidden');
-            }, 300);
+            }, 400);
         }
 
         function saveLink() {
             const name = nameInput.value.trim();
             let url = urlInput.value.trim();
-
             if (!name || !url) return;
-
-            if (!/^https?:\/\//i.test(url)) {
-                url = 'https://' + url;
-            }
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
             if (editingId !== null) {
                 links[editingId] = { ...links[editingId], name, url };
             } else {
                 links.push({ id: Date.now().toString(), name, url });
             }
-
+            searchInput.value = ''; 
             render();
             closeModal();
         }
 
-        modalContent.addEventListener('keydown', (e) => {
+        document.getElementById('modal-content').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveLink();
             if (e.key === 'Escape') closeModal();
         });
@@ -399,81 +531,66 @@
         function deleteLink(event, index) {
             event.stopPropagation();
             links.splice(index, 1);
-            render();
+            filterLinks(); 
         }
 
+        // --- Data Import/Export ---
         function exportLinks() {
-            const exportData = {
-                title: workspaceTitle,
-                subtitle: workspaceSubtitle,
-                links: links
-            };
+            const exportData = { title: workspaceTitle, subtitle: workspaceSubtitle, links: links };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `${workspaceTitle.toLowerCase().replace(/\s+/g, '_')}_backup.json`);
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = `workspace_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
         }
 
-        function triggerImport() {
-            document.getElementById('importFile').click();
-        }
+        function triggerImport() { document.getElementById('importFile').click(); }
 
         function importLinks(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const imported = JSON.parse(e.target.result);
-                    let importedLinks = [];
-                    
-                    if (Array.isArray(imported)) {
-                        importedLinks = imported;
-                    } else if (imported.links && Array.isArray(imported.links)) {
-                        importedLinks = imported.links;
-                        if (imported.title) {
-                            workspaceTitle = imported.title;
-                            workspaceSubtitle = imported.subtitle || workspaceSubtitle;
-                            initHeader();
-                            localStorage.setItem('workspaceTitle', workspaceTitle);
-                            localStorage.setItem('workspaceSubtitle', workspaceSubtitle);
-                        }
+                    if (imported.links) {
+                        links = imported.links.map((l, i) => ({...l, id: l.id || Date.now().toString() + i}));
+                        if (imported.title) workspaceTitle = imported.title;
+                        if (imported.subtitle) workspaceSubtitle = imported.subtitle;
+                        initHeader();
+                        saveHeaderData();
+                    } else if (Array.isArray(imported)) {
+                        links = imported.map((l, i) => ({...l, id: l.id || Date.now().toString() + i}));
                     }
-
-                    if (importedLinks.length > 0) {
-                        links = importedLinks.map((l, i) => ({...l, id: l.id || Date.now().toString() + i}));
-                        render();
-                    }
-                } catch (err) {
-                    console.error("Import failed", err);
-                }
+                    searchInput.value = '';
+                    render();
+                } catch { alert("Invalid JSON file."); }
                 event.target.value = '';
             };
             reader.readAsText(file);
         }
 
-        // --- Initialization ---
-
-        Sortable.create(container, {
-            animation: 200,
+        // --- Init ---
+        Sortable.create(grid, {
+            animation: 400,
+            easing: "cubic-bezier(0.16, 1, 0.3, 1)",
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
-            delay: 100,
+            delay: 150,
             delayOnTouchOnly: true,
             onEnd: function() {
+                if(searchInput.value.trim() !== '') return; 
+                
                 const newOrder = [];
-                const cards = container.querySelectorAll('.glass-card');
-                cards.forEach(card => {
+                grid.querySelectorAll('.premium-card').forEach(card => {
                     const id = card.getAttribute('data-id');
                     const link = links.find(l => l.id == id);
                     if(link) newOrder.push(link);
                 });
                 links = newOrder;
-                localStorage.setItem('myLinks', JSON.stringify(links));
+                localStorage.setItem('premiumLinks', JSON.stringify(links));
             }
         });
 
