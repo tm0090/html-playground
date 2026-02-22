@@ -75,12 +75,11 @@
         ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
         ::selection { background: rgba(255,255,255,0.15); color: #fff; }
 
-        /* Premium Card Architecture - Scaled Up */
         .premium-card {
             position: relative;
             background: rgba(255, 255, 255, 0.03);
-            border-radius: 24px; /* Larger radius */
-            padding: 1px; /* Border width */
+            border-radius: 24px;
+            padding: 1px;
             overflow: hidden;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -90,7 +89,6 @@
             z-index: 10;
         }
 
-        /* Isolated Border Glow - Only triggers on hover */
         .premium-card::before {
             content: "";
             position: absolute;
@@ -107,10 +105,9 @@
         }
 
         .premium-card:hover::before {
-            opacity: 1; /* Only illuminate the hovered card */
+            opacity: 1;
         }
 
-        /* Inner Surface */
         .premium-card-inner {
             background: #09090b; 
             border-radius: 23px;
@@ -125,7 +122,6 @@
             background: #111113; 
         }
 
-        /* Inner Spot Light */
         .premium-card-inner::before {
             content: "";
             position: absolute;
@@ -143,11 +139,9 @@
         }
         .premium-card:hover .premium-card-inner::before { opacity: 1; }
 
-        /* Sortable States */
         .sortable-ghost { opacity: 0.05; transform: scale(0.95); }
         .sortable-drag { cursor: grabbing !important; box-shadow: 0 40px 80px rgba(0,0,0,0.9); }
 
-        /* Seamless Nav */
         .glass-nav {
             background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(32px) saturate(200%);
@@ -155,7 +149,6 @@
             border-bottom: 1px solid rgba(255,255,255,0.03);
         }
 
-        /* Cmd Input */
         .cmd-input {
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.04);
@@ -170,7 +163,6 @@
         [contenteditable] { outline: none; transition: opacity 0.2s; }
         [contenteditable]:focus { opacity: 0.7; }
 
-        /* Soft global light */
         .ambient-glow {
             position: fixed;
             top: -20%;
@@ -183,19 +175,29 @@
             z-index: -1;
             filter: blur(120px);
         }
+
+        /* Fallback Icon Styling */
+        .icon-fallback {
+            background: linear-gradient(135deg, #27272a, #09090b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a1a1aa;
+            font-weight: 600;
+            font-size: 1.25rem;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-white/20">
 
     <div class="ambient-glow animate-pulse-slow"></div>
 
-    <!-- Sticky Command Bar -->
     <nav class="glass-nav sticky top-0 z-40 w-full animate-slide-down">
         <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between gap-4">
             
             <div class="flex items-center gap-6 min-w-0">
                 <div class="hidden sm:block">
-                    <!-- Updated to AM/PM -->
                     <div id="live-time" class="text-xs font-mono text-zinc-500 tracking-wider">00:00 AM</div>
                 </div>
                 <div class="h-6 w-px bg-white/[0.06] hidden sm:block"></div>
@@ -229,7 +231,6 @@
                     <i class="ph ph-upload-simple text-xl"></i>
                 </button>
 
-                <!-- Thicker, bolder add button -->
                 <button onclick="openModal()" class="ml-2 px-5 py-2.5 bg-white text-black text-sm font-semibold rounded-2xl hover:bg-zinc-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
                     <i class="ph ph-plus text-lg"></i>
                     <span class="hidden sm:inline">Add Link</span>
@@ -238,9 +239,7 @@
         </div>
     </nav>
 
-    <!-- Main Grid Area -->
     <main class="flex-1 w-full max-w-7xl mx-auto px-6 lg:px-12 py-12 z-10 flex flex-col">
-        
         <p id="sub-title" 
             contenteditable="true" 
             spellcheck="false"
@@ -251,7 +250,6 @@
             Curate your essential tools, repositories, and daily drivers.
         </p>
 
-        <!-- Adjusted to fewer columns for larger cards -->
         <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-20 w-full flex-1">
             <!-- Cards Injected Here -->
         </div>
@@ -270,14 +268,14 @@
                 <div>
                     <label class="block text-xs font-medium text-zinc-500 mb-2">Title</label>
                     <div class="cmd-input rounded-2xl p-1">
-                        <input type="text" id="input-name" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. GitHub">
+                        <input type="text" id="input-name" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. YouTube">
                     </div>
                 </div>
                 
                 <div>
                     <label class="block text-xs font-medium text-zinc-500 mb-2">URL</label>
                     <div class="cmd-input rounded-2xl p-1">
-                        <input type="url" id="input-url" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="https://...">
+                        <input type="url" id="input-url" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="https://youtube.com">
                     </div>
                 </div>
             </div>
@@ -289,14 +287,12 @@
         </div>
     </div>
 
-    <!-- Refined Empty State -->
+    <!-- Empty State -->
     <template id="empty-state">
         <div class="col-span-full flex flex-col items-center justify-center py-20 lg:py-40 text-center opacity-0 animate-fade-in h-full">
             <div class="relative w-24 h-24 mb-8">
-                <!-- Glowing rings -->
                 <div class="absolute inset-0 border border-white/[0.03] rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
                 <div class="absolute inset-2 border border-white/[0.05] rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] animation-delay-200"></div>
-                <!-- Core icon -->
                 <div class="absolute inset-4 rounded-full bg-white/[0.02] border border-white/[0.08] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] backdrop-blur-xl z-10">
                     <i class="ph ph-infinity text-3xl text-zinc-400"></i>
                 </div>
@@ -310,10 +306,8 @@
     </template>
 
     <script>
-        // --- State Management ---
-        // Changed to start completely empty (0 pre-saved links)
+        // --- State ---
         let links = JSON.parse(localStorage.getItem('premiumLinks')) || [];
-        
         let workspaceTitle = localStorage.getItem('p_workspaceTitle') || 'Workspace';
         let workspaceSubtitle = localStorage.getItem('p_workspaceSubtitle') || 'Curate your essential tools, repositories, and daily drivers.';
         let editingId = null; 
@@ -336,16 +330,35 @@
             catch { return url; }
         }
 
-        function getFavicon(url) {
+        /**
+         * Enhanced Icon Fetching Logic
+         * Uses multiple services and a final CSS-based letter fallback
+         */
+        function getFavicon(url, name) {
             try {
                 const domain = new URL(url).hostname;
-                return `https://icon.horse/icon/${domain}`; 
+                // Tier 1: Icon Horse (Better at modern manifests)
+                return `https://icon.horse/icon/${domain}`;
             } catch {
-                return 'https://www.google.com/s2/favicons?domain=google.com&sz=128';
+                return null;
             }
         }
 
-        // --- Mouse Tracking (Only updates vars, CSS :hover controls visibility) ---
+        // Secondary fallback if Tier 1 fails (called via onerror in template)
+        function handleIconError(img, url, name) {
+            const domain = getDomain(url);
+            // Tier 2: Google's Favicon Service (Often works for basic sites)
+            if (!img.dataset.triedGoogle) {
+                img.dataset.triedGoogle = "true";
+                img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+            } else {
+                // Tier 3: Letter Fallback (Stylish placeholder)
+                const parent = img.parentElement;
+                parent.innerHTML = `<div class="w-full h-full icon-fallback">${name.charAt(0)}</div>`;
+            }
+        }
+
+        // --- Mouse Tracking ---
         grid.addEventListener('mousemove', e => {
             const cards = document.querySelectorAll('.premium-card');
             for(const card of cards) {
@@ -365,7 +378,7 @@
             }
         });
 
-        // --- Header Editing ---
+        // --- Header ---
         function initHeader() {
             document.getElementById('main-title').innerText = workspaceTitle;
             document.getElementById('sub-title').innerText = workspaceSubtitle;
@@ -375,13 +388,9 @@
         function saveHeaderData() {
             workspaceTitle = document.getElementById('main-title').innerText.trim() || 'Workspace';
             workspaceSubtitle = document.getElementById('sub-title').innerText.trim() || 'Curate your essential tools.';
-            
-            document.getElementById('main-title').innerText = workspaceTitle;
-            document.getElementById('sub-title').innerText = workspaceSubtitle;
-            document.getElementById('tab-title').innerText = workspaceTitle;
-
             localStorage.setItem('p_workspaceTitle', workspaceTitle);
             localStorage.setItem('p_workspaceSubtitle', workspaceSubtitle);
+            document.getElementById('tab-title').innerText = workspaceTitle;
         }
 
         function handleTextKeydown(e) {
@@ -398,7 +407,7 @@
             }, 10);
         }
 
-        // --- Rendering Engine ---
+        // --- Rendering ---
         function render(filteredLinks = links) {
             grid.innerHTML = '';
 
@@ -414,38 +423,35 @@
 
             filteredLinks.forEach((link, index) => {
                 const realIndex = links.findIndex(l => l.id === link.id);
-                
                 const card = document.createElement('div');
                 card.className = `premium-card opacity-0 animate-stagger-up group cursor-pointer`;
                 card.style.animationDelay = `${index * 50}ms`;
                 card.setAttribute('data-id', link.id);
                 
-                // Larger cards: p-6 instead of p-5, bigger icons, bigger text
+                const iconUrl = getFavicon(link.url, link.name);
+                
                 card.innerHTML = `
                     <div class="premium-card-inner p-6 flex flex-col relative min-h-[160px]">
-                        
-                        <!-- Top actions -->
                         <div class="absolute top-5 right-5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                            <button onclick="openModal(event, ${realIndex})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all backdrop-blur-md" title="Edit">
+                            <button onclick="openModal(event, ${realIndex})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all backdrop-blur-md">
                                 <i class="ph ph-pencil-simple text-base"></i>
                             </button>
-                            <button onclick="deleteLink(event, ${realIndex})" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all backdrop-blur-md" title="Delete">
+                            <button onclick="deleteLink(event, ${realIndex})" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all backdrop-blur-md">
                                 <i class="ph ph-trash text-base"></i>
                             </button>
                         </div>
 
-                        <!-- Big Icon -->
                         <div class="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-[1.05] group-hover:bg-white/[0.05] transition-all duration-400 relative z-10">
-                            <img src="${getFavicon(link.url)}" class="w-7 h-7 object-contain drop-shadow-md" onerror="this.src='https://www.google.com/s2/favicons?domain=google.com&sz=128'">
+                            <img src="${iconUrl}" 
+                                 class="w-8 h-8 object-contain drop-shadow-md" 
+                                 onerror="handleIconError(this, '${link.url}', '${link.name}')">
                         </div>
                         
-                        <!-- Text -->
                         <div class="mt-6 min-w-0 relative z-10 pointer-events-none pr-8">
                             <h3 class="text-lg font-semibold text-zinc-100 truncate tracking-tight">${link.name}</h3>
                             <p class="text-sm font-medium text-zinc-500 truncate mt-1 group-hover:text-zinc-400 transition-colors">${getDomain(link.url)}</p>
                         </div>
                         
-                        <!-- Arrow -->
                         <div class="absolute bottom-6 right-6 text-zinc-600 opacity-0 -translate-x-3 translate-y-3 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-400 pointer-events-none z-10">
                             <i class="ph ph-arrow-up-right text-xl"></i>
                         </div>
@@ -462,13 +468,12 @@
             localStorage.setItem('premiumLinks', JSON.stringify(links));
         }
 
-        // --- Search ---
         function filterLinks() {
             const query = searchInput.value.toLowerCase();
             render(links.filter(l => l.name.toLowerCase().includes(query) || l.url.toLowerCase().includes(query)));
         }
 
-        // --- Modal Control ---
+        // --- Modal ---
         const modalBackdrop = document.getElementById('modal-backdrop');
         const modalContent = document.getElementById('modal-content');
         const nameInput = document.getElementById('input-name');
@@ -476,14 +481,11 @@
 
         function openModal(e = null, index = null) {
             if (e) e.stopPropagation();
-            
             modalBackdrop.classList.remove('hidden');
             modalContent.classList.remove('hidden');
             void modalContent.offsetWidth; 
-            
             modalBackdrop.classList.remove('opacity-0');
             modalContent.classList.remove('opacity-0', 'scale-95');
-
             if (index !== null) {
                 editingId = index;
                 document.getElementById('modal-title').innerText = "Edit Link";
@@ -512,7 +514,6 @@
             let url = urlInput.value.trim();
             if (!name || !url) return;
             if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-
             if (editingId !== null) {
                 links[editingId] = { ...links[editingId], name, url };
             } else {
@@ -523,31 +524,21 @@
             closeModal();
         }
 
-        document.getElementById('modal-content').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') saveLink();
-            if (e.key === 'Escape') closeModal();
-        });
-
         function deleteLink(event, index) {
             event.stopPropagation();
             links.splice(index, 1);
             filterLinks(); 
         }
 
-        // --- Data Import/Export ---
+        // --- Data ---
         function exportLinks() {
             const exportData = { title: workspaceTitle, subtitle: workspaceSubtitle, links: links };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
             const a = document.createElement('a');
-            a.href = dataStr;
-            a.download = `workspace_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            a.href = dataStr; a.download = `workspace.json`; a.click();
         }
 
         function triggerImport() { document.getElementById('importFile').click(); }
-
         function importLinks(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -561,13 +552,9 @@
                         if (imported.subtitle) workspaceSubtitle = imported.subtitle;
                         initHeader();
                         saveHeaderData();
-                    } else if (Array.isArray(imported)) {
-                        links = imported.map((l, i) => ({...l, id: l.id || Date.now().toString() + i}));
                     }
-                    searchInput.value = '';
                     render();
-                } catch { alert("Invalid JSON file."); }
-                event.target.value = '';
+                } catch { alert("Invalid file."); }
             };
             reader.readAsText(file);
         }
@@ -577,12 +564,9 @@
             animation: 400,
             easing: "cubic-bezier(0.16, 1, 0.3, 1)",
             ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
             delay: 150,
-            delayOnTouchOnly: true,
             onEnd: function() {
                 if(searchInput.value.trim() !== '') return; 
-                
                 const newOrder = [];
                 grid.querySelectorAll('.premium-card').forEach(card => {
                     const id = card.getAttribute('data-id');
