@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="tab-title">Workspace</title>
+    <title id="tab-title">Saved links</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -75,12 +75,12 @@
         ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
         ::selection { background: rgba(255,255,255,0.15); color: #fff; }
 
-        /* Premium Card Architecture - Scaled Up */
+        /* Premium Card Architecture */
         .premium-card {
             position: relative;
             background: rgba(255, 255, 255, 0.03);
-            border-radius: 24px; /* Larger radius */
-            padding: 1px; /* Border width */
+            border-radius: 24px;
+            padding: 1px;
             overflow: hidden;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -90,7 +90,7 @@
             z-index: 10;
         }
 
-        /* Isolated Border Glow - Only triggers on hover */
+        /* Isolated Border Glow */
         .premium-card::before {
             content: "";
             position: absolute;
@@ -106,9 +106,7 @@
             z-index: 0;
         }
 
-        .premium-card:hover::before {
-            opacity: 1; /* Only illuminate the hovered card */
-        }
+        .premium-card:hover::before { opacity: 1; }
 
         /* Inner Surface */
         .premium-card-inner {
@@ -121,9 +119,7 @@
             transition: background 0.4s ease;
         }
 
-        .premium-card:hover .premium-card-inner {
-            background: #111113; 
-        }
+        .premium-card:hover .premium-card-inner { background: #111113; }
 
         /* Inner Spot Light */
         .premium-card-inner::before {
@@ -183,6 +179,12 @@
             z-index: -1;
             filter: blur(120px);
         }
+
+        /* Toast Animations */
+        .toast-enter { animation: toastEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .toast-leave { animation: toastLeave 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes toastEnter { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes toastLeave { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-white/20">
@@ -195,7 +197,6 @@
             
             <div class="flex items-center gap-6 min-w-0">
                 <div class="hidden sm:block">
-                    <!-- Updated to AM/PM -->
                     <div id="live-time" class="text-xs font-mono text-zinc-500 tracking-wider">00:00 AM</div>
                 </div>
                 <div class="h-6 w-px bg-white/[0.06] hidden sm:block"></div>
@@ -206,7 +207,7 @@
                     onblur="saveHeaderData()"
                     onkeydown="handleTextKeydown(event)"
                     onclick="selectAllOnFocus(this)">
-                    Workspace
+                    Saved links
                 </h1>
             </div>
 
@@ -229,7 +230,6 @@
                     <i class="ph ph-upload-simple text-xl"></i>
                 </button>
 
-                <!-- Thicker, bolder add button -->
                 <button onclick="openModal()" class="ml-2 px-5 py-2.5 bg-white text-black text-sm font-semibold rounded-2xl hover:bg-zinc-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
                     <i class="ph ph-plus text-lg"></i>
                     <span class="hidden sm:inline">Add Link</span>
@@ -251,7 +251,6 @@
             Curate your essential tools, repositories, and daily drivers.
         </p>
 
-        <!-- Adjusted to fewer columns for larger cards -->
         <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-20 w-full flex-1">
             <!-- Cards Injected Here -->
         </div>
@@ -268,16 +267,19 @@
             
             <div class="space-y-5">
                 <div>
-                    <label class="block text-xs font-medium text-zinc-500 mb-2">Title</label>
-                    <div class="cmd-input rounded-2xl p-1">
-                        <input type="text" id="input-name" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. GitHub">
-                    </div>
-                </div>
-                
-                <div>
                     <label class="block text-xs font-medium text-zinc-500 mb-2">URL</label>
                     <div class="cmd-input rounded-2xl p-1">
                         <input type="url" id="input-url" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="https://...">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2 flex justify-between">
+                        <span>Title</span>
+                        <span id="fetch-indicator" class="text-zinc-600 hidden animate-pulse">Fetching details...</span>
+                    </label>
+                    <div class="cmd-input rounded-2xl p-1">
+                        <input type="text" id="input-name" class="w-full bg-transparent px-4 py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. GitHub">
                     </div>
                 </div>
             </div>
@@ -289,37 +291,55 @@
         </div>
     </div>
 
-    <!-- Refined Empty State -->
+    <!-- Toasts Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Empty State (No Links Yet) -->
     <template id="empty-state">
         <div class="col-span-full flex flex-col items-center justify-center py-20 lg:py-40 text-center opacity-0 animate-fade-in h-full">
             <div class="relative w-24 h-24 mb-8">
-                <!-- Glowing rings -->
                 <div class="absolute inset-0 border border-white/[0.03] rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
                 <div class="absolute inset-2 border border-white/[0.05] rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] animation-delay-200"></div>
-                <!-- Core icon -->
                 <div class="absolute inset-4 rounded-full bg-white/[0.02] border border-white/[0.08] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] backdrop-blur-xl z-10">
-                    <i class="ph ph-infinity text-3xl text-zinc-400"></i>
+                    <i class="ph ph-link-simple text-3xl text-zinc-400"></i> <!-- Changed to link icon -->
                 </div>
             </div>
             <h3 class="text-2xl font-medium text-zinc-100 mb-2 tracking-tight">Your space is empty</h3>
             <p class="text-zinc-500 text-base max-w-sm mb-8 leading-relaxed">Begin by curating your essential resources. Hit <kbd class="px-2 py-1 bg-white/[0.03] border border-white/[0.05] rounded-md text-xs font-mono ml-1 shadow-sm">Add Link</kbd> to build your environment.</p>
-            <button onclick="openModal()" class="px-6 py-3 bg-white/[0.03] border border-white/[0.08] text-white text-sm font-medium rounded-2xl hover:bg-white/[0.08] transition-all flex items-center gap-2">
+            <button onclick="openModal()" class="px-6 py-3 bg-white/[0.03] border border-white/[0.08] text-white text-sm font-medium rounded-2xl hover:bg-white/[0.08] transition-all flex items-center gap-2 mx-auto">
                 <i class="ph ph-plus"></i> Add First Link
+            </button>
+        </div>
+    </template>
+
+    <!-- Empty State (No Search Results) -->
+    <template id="no-results-state">
+        <div class="col-span-full flex flex-col items-center justify-center py-20 lg:py-40 text-center opacity-0 animate-fade-in h-full">
+            <div class="relative w-20 h-20 mb-6">
+                <div class="absolute inset-0 bg-white/[0.02] border border-white/[0.08] rounded-full flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] backdrop-blur-xl z-10">
+                    <i class="ph ph-magnifying-glass text-2xl text-zinc-500"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-medium text-zinc-100 mb-2 tracking-tight">No links found</h3>
+            <p class="text-zinc-500 text-sm max-w-sm mb-8 leading-relaxed">We couldn't find anything matching "<span id="search-query-display" class="text-zinc-200 font-medium"></span>".</p>
+            <button onclick="clearSearch()" class="px-5 py-2.5 bg-white/[0.03] border border-white/[0.08] text-white text-sm font-medium rounded-2xl hover:bg-white/[0.08] transition-all flex items-center gap-2 mx-auto">
+                <i class="ph ph-x text-zinc-400"></i> Clear Search
             </button>
         </div>
     </template>
 
     <script>
         // --- State Management ---
-        // Changed to start completely empty (0 pre-saved links)
         let links = JSON.parse(localStorage.getItem('premiumLinks')) || [];
-        
-        let workspaceTitle = localStorage.getItem('p_workspaceTitle') || 'Workspace';
+        let workspaceTitle = localStorage.getItem('p_workspaceTitle') || 'Saved links';
         let workspaceSubtitle = localStorage.getItem('p_workspaceSubtitle') || 'Curate your essential tools, repositories, and daily drivers.';
         let editingId = null; 
 
         const grid = document.getElementById('cards-grid');
         const searchInput = document.getElementById('search-input');
+        const nameInput = document.getElementById('input-name');
+        const urlInput = document.getElementById('input-url');
+        const fetchIndicator = document.getElementById('fetch-indicator');
 
         // --- AM/PM Live Clock ---
         function updateClock() {
@@ -331,6 +351,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        // --- URL Parsing & Favicons (Improved) ---
         function getDomain(url) {
             try { return new URL(url).hostname.replace('www.', ''); } 
             catch { return url; }
@@ -338,14 +359,50 @@
 
         function getFavicon(url) {
             try {
-                const domain = new URL(url).hostname;
-                return `https://icon.horse/icon/${domain}`; 
+                // Ensure URL has protocol to parse correctly
+                const validUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+                const domain = new URL(validUrl).hostname;
+                // Google's favicon service handles both naked domains and subdomains reliably
+                return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`; 
             } catch {
                 return 'https://www.google.com/s2/favicons?domain=google.com&sz=128';
             }
         }
 
-        // --- Mouse Tracking (Only updates vars, CSS :hover controls visibility) ---
+        // --- Toast Notifications ---
+        function showToast(message, actionText = null, actionCallback = null) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            // pointer-events-auto lets us click the toast button
+            toast.className = 'toast-enter bg-[#18181b] border border-white/10 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center justify-between gap-6 text-sm font-medium pointer-events-auto';
+            
+            let innerHTML = `<span class="flex items-center gap-2"><i class="ph ph-info text-zinc-400"></i> ${message}</span>`;
+            
+            if (actionText && actionCallback) {
+                innerHTML += `<button class="text-zinc-400 hover:text-white font-semibold transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs tracking-wide">${actionText}</button>`;
+            }
+            
+            toast.innerHTML = innerHTML;
+            
+            if (actionCallback) {
+                toast.querySelector('button').addEventListener('click', () => {
+                    actionCallback();
+                    removeToast(toast);
+                });
+            }
+
+            container.appendChild(toast);
+            
+            // Auto dismiss
+            setTimeout(() => { if (toast.parentNode) removeToast(toast); }, 5000);
+        }
+
+        function removeToast(toast) {
+            toast.classList.replace('toast-enter', 'toast-leave');
+            setTimeout(() => toast.remove(), 400); // Wait for animation
+        }
+
+        // --- Mouse Tracking ---
         grid.addEventListener('mousemove', e => {
             const cards = document.querySelectorAll('.premium-card');
             for(const card of cards) {
@@ -357,7 +414,47 @@
             }
         });
 
-        // Keyboard Shortcuts
+        // --- Auto Fetch Metadata ---
+        urlInput.addEventListener('blur', async () => {
+            let url = urlInput.value.trim();
+            // If empty URL or User already typed a name, don't overwrite
+            if (!url || nameInput.value.trim() !== '') return; 
+            
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            
+            try {
+                fetchIndicator.classList.remove('hidden');
+                
+                // Microlink API is excellent for safely grabbing website titles
+                const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                
+                // Double check if nameInput is still empty before filling
+                if (data.status === 'success' && data.data.title && nameInput.value.trim() === '') {
+                    nameInput.value = data.data.title;
+                } else {
+                    fallbackTitle(url);
+                }
+            } catch (e) {
+                fallbackTitle(url); // API failed, use domain trick
+            } finally {
+                fetchIndicator.classList.add('hidden');
+            }
+        });
+
+        // Fallback title generator based on domain name (e.g., github.com -> Github)
+        function fallbackTitle(url) {
+            if (nameInput.value.trim() === '') {
+                try {
+                    let domain = new URL(url).hostname.replace('www.', '');
+                    let brand = domain.split('.')[0]; 
+                    nameInput.value = brand.charAt(0).toUpperCase() + brand.slice(1);
+                } catch(e) {}
+            }
+        }
+
+
+        // --- Keyboard Shortcuts ---
         document.addEventListener('keydown', (e) => {
             if (e.key === '/' && document.activeElement !== searchInput && !document.activeElement.isContentEditable && document.activeElement.tagName !== 'INPUT') {
                 e.preventDefault();
@@ -373,7 +470,7 @@
         }
 
         function saveHeaderData() {
-            workspaceTitle = document.getElementById('main-title').innerText.trim() || 'Workspace';
+            workspaceTitle = document.getElementById('main-title').innerText.trim() || 'Saved links';
             workspaceSubtitle = document.getElementById('sub-title').innerText.trim() || 'Curate your essential tools.';
             
             document.getElementById('main-title').innerText = workspaceTitle;
@@ -403,7 +500,15 @@
             grid.innerHTML = '';
 
             if (filteredLinks.length === 0) {
-                grid.appendChild(document.getElementById('empty-state').content.cloneNode(true));
+                if (searchInput.value.trim() !== '') {
+                    // Custom Empty Search State
+                    const template = document.getElementById('no-results-state').content.cloneNode(true);
+                    template.querySelector('#search-query-display').innerText = searchInput.value;
+                    grid.appendChild(template);
+                } else {
+                    // Default Empty Workspace State
+                    grid.appendChild(document.getElementById('empty-state').content.cloneNode(true));
+                }
                 grid.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
                 grid.classList.add('flex', 'items-center', 'justify-center');
                 return;
@@ -420,7 +525,6 @@
                 card.style.animationDelay = `${index * 50}ms`;
                 card.setAttribute('data-id', link.id);
                 
-                // Larger cards: p-6 instead of p-5, bigger icons, bigger text
                 card.innerHTML = `
                     <div class="premium-card-inner p-6 flex flex-col relative min-h-[160px]">
                         
@@ -468,11 +572,15 @@
             render(links.filter(l => l.name.toLowerCase().includes(query) || l.url.toLowerCase().includes(query)));
         }
 
+        function clearSearch() {
+            searchInput.value = '';
+            filterLinks();
+            searchInput.focus();
+        }
+
         // --- Modal Control ---
         const modalBackdrop = document.getElementById('modal-backdrop');
         const modalContent = document.getElementById('modal-content');
-        const nameInput = document.getElementById('input-name');
-        const urlInput = document.getElementById('input-url');
 
         function openModal(e = null, index = null) {
             if (e) e.stopPropagation();
@@ -484,6 +592,7 @@
             modalBackdrop.classList.remove('opacity-0');
             modalContent.classList.remove('opacity-0', 'scale-95');
 
+            // Reordered inputs in HTML, so focusing URL first feels better for auto-fetch
             if (index !== null) {
                 editingId = index;
                 document.getElementById('modal-title').innerText = "Edit Link";
@@ -495,7 +604,7 @@
                 nameInput.value = '';
                 urlInput.value = '';
             }
-            setTimeout(() => nameInput.focus(), 100);
+            setTimeout(() => urlInput.focus(), 100);
         }
 
         function closeModal() {
@@ -513,7 +622,9 @@
             if (!name || !url) return;
             if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
-            if (editingId !== null) {
+            const isEdit = editingId !== null;
+
+            if (isEdit) {
                 links[editingId] = { ...links[editingId], name, url };
             } else {
                 links.push({ id: Date.now().toString(), name, url });
@@ -521,6 +632,7 @@
             searchInput.value = ''; 
             render();
             closeModal();
+            showToast(isEdit ? 'Link updated successfully' : 'Link added successfully');
         }
 
         document.getElementById('modal-content').addEventListener('keydown', (e) => {
@@ -530,8 +642,20 @@
 
         function deleteLink(event, index) {
             event.stopPropagation();
+            
+            // Save a copy of the deleted link for the undo action
+            const deletedLink = links[index]; 
+            
             links.splice(index, 1);
             filterLinks(); 
+            
+            // Trigger Toast with Undo button
+            showToast('Link removed', 'Undo', () => {
+                // Insert it right back where it was
+                links.splice(index, 0, deletedLink);
+                filterLinks();
+                showToast('Link restored');
+            });
         }
 
         // --- Data Import/Export ---
@@ -566,6 +690,7 @@
                     }
                     searchInput.value = '';
                     render();
+                    showToast('Data imported successfully');
                 } catch { alert("Invalid JSON file."); }
                 event.target.value = '';
             };
