@@ -5,26 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Video Finish Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-base: #09090b; /* Deep zinc */
+            --card-bg: rgba(24, 24, 27, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(9, 9, 11, 0.7);
+            --input-border: rgba(255, 255, 255, 0.05);
+            --accent: #6366f1; /* Indigo */
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-base);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #f8fafc;
+            color: #f4f4f5;
+            font-variant-numeric: tabular-nums;
+            overflow-x: hidden;
         }
 
+        /* Ambient Background Mesh */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+            filter: blur(60px);
+        }
+
+        /* Premium Glass Card */
         .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+            background: var(--card-bg);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
-        /* Hide the "white thing" (default number arrows) */
+        /* Input Styling */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -36,39 +60,75 @@
 
         .input-group label {
             display: block;
-            font-size: 1rem;
-            font-weight: 700;
+            font-size: 0.875rem;
+            font-weight: 600;
             margin-bottom: 1rem;
-            color: #94a3b8;
+            color: #a1a1aa; /* zinc-400 */
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
         }
 
         input {
-            background: rgba(15, 23, 42, 0.85);
-            border: 2px solid #334155;
-            color: white;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 1.5rem;
-            cursor: auto;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: #ffffff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input::placeholder {
+            color: #52525b; /* zinc-600 */
+            font-weight: 400;
         }
 
         input:focus {
             outline: none;
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.15);
-            background: rgba(15, 23, 42, 1);
+            border-color: var(--accent);
+            background: rgba(24, 24, 27, 0.9);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0,0,0,0.2);
             transform: translateY(-2px);
         }
 
-        .result-box {
-            background: rgba(56, 189, 248, 0.08);
-            border-left: 6px solid #38bdf8;
-            transition: all 0.3s ease;
+        /* Results Boxes */
+        .result-box-primary {
+            background: rgba(9, 9, 11, 0.4); /* Solid dark base to let the progress fill shine */
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-box-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--accent);
+            border-radius: 4px 0 0 4px;
+            z-index: 2; /* Keep above the fill */
         }
 
+        /* The New Dynamic Progress Fill */
+        #progressFill {
+            position: absolute;
+            top: 0; 
+            left: 0; 
+            height: 100%;
+            /* Minimal, eye-pleasing soft gradient */
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, rgba(99, 102, 241, 0.25) 100%);
+            box-shadow: 2px 0 16px rgba(99, 102, 241, 0.2);
+            z-index: 0;
+            width: 0%;
+            /* Transition is managed dynamically in JS for the best feel */
+        }
+
+        .result-box-secondary {
+            background: rgba(9, 9, 11, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        /* Animations */
         .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes fadeIn {
@@ -76,22 +136,44 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .calculate-btn {
-            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-            transition: all 0.3s ease;
+        /* Button States (High Contrast Modern) */
+        .btn-base {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-idle {
+            background: #ffffff;
+            color: #000000;
+            box-shadow: 0 4px 14px 0 rgba(255, 255, 255, 0.1);
+        }
+        .btn-idle:hover {
+            background: #f4f4f5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
         }
         
-        .calculate-btn.live-active {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        .btn-live {
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 0 24px rgba(16, 185, 129, 0.3);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-live:hover {
+            background: #059669;
+            transform: translateY(-2px);
         }
 
-        .calculate-btn.paused-active {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        .btn-paused {
+            background: #f59e0b;
+            color: #ffffff;
+            box-shadow: 0 0 24px rgba(245, 158, 11, 0.3);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-paused:hover {
+            background: #d97706;
+            transform: translateY(-2px);
         }
 
-        /* Pulse animation for the tracking dot */
+        /* Pulse Animation */
         @keyframes pulse-ring {
             0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
@@ -104,10 +186,12 @@
 </head>
 <body class="p-6">
 
-    <div class="glass-card w-full max-w-2xl rounded-[2.5rem] p-10 md:p-14">
+    <div class="ambient-bg"></div>
+
+    <div class="glass-card w-full max-w-2xl rounded-[2.5rem] p-10 md:p-14 relative z-10">
         <header class="mb-12 text-center">
-            <h1 class="text-5xl font-black tracking-tight text-white mb-4">Finish Timer</h1>
-            <p class="text-slate-400 text-xl font-light">Calculate exactly when you'll finish watching.</p>
+            <h1 class="text-5xl font-bold tracking-tight text-white mb-4">Finish Timer</h1>
+            <p class="text-zinc-400 text-xl font-light">Calculate exactly when you'll finish watching.</p>
         </header>
 
         <div class="space-y-10">
@@ -116,18 +200,18 @@
                 <div class="input-group">
                     <label>Current Progress</label>
                     <div class="flex gap-4">
-                        <input type="number" id="currH" placeholder="H" class="w-full py-5 rounded-2xl text-center font-semibold" min="0" value="0">
-                        <input type="number" id="currM" placeholder="M" class="w-full py-5 rounded-2xl text-center font-semibold" min="0" max="59" value="0">
-                        <input type="number" id="currS" placeholder="S" class="w-full py-5 rounded-2xl text-center font-semibold" min="0" max="59" value="0">
+                        <input type="number" id="currH" placeholder="H" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" value="0">
+                        <input type="number" id="currM" placeholder="M" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" max="59" value="0">
+                        <input type="number" id="currS" placeholder="S" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" max="59" value="0">
                     </div>
                 </div>
 
                 <div class="input-group">
                     <label>Total Duration</label>
                     <div class="flex gap-4">
-                        <input type="number" id="totalH" placeholder="H" class="w-full py-5 rounded-2xl text-center font-semibold" min="0" value="0">
-                        <input type="number" id="totalM" placeholder="M" class="w-full py-5 rounded-2xl text-center font-semibold" min="0" max="59" value="0">
-                        <input type="number" id="totalS" placeholder="S" class="w-full py-5 rounded-2xl text-center font-semibold" min="0" max="59" value="0">
+                        <input type="number" id="totalH" placeholder="H" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" value="0">
+                        <input type="number" id="totalM" placeholder="M" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" max="59" value="0">
+                        <input type="number" id="totalS" placeholder="S" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" max="59" value="0">
                     </div>
                 </div>
             </div>
@@ -137,40 +221,52 @@
                 <div class="input-group flex-1 w-full">
                     <label>Playback Speed</label>
                     <div class="relative">
-                        <input type="number" id="speed" step="0.05" value="1.00" class="w-full py-5 pl-8 pr-16 rounded-2xl font-bold" min="0.1">
-                        <span class="absolute right-8 top-1/2 -translate-y-1/2 text-sky-400 font-black text-2xl">x</span>
+                        <input type="number" id="speed" step="0.05" value="1.00" class="w-full py-5 pl-8 pr-16 rounded-2xl font-semibold text-2xl" min="0.1">
+                        <span class="absolute right-8 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-2xl select-none">x</span>
                     </div>
                 </div>
-                <button id="calcBtn" onclick="toggleLiveSystem()" class="calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl shadow-sky-500/30 text-xl uppercase tracking-widest">
+                
+                <button id="calcBtn" onclick="toggleLiveSystem()" class="btn-base btn-idle w-full md:w-auto font-bold py-6 px-12 rounded-2xl transform active:scale-95 text-xl uppercase tracking-widest">
                     Start Tracking
                 </button>
             </div>
 
             <!-- Results Section -->
             <div id="results" class="hidden space-y-6 animate-fade-in pt-6">
-                <div class="result-box p-8 rounded-[2rem]">
-                    <div class="flex justify-between items-center mb-3">
-                        <p class="text-xs text-sky-400 font-black uppercase tracking-[0.2em]">Time Remaining</p>
-                        <!-- Dynamic Live Badge -->
-                        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full hidden" id="liveBadge">
-                            <span class="w-2 h-2 rounded-full" id="liveDot"></span> 
-                            <span id="liveText">Tracking</span>
+                
+                <div class="result-box-primary p-8 rounded-[2rem]">
+                    <!-- Background Progress Fill -->
+                    <div id="progressFill"></div>
+                    
+                    <!-- Content Wrapper (z-10 to stay above progress fill) -->
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center mb-3">
+                            <p class="text-xs text-indigo-400 font-bold uppercase tracking-[0.2em]">Time Remaining</p>
+                            <!-- Dynamic Live Badge -->
+                            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full hidden border" id="liveBadge">
+                                <span class="w-2 h-2 rounded-full" id="liveDot"></span> 
+                                <span id="liveText">Tracking</span>
+                            </div>
                         </div>
+                        <h2 id="remainingDisplay" class="text-4xl md:text-5xl font-bold text-white tracking-tight">0<span class="text-indigo-300 text-3xl font-medium">h</span> 0<span class="text-indigo-300 text-3xl font-medium">m</span> 0<span class="text-indigo-300 text-3xl font-medium">s</span></h2>
+                        <p class="text-base text-zinc-400 mt-2 font-medium">Watching at <span id="speedLabel" class="text-white font-bold">1.0</span>x speed</p>
                     </div>
-                    <h2 id="remainingDisplay" class="text-4xl font-bold text-white">0h 0m 0s</h2>
-                    <p class="text-base text-slate-400 mt-2 font-medium">Watching at <span id="speedLabel" class="text-sky-300 font-bold">1.0</span>x speed</p>
                 </div>
 
-                <div class="bg-slate-900/40 p-8 rounded-[2rem] border border-slate-700/40 shadow-inner">
-                    <p class="text-xs text-emerald-400 font-black uppercase tracking-[0.2em] mb-3">Target Arrival Time</p>
-                    <h2 id="finishClockDisplay" class="text-5xl font-black text-white">--:-- --</h2>
-                    <p id="finishDateLabel" class="text-base text-slate-400 mt-2 italic font-medium">Today</p>
+                <div class="result-box-secondary p-8 rounded-[2rem]">
+                    <p class="text-xs text-zinc-500 font-bold uppercase tracking-[0.2em] mb-3">Target Arrival Time</p>
+                    <h2 id="finishClockDisplay" class="text-5xl md:text-6xl font-bold text-white tracking-tight">--:-- --</h2>
+                    <div class="flex items-center gap-3 mt-3">
+                        <div class="h-px w-6 bg-zinc-700"></div>
+                        <p id="finishDateLabel" class="text-base text-zinc-400 italic font-medium">Today</p>
+                    </div>
                 </div>
+                
             </div>
         </div>
 
-        <footer class="mt-16 text-center text-xs text-slate-500 uppercase tracking-[0.3em] font-bold opacity-40">
-             MADE WITH ♥️ BY TAMIM
+        <footer class="mt-16 text-center text-xs text-zinc-600 uppercase tracking-[0.3em] font-bold">
+             Made with ♥️ by Tamim
         </footer>
     </div>
 
@@ -182,7 +278,7 @@
         let targetFinishTimestamp = 0;
         let lastTickTime = 0;
 
-        // 1. Setup Input Event Listeners for Instant "Dynamic" Updates
+        // 1. Setup Input Event Listeners
         document.querySelectorAll('input[type="number"]').forEach(input => {
             input.addEventListener('input', () => {
                 if (isSystemLive) performCalculations(false);
@@ -209,6 +305,11 @@
 
                 if (isSystemLive) performCalculations(false);
             });
+
+            // Auto select for quick typing
+            input.addEventListener('focus', function() {
+                this.select();
+            });
         });
 
         function toggleLiveSystem() {
@@ -218,17 +319,17 @@
             const badgeText = document.getElementById('liveText');
             const results = document.getElementById('results');
 
-            // If completely stopped, start it
+            const baseBtnClasses = "btn-base w-full md:w-auto font-bold py-6 px-12 rounded-2xl transform active:scale-95 text-xl uppercase tracking-widest ";
+
             if (!isSystemLive) {
+                // START
                 isSystemLive = true;
                 isPaused = false;
                 
-                // Update Button UI to Active
                 btn.innerText = "Pause";
-                btn.className = "calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl text-xl uppercase tracking-widest live-active";
+                btn.className = baseBtnClasses + "btn-live";
                 
-                // Update Badge UI to Tracking
-                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-400";
+                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
                 badgeDot.className = "w-2 h-2 rounded-full bg-emerald-400 tracking-dot";
                 badgeText.innerText = "Tracking";
                 badge.classList.remove('hidden');
@@ -242,35 +343,31 @@
                     if (isSystemLive) performCalculations(true); 
                 }, 1000);
 
-            // If running, pause it
             } else if (!isPaused) {
+                // PAUSE
                 isPaused = true;
                 
-                // Update Button UI to Paused
                 btn.innerText = "Resume";
-                btn.className = "calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl text-xl uppercase tracking-widest paused-active";
+                btn.className = baseBtnClasses + "btn-paused";
                 
-                // Update Badge UI to Paused
-                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-400/10 text-amber-400";
-                badgeDot.className = "w-2 h-2 rounded-full bg-amber-400"; // removed tracking-dot (pulse)
+                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400";
+                badgeDot.className = "w-2 h-2 rounded-full bg-amber-400"; 
                 badgeText.innerText = "Paused";
                 
-                lastTickTime = Date.now(); // Sync time so it doesn't jump
+                lastTickTime = Date.now(); 
 
-            // If paused, resume it
             } else {
+                // RESUME
                 isPaused = false;
                 
-                // Update Button UI to Active
                 btn.innerText = "Pause";
-                btn.className = "calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl text-xl uppercase tracking-widest live-active";
+                btn.className = baseBtnClasses + "btn-live";
                 
-                // Update Badge UI to Tracking
-                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-400";
+                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
                 badgeDot.className = "w-2 h-2 rounded-full bg-emerald-400 tracking-dot";
                 badgeText.innerText = "Tracking";
 
-                lastTickTime = Date.now(); // Reset tick time so gap during pause isn't applied
+                lastTickTime = Date.now(); 
             }
         }
 
@@ -283,7 +380,6 @@
             const speed = parseFloat(document.getElementById('speed').value) || 1;
 
             if (!isTickUpdate) {
-                // Initial load or manual input change
                 const curH = parseInt(document.getElementById('currH').value) || 0;
                 const curM = parseInt(document.getElementById('currM').value) || 0;
                 const curS = parseInt(document.getElementById('currS').value) || 0;
@@ -295,12 +391,10 @@
                 const actualSecondsToWait = secondsLeft / speed;
                 targetFinishTimestamp = Date.now() + (actualSecondsToWait * 1000);
             } else {
-                // Interval Tick
                 const now = Date.now();
                 const elapsedRealSeconds = (now - lastTickTime) / 1000;
                 lastTickTime = now;
                 
-                // Only increment progress if NOT paused
                 if (!isPaused) {
                     exactCurrentSeconds += (elapsedRealSeconds * speed);
                     
@@ -312,7 +406,7 @@
                         
                         const btn = document.getElementById('calcBtn');
                         btn.innerText = "Finished!";
-                        btn.className = "calculate-btn w-full md:w-auto hover:brightness-110 text-white font-extrabold py-6 px-12 rounded-2xl transition-all transform active:scale-95 shadow-2xl text-xl uppercase tracking-widest";
+                        btn.className = "btn-base w-full md:w-auto font-bold py-6 px-12 rounded-2xl text-xl uppercase tracking-widest bg-zinc-800 text-zinc-400 cursor-default";
                         document.getElementById('liveBadge').classList.add('hidden');
                     }
 
@@ -321,18 +415,31 @@
                     document.getElementById('currS').value = Math.floor(exactCurrentSeconds % 60);
                 }
 
-                // Regardless of pause, recalculate the finish time!
-                // If paused, Date.now() keeps growing while exactCurrentSeconds remains the same,
-                // elegantly pushing your finish time back in real-time.
                 const secondsLeft = Math.max(0, durationTotalSeconds - exactCurrentSeconds);
                 const actualSecondsToWait = secondsLeft / speed;
                 targetFinishTimestamp = Date.now() + (actualSecondsToWait * 1000);
             }
 
             if (durationTotalSeconds <= exactCurrentSeconds && !isTickUpdate) {
-                if (durationTotalSeconds > 0) showError("Progress exceeds total duration!");
+                if (durationTotalSeconds > 0) showError("Progress exceeds total duration");
                 return;
             }
+
+            // Update Background Progress Bar
+            let progressPercent = 0;
+            if (durationTotalSeconds > 0) {
+                progressPercent = (exactCurrentSeconds / durationTotalSeconds) * 100;
+                progressPercent = Math.min(100, Math.max(0, progressPercent)); // Clamp between 0-100
+            }
+            
+            const progressFill = document.getElementById('progressFill');
+            // Smooth transition during playback, snappy transition during manual input
+            if (isTickUpdate && !isPaused) {
+                progressFill.style.transition = 'width 1s linear';
+            } else {
+                progressFill.style.transition = 'width 0.3s ease-out';
+            }
+            progressFill.style.width = `${progressPercent}%`;
 
             const secondsLeft = Math.max(0, durationTotalSeconds - exactCurrentSeconds);
             const actualSecondsToWait = secondsLeft / speed;
@@ -341,7 +448,11 @@
             const remM = Math.floor((actualSecondsToWait % 3600) / 60);
             const remS = Math.floor(actualSecondsToWait % 60);
 
-            document.getElementById('remainingDisplay').innerText = `${remH}h ${remM}m ${remS}s`;
+            document.getElementById('remainingDisplay').innerHTML = 
+                `${remH}<span class="text-indigo-300 text-2xl md:text-3xl font-medium ml-1 mr-3">h</span> ` +
+                `${remM}<span class="text-indigo-300 text-2xl md:text-3xl font-medium ml-1 mr-3">m</span> ` +
+                `${remS}<span class="text-indigo-300 text-2xl md:text-3xl font-medium ml-1">s</span>`;
+                
             document.getElementById('speedLabel').innerText = speed.toFixed(2);
 
             const finishDate = new Date(targetFinishTimestamp);
@@ -350,14 +461,15 @@
             
             const isTomorrow = finishDate.getDate() !== new Date().getDate();
             document.getElementById('finishDateLabel').innerText = isTomorrow ? "Finishing tomorrow" : "Finishing today";
-            document.getElementById('finishDateLabel').className = `text-base mt-2 italic font-medium ${isTomorrow ? 'text-amber-400' : 'text-slate-400'}`;
+            document.getElementById('finishDateLabel').className = `text-base italic font-medium ${isTomorrow ? 'text-amber-400' : 'text-zinc-400'}`;
         }
 
         function showError(msg) {
-            document.getElementById('remainingDisplay').innerText = "Invalid Range";
-            document.getElementById('finishClockDisplay').innerText = "Check times";
+            document.getElementById('remainingDisplay').innerHTML = '<span class="text-3xl text-red-400">Invalid Range</span>';
+            document.getElementById('finishClockDisplay').innerText = "--:-- --";
             document.getElementById('finishDateLabel').innerText = msg;
-            document.getElementById('finishDateLabel').className = "text-base mt-2 italic font-medium text-amber-400";
+            document.getElementById('finishDateLabel').className = "text-base italic font-medium text-red-400";
+            document.getElementById('progressFill').style.width = '0%';
         }
     </script>
 </body>
