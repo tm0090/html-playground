@@ -60,12 +60,18 @@
 
         .input-group label {
             display: block;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             color: #a1a1aa; /* zinc-400 */
             text-transform: uppercase;
             letter-spacing: 0.1em;
+        }
+        @media (min-width: 640px) {
+            .input-group label {
+                font-size: 0.875rem;
+                margin-bottom: 1rem;
+            }
         }
 
         input {
@@ -77,8 +83,8 @@
         }
 
         input::placeholder {
-            color: #52525b; /* zinc-600 */
-            font-weight: 400;
+            color: #71717a; /* zinc-500 for better watermark visibility */
+            font-weight: 500;
         }
 
         input:focus {
@@ -91,7 +97,7 @@
 
         /* Results Boxes */
         .result-box-primary {
-            background: rgba(9, 9, 11, 0.4); /* Solid dark base to let the progress fill shine */
+            background: rgba(9, 9, 11, 0.4); 
             border: 1px solid rgba(99, 102, 241, 0.2);
             position: relative;
             overflow: hidden;
@@ -103,21 +109,18 @@
             top: 0; left: 0; width: 4px; height: 100%;
             background: var(--accent);
             border-radius: 4px 0 0 4px;
-            z-index: 2; /* Keep above the fill */
+            z-index: 2; 
         }
 
-        /* The New Dynamic Progress Fill */
         #progressFill {
             position: absolute;
             top: 0; 
             left: 0; 
             height: 100%;
-            /* Minimal, eye-pleasing soft gradient */
             background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, rgba(99, 102, 241, 0.25) 100%);
             box-shadow: 2px 0 16px rgba(99, 102, 241, 0.2);
             z-index: 0;
             width: 0%;
-            /* Transition is managed dynamically in JS for the best feel */
         }
 
         .result-box-secondary {
@@ -136,7 +139,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Button States (High Contrast Modern) */
+        /* Button States */
         .btn-base {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -173,7 +176,6 @@
             transform: translateY(-2px);
         }
 
-        /* Pulse Animation */
         @keyframes pulse-ring {
             0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
@@ -184,88 +186,85 @@
         }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 sm:p-6">
 
     <div class="ambient-bg"></div>
 
-    <div class="glass-card w-full max-w-2xl rounded-[2.5rem] p-10 md:p-14 relative z-10">
-        <header class="mb-12 text-center">
-            <h1 class="text-5xl font-bold tracking-tight text-white mb-4">Finish Timer</h1>
-            <p class="text-zinc-400 text-xl font-light">Calculate exactly when you'll finish watching.</p>
+    <div class="glass-card w-full max-w-2xl rounded-3xl md:rounded-[2.5rem] p-6 sm:p-10 md:p-14 relative z-10 mx-auto">
+        <header class="mb-8 md:mb-12 text-center">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-2 sm:mb-4">Finish Timer</h1>
+            <p class="text-zinc-400 text-base sm:text-xl font-light">Calculate exactly when you'll finish watching.</p>
         </header>
 
-        <div class="space-y-10">
+        <div class="space-y-8 md:space-y-10">
             <!-- Time Inputs -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
                 <div class="input-group">
                     <label>Current Progress</label>
-                    <div class="flex gap-4">
-                        <input type="number" id="currH" placeholder="H" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" value="0">
-                        <input type="number" id="currM" placeholder="M" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" max="59" value="0">
-                        <input type="number" id="currS" placeholder="S" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" max="59" value="0">
+                    <div class="flex gap-2 sm:gap-4">
+                        <input type="number" id="currH" placeholder="H" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0">
+                        <input type="number" id="currM" placeholder="M" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
+                        <input type="number" id="currS" placeholder="S" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
                     </div>
                 </div>
 
                 <div class="input-group">
                     <label>Total Duration</label>
-                    <div class="flex gap-4">
-                        <input type="number" id="totalH" placeholder="H" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" value="0">
-                        <input type="number" id="totalM" placeholder="M" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" max="59" value="0">
-                        <input type="number" id="totalS" placeholder="S" class="w-full py-5 rounded-2xl text-center font-semibold text-2xl" min="0" max="59" value="0">
+                    <div class="flex gap-2 sm:gap-4">
+                        <input type="number" id="totalH" placeholder="H" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0">
+                        <input type="number" id="totalM" placeholder="M" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
+                        <input type="number" id="totalS" placeholder="S" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
                     </div>
                 </div>
             </div>
 
             <!-- Speed and Calculate -->
-            <div class="flex flex-col md:flex-row gap-10 items-end">
+            <div class="flex flex-col md:flex-row gap-6 sm:gap-10 items-end">
                 <div class="input-group flex-1 w-full">
-                    <label>Playback Speed</label>
-                    <div class="relative">
-                        <input type="number" id="speed" step="0.05" value="1.00" class="w-full py-5 pl-8 pr-16 rounded-2xl font-semibold text-2xl" min="0.1">
-                        <span class="absolute right-8 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-2xl select-none">x</span>
-                    </div>
+                    <label>Playback Speed (x)</label>
+                    <input type="number" id="speed" step="0.05" value="1.00" class="w-full py-4 sm:py-5 px-6 sm:px-8 rounded-xl sm:rounded-2xl font-semibold text-xl sm:text-2xl text-center md:text-left" min="0.1">
                 </div>
                 
-                <button id="calcBtn" onclick="toggleLiveSystem()" class="btn-base btn-idle w-full md:w-auto font-bold py-6 px-12 rounded-2xl transform active:scale-95 text-xl uppercase tracking-widest">
+                <button id="calcBtn" onclick="toggleLiveSystem()" class="btn-base btn-idle w-full md:w-auto font-bold py-4 sm:py-5 md:py-6 px-8 sm:px-12 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest">
                     Start Tracking
                 </button>
             </div>
 
             <!-- Results Section -->
-            <div id="results" class="hidden space-y-6 animate-fade-in pt-6">
+            <div id="results" class="hidden space-y-4 sm:space-y-6 animate-fade-in pt-4 sm:pt-6">
                 
-                <div class="result-box-primary p-8 rounded-[2rem]">
+                <div class="result-box-primary p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem]">
                     <!-- Background Progress Fill -->
                     <div id="progressFill"></div>
                     
-                    <!-- Content Wrapper (z-10 to stay above progress fill) -->
+                    <!-- Content Wrapper -->
                     <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-3">
-                            <p class="text-xs text-indigo-400 font-bold uppercase tracking-[0.2em]">Time Remaining</p>
+                        <div class="flex justify-between items-center mb-2 sm:mb-3">
+                            <p class="text-[10px] sm:text-xs text-indigo-400 font-bold uppercase tracking-[0.2em]">Time Remaining</p>
                             <!-- Dynamic Live Badge -->
-                            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full hidden border" id="liveBadge">
-                                <span class="w-2 h-2 rounded-full" id="liveDot"></span> 
+                            <div class="flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1 rounded-full hidden border" id="liveBadge">
+                                <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full" id="liveDot"></span> 
                                 <span id="liveText">Tracking</span>
                             </div>
                         </div>
-                        <h2 id="remainingDisplay" class="text-4xl md:text-5xl font-bold text-white tracking-tight">0<span class="text-indigo-300 text-3xl font-medium">h</span> 0<span class="text-indigo-300 text-3xl font-medium">m</span> 0<span class="text-indigo-300 text-3xl font-medium">s</span></h2>
-                        <p class="text-base text-zinc-400 mt-2 font-medium">Watching at <span id="speedLabel" class="text-white font-bold">1.0</span>x speed</p>
+                        <h2 id="remainingDisplay" class="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">h</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">m</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">s</span></h2>
+                        <p class="text-sm sm:text-base text-zinc-400 mt-2 font-medium">Watching at <span id="speedLabel" class="text-white font-bold">1.0</span>x speed</p>
                     </div>
                 </div>
 
-                <div class="result-box-secondary p-8 rounded-[2rem]">
-                    <p class="text-xs text-zinc-500 font-bold uppercase tracking-[0.2em] mb-3">Target Arrival Time</p>
-                    <h2 id="finishClockDisplay" class="text-5xl md:text-6xl font-bold text-white tracking-tight">--:-- --</h2>
-                    <div class="flex items-center gap-3 mt-3">
+                <div class="result-box-secondary p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem]">
+                    <p class="text-[10px] sm:text-xs text-zinc-500 font-bold uppercase tracking-[0.2em] mb-2 sm:mb-3">Target Arrival Time</p>
+                    <h2 id="finishClockDisplay" class="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight">--:-- --</h2>
+                    <div class="flex items-center gap-3 mt-2 sm:mt-3">
                         <div class="h-px w-6 bg-zinc-700"></div>
-                        <p id="finishDateLabel" class="text-base text-zinc-400 italic font-medium">Today</p>
+                        <p id="finishDateLabel" class="text-sm sm:text-base text-zinc-400 italic font-medium">Today</p>
                     </div>
                 </div>
                 
             </div>
         </div>
 
-        <footer class="mt-16 text-center text-xs text-zinc-600 uppercase tracking-[0.3em] font-bold">
+        <footer class="mt-12 sm:mt-16 text-center text-[10px] sm:text-xs text-zinc-600 uppercase tracking-[0.3em] font-bold">
              Made with ♥️ by Tamim
         </footer>
     </div>
@@ -319,7 +318,7 @@
             const badgeText = document.getElementById('liveText');
             const results = document.getElementById('results');
 
-            const baseBtnClasses = "btn-base w-full md:w-auto font-bold py-6 px-12 rounded-2xl transform active:scale-95 text-xl uppercase tracking-widest ";
+            const baseBtnClasses = "btn-base w-full md:w-auto font-bold py-4 sm:py-5 md:py-6 px-8 sm:px-12 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest ";
 
             if (!isSystemLive) {
                 // START
@@ -329,8 +328,8 @@
                 btn.innerText = "Pause";
                 btn.className = baseBtnClasses + "btn-live";
                 
-                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
-                badgeDot.className = "w-2 h-2 rounded-full bg-emerald-400 tracking-dot";
+                badge.className = "flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
+                badgeDot.className = "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 tracking-dot";
                 badgeText.innerText = "Tracking";
                 badge.classList.remove('hidden');
                 
@@ -350,8 +349,8 @@
                 btn.innerText = "Resume";
                 btn.className = baseBtnClasses + "btn-paused";
                 
-                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400";
-                badgeDot.className = "w-2 h-2 rounded-full bg-amber-400"; 
+                badge.className = "flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400";
+                badgeDot.className = "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400"; 
                 badgeText.innerText = "Paused";
                 
                 lastTickTime = Date.now(); 
@@ -363,8 +362,8 @@
                 btn.innerText = "Pause";
                 btn.className = baseBtnClasses + "btn-live";
                 
-                badge.className = "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
-                badgeDot.className = "w-2 h-2 rounded-full bg-emerald-400 tracking-dot";
+                badge.className = "flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
+                badgeDot.className = "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 tracking-dot";
                 badgeText.innerText = "Tracking";
 
                 lastTickTime = Date.now(); 
@@ -406,7 +405,7 @@
                         
                         const btn = document.getElementById('calcBtn');
                         btn.innerText = "Finished!";
-                        btn.className = "btn-base w-full md:w-auto font-bold py-6 px-12 rounded-2xl text-xl uppercase tracking-widest bg-zinc-800 text-zinc-400 cursor-default";
+                        btn.className = "btn-base w-full md:w-auto font-bold py-4 sm:py-5 md:py-6 px-8 sm:px-12 rounded-xl sm:rounded-2xl text-lg sm:text-xl uppercase tracking-widest bg-zinc-800 text-zinc-400 cursor-default";
                         document.getElementById('liveBadge').classList.add('hidden');
                     }
 
@@ -429,11 +428,10 @@
             let progressPercent = 0;
             if (durationTotalSeconds > 0) {
                 progressPercent = (exactCurrentSeconds / durationTotalSeconds) * 100;
-                progressPercent = Math.min(100, Math.max(0, progressPercent)); // Clamp between 0-100
+                progressPercent = Math.min(100, Math.max(0, progressPercent)); 
             }
             
             const progressFill = document.getElementById('progressFill');
-            // Smooth transition during playback, snappy transition during manual input
             if (isTickUpdate && !isPaused) {
                 progressFill.style.transition = 'width 1s linear';
             } else {
@@ -449,9 +447,9 @@
             const remS = Math.floor(actualSecondsToWait % 60);
 
             document.getElementById('remainingDisplay').innerHTML = 
-                `${remH}<span class="text-indigo-300 text-2xl md:text-3xl font-medium ml-1 mr-3">h</span> ` +
-                `${remM}<span class="text-indigo-300 text-2xl md:text-3xl font-medium ml-1 mr-3">m</span> ` +
-                `${remS}<span class="text-indigo-300 text-2xl md:text-3xl font-medium ml-1">s</span>`;
+                `${remH}<span class="text-indigo-300 text-xl sm:text-2xl md:text-3xl font-medium ml-1 mr-2 sm:mr-3">h</span> ` +
+                `${remM}<span class="text-indigo-300 text-xl sm:text-2xl md:text-3xl font-medium ml-1 mr-2 sm:mr-3">m</span> ` +
+                `${remS}<span class="text-indigo-300 text-xl sm:text-2xl md:text-3xl font-medium ml-1">s</span>`;
                 
             document.getElementById('speedLabel').innerText = speed.toFixed(2);
 
@@ -461,14 +459,14 @@
             
             const isTomorrow = finishDate.getDate() !== new Date().getDate();
             document.getElementById('finishDateLabel').innerText = isTomorrow ? "Finishing tomorrow" : "Finishing today";
-            document.getElementById('finishDateLabel').className = `text-base italic font-medium ${isTomorrow ? 'text-amber-400' : 'text-zinc-400'}`;
+            document.getElementById('finishDateLabel').className = `text-sm sm:text-base italic font-medium ${isTomorrow ? 'text-amber-400' : 'text-zinc-400'}`;
         }
 
         function showError(msg) {
-            document.getElementById('remainingDisplay').innerHTML = '<span class="text-3xl text-red-400">Invalid Range</span>';
+            document.getElementById('remainingDisplay').innerHTML = '<span class="text-2xl sm:text-3xl text-red-400">Invalid Range</span>';
             document.getElementById('finishClockDisplay').innerText = "--:-- --";
             document.getElementById('finishDateLabel').innerText = msg;
-            document.getElementById('finishDateLabel').className = "text-base italic font-medium text-red-400";
+            document.getElementById('finishDateLabel').className = "text-sm sm:text-base italic font-medium text-red-400";
             document.getElementById('progressFill').style.width = '0%';
         }
     </script>
