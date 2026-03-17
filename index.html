@@ -280,21 +280,34 @@
         </div>
     </nav>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-10 z-10 flex flex-col">
-        <!-- Dynamic Grid/List -->
-        <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 w-full">
-            <!-- Cards Injected Here -->
-        </div>
+<main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 z-10 flex flex-col items-center">
+    
+    <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 w-full">
+    </div>
 
-        <!-- Mobile Hint -->
-        <div id="mobile-hint" class="sm:hidden flex items-center justify-center gap-2 text-zinc-500 text-[13px] mt-8 mb-28 opacity-0 transition-opacity duration-300">
-            <i class="ph ph-arrows-out-line text-lg text-zinc-400"></i>
-            <span>Tap to open. Press and hold to rearrange.</span>
+    <div id="bottom-hints" class="flex flex-col items-center justify-center gap-1.5 mt-6 mb-1 w-full max-w-md mx-auto">
+        
+        <div class="text-zinc-500 text-[13px] font-medium">
+            <span>Click to open • Drag to reorder</span>
         </div>
-    </main>
+        
+        <div class="text-[12px] sm:text-[13px] text-indigo-500/90 bg-indigo-500/5 border border-indigo-500/15 px-4 py-2 rounded-xl text-center w-fit mx-auto">
+            <span>Data is saved in your browser. </span>
+            <button onclick="exportLinks()" class="inline-flex items-center gap-0.5 group">
+                <span class="font-bold underline decoration-indigo-500/40 underline-offset-2 group-hover:text-indigo-400 transition-colors active:scale-95">Export</span>
+                <span class="ml-0.5">it to keep it safe</span>
+            </button>
+        </div>
+    </div>
 
-    <!-- Mobile FAB -->
+    <footer class="w-full py-1 text-center">
+        <p class="text-zinc-500/80 text-[11px] font-semibold tracking-wide">
+            Made with <span class="text-rose-500/90 animate-[pulse_4s_ease-in-out_infinite]">♥️</span> by Tamim
+        </p>
+    </footer>
+</main>
+   
+   <!-- Mobile FAB -->
     <button onclick="openModal()" class="sm:hidden fixed bottom-6 right-5 w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(255,255,255,0.3)] z-40 active:scale-90 transition-transform">
         <i class="ph ph-plus text-2xl font-bold"></i>
     </button>
@@ -400,7 +413,7 @@
         const nameInput = document.getElementById('input-name');
         const urlInput = document.getElementById('input-url');
         const fetchIndicator = document.getElementById('fetch-indicator');
-        const mobileHint = document.getElementById('mobile-hint');
+        const bottomHints = document.getElementById('bottom-hints');
 
         // Robust unique ID generation
         const generateId = () => typeof crypto !== 'undefined' && crypto.randomUUID 
@@ -538,7 +551,7 @@
         function render(filteredLinks = links) {
             grid.innerHTML = '';
             if (filteredLinks.length === 0) {
-                if (mobileHint) mobileHint.style.display = 'none';
+                if (bottomHints) bottomHints.style.display = 'none';
                 if (searchInput.value.trim() !== '') {
                     const template = document.getElementById('no-results-state').content.cloneNode(true);
                     template.querySelector('#search-query-display').innerText = searchInput.value;
@@ -550,9 +563,9 @@
                 grid.classList.add('flex', 'flex-col', 'items-center', 'justify-center', 'flex-1');
                 return;
             } else {
-                if (mobileHint) {
-                    mobileHint.style.display = 'flex';
-                    setTimeout(() => mobileHint.classList.remove('opacity-0'), 100);
+                if (bottomHints) {
+                    bottomHints.style.display = 'flex';
+                    setTimeout(() => bottomHints.classList.remove('opacity-0'), 100);
                 }
                 grid.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3');
                 grid.classList.remove('flex', 'flex-col', 'items-center', 'justify-center', 'flex-1');
