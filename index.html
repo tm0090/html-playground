@@ -14,7 +14,7 @@
                         'primary': '#818cf8', 
                         'secondary': '#a5b4fc', 
                         'accent': '#c084fc', 
-                        'dark-bg': '#050505', 
+                        'dark-bg': '#000000', 
                         'card-bg': 'rgba(255, 255, 255, 0.03)', 
                         'text-light': '#f3f4f6', 
                     },
@@ -51,14 +51,39 @@
             --countdown-font: 'Inter'; 
         }
 
-        /* Ambient Background Effect */
+        /* ── BACKGROUND SYSTEM ── */
         body {
-            background-color: #050505;
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 35%), 
-                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08), transparent 35%);
+            background-color: #000000;
             background-attachment: fixed;
-            -webkit-tap-highlight-color: transparent; /* Remove blue highlight on tap */
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Subtle noise texture */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.032;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 200px 200px;
+        }
+
+        /* White ambient top glow */
+        .ambient-glow {
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vw;
+            height: 60vh;
+            background: radial-gradient(ellipse at top, rgba(255, 255, 255, 0.055), transparent 70%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         /* Custom Scrollbar */
@@ -73,44 +98,130 @@
             background-color: transparent;
         }
 
-        /* SMOOTH CARD STYLES */
-        .glass-card {
-            background: rgba(15, 15, 15, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle default border */
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Spring-like transition */
+        /* ── PREMIUM CARD SYSTEM ── */
+        .premium-card {
             position: relative;
+            /* Fix 1: Crisper visible border at rest — reads clearly on pure black */
+            background: rgba(255, 255, 255, 0.09);
+            border-radius: 24px;
+            padding: 1px;
             overflow: hidden;
-            outline: none; /* Remove default focus outline */
-        }
-        
-        /* HOVER & FOCUS GLOW LOGIC */
-        /* Added :focus-within and :focus to support touch "selection" */
-        .glass-card:hover,
-        .glass-card:focus, 
-        .glass-card:focus-within {
-            border-color: var(--glow-color);
-            box-shadow: 
-                0 0 25px var(--glow-color-soft),
-                inset 0 0 10px var(--glow-color-soft);
-            transform: translateY(-4px) scale(1.01);
+            /* Fix 2: Softer spring — less bounce, more silk */
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+                        box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            outline: none;
         }
 
-        /* Constant styling for expired cards */
-        .glass-card.is-expired {
-            border-color: var(--glow-color);
-            box-shadow: 0 0 15px var(--glow-color-soft);
+        /* Expired cards keep a persistent coloured border */
+        .premium-card.is-expired {
+            background: var(--glow-color-soft);
         }
-        
+
+        @media (hover: hover) {
+            .premium-card:hover {
+                /* Fix 2: Gentler lift */
+                transform: translateY(-4px) scale(1.012);
+                z-index: 10;
+            }
+        }
+
+        /* Outer spotlight — follows mouse, uses urgency colour */
+        .premium-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(
+                550px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                var(--glow-color-soft),
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 0;
+        }
+        .premium-card:hover::before,
+        .premium-card:focus-within::before { opacity: 1; }
+
+        /* Inner surface */
+        .premium-card-inner {
+            background: #0d0d0d;
+            border-radius: 23px;
+            position: relative;
+            height: 100%;
+            z-index: 1;
+            /* Fix 4: Real depth shadow so card lifts off pure black */
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.05),
+                0 4px 24px rgba(0, 0, 0, 0.7),
+                0 1px 4px rgba(0, 0, 0, 0.5);
+            transition: background 0.5s ease, box-shadow 0.5s ease;
+            overflow: hidden;
+        }
+        .premium-card:hover .premium-card-inner {
+            background: #131315;
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.06),
+                0 16px 48px rgba(0, 0, 0, 0.8),
+                0 4px 12px rgba(0, 0, 0, 0.6),
+                0 0 0 0.5px rgba(255, 255, 255, 0.04);
+        }
+
+        /* Inner surface subtle colour fill — follows mouse */
+        .premium-card-inner::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(
+                380px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                var(--glow-color-inner),
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .premium-card:hover .premium-card-inner::before,
+        .premium-card:focus-within .premium-card-inner::before { opacity: 1; }
+
+        /* Fix 3: Timer unit tiles respond to card hover */
+        .timer-unit {
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                        background 0.4s ease,
+                        border-color 0.4s ease;
+        }
+        .premium-card:hover .timer-unit {
+            transform: scale(1.04);
+            background: rgba(0, 0, 0, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* Fix 5: Action buttons — slide in from top-right with blur */
+        .card-actions {
+            opacity: 0;
+            transform: translate(6px, -6px);
+            filter: blur(4px);
+            transition: opacity 0.3s ease,
+                        transform 0.35s cubic-bezier(0.23, 1, 0.32, 1),
+                        filter 0.3s ease;
+        }
+        .group:hover .card-actions,
+        .group:focus-within .card-actions {
+            opacity: 1;
+            transform: translate(0, 0);
+            filter: blur(0px);
+        }
+
         /* Mobile Touch Optimizations */
         @media (max-width: 768px) {
-            .glass-card:active {
-                transform: scale(0.98);
+            .premium-card:active {
+                transform: scale(0.97);
             }
             /* Make inputs larger for touch */
             input, button {
-                min-height: 44px; 
+                min-height: 44px;
             }
         }
 
@@ -173,10 +284,10 @@
     </style>
     <div id="font-imports"></div>
 </head>
-<body class="font-sans text-text-light min-h-screen p-4 sm:p-6 selection:bg-indigo-500 selection:text-white">
+<body class="font-sans text-text-light min-h-screen p-4 sm:p-6 selection:bg-white/20 selection:text-white" style="background:#000000">
 
-    <!-- Ambient Light Blob -->
-    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <!-- Ambient Glow (hidden on mobile for perf) -->
+    <div class="ambient-glow hidden sm:block" style="filter: blur(120px);"></div>
 
     <header class="mb-10 text-center relative max-w-7xl mx-auto pt-4 md:pt-8 flex flex-col items-center z-10">
         <button id="settings-button" onclick="showSettingsModal()" class="absolute top-4 right-0 p-3 text-gray-400 hover:text-white hover:bg-white/5 transition duration-200 rounded-full active:scale-95">
@@ -704,9 +815,9 @@
                 const styles = getStatusStyles(time.totalDays, time.isPast);
                 
                 const mainColor = styles.colorHex;
-                // REMOVED constant shadow. Only setting variables for CSS to use on hover.
                 const glowColor = mainColor;
-                const glowColorSoft = hexToRgba(mainColor, 0.4);
+                const glowColorSoft = hexToRgba(mainColor, 0.35);
+                const glowColorInner = hexToRgba(mainColor, 0.07);
                 
                 const pillStyle = `background-color: ${hexToRgba(mainColor, 0.1)}; color: ${hexToRgba(mainColor, 0.9)}; border-color: ${hexToRgba(mainColor, 0.2)}`;
                 const textStyle = `color: ${mainColor}`;
@@ -714,16 +825,15 @@
                 const countdownDiv = document.createElement('div');
                 countdownDiv.id = `countdown-${id}`;
                 countdownDiv.style.animationDelay = `${index * 50}ms`;
-                // IMPORTANT: Add tabindex="0" so the div can be focused on touch/click
                 countdownDiv.setAttribute('tabindex', '0'); 
                 
-                // Pass dynamic colors as CSS variables
+                // Pass dynamic urgency colors as CSS variables
                 countdownDiv.style.setProperty('--glow-color', glowColor);
                 countdownDiv.style.setProperty('--glow-color-soft', glowColorSoft);
+                countdownDiv.style.setProperty('--glow-color-inner', glowColorInner);
                 
-                // Add specific class for expired items if we want them to always glow a bit (optional, kept subtle)
                 const expiredClass = time.isPast ? 'is-expired' : '';
-                countdownDiv.className = `glass-card p-6 rounded-3xl animate-fade-in-up group ${expiredClass}`; 
+                countdownDiv.className = `premium-card animate-fade-in-up group ${expiredClass}`; 
 
                 const displayDate = new Date(targetDate).toLocaleString('en-US', {
                     weekday: 'short', 
@@ -738,11 +848,11 @@
                 const gridItems = units
                     .filter(unit => unit.show)
                     .map(unit => `
-                        <div class="p-3 bg-black/40 rounded-2xl border border-white/5 backdrop-blur-md">
+                        <div class="timer-unit p-3 bg-black/50 rounded-2xl border border-white/[0.06] shadow-[inset_0_1px_2px_rgba(255,255,255,0.03)]">
                             <div class="countdown-number font-mono font-black tracking-tighter tabular-nums leading-none mb-1" 
                                  style="${textStyle}" 
                                  data-unit="${unit.key}">--</div>
-                            <div class="text-[10px] font-bold text-gray-500 tracking-widest opacity-70">${unit.label}</div>
+                            <div class="text-[9px] font-bold text-gray-600 tracking-[0.18em] uppercase">${unit.label}</div>
                         </div>
                     `)
                     .join('');
@@ -753,30 +863,32 @@
                                     activeUnitCount === 2 ? 'grid-cols-2' : 'grid-cols-1';
 
                 countdownDiv.innerHTML = `
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="pr-2 w-full overflow-hidden">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border tracking-wider" style="${pillStyle}">${styles.label}</span>
+                    <div class="premium-card-inner p-6">
+                        <div class="flex justify-between items-start mb-6 relative z-10">
+                            <div class="pr-2 w-full overflow-hidden">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border tracking-wider" style="${pillStyle}">${styles.label}</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white/95 truncate leading-tight tracking-tight">${headline}</h3>
+                                <p class="text-xs font-medium text-gray-400 mt-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="calendar-clock" class="w-3.5 h-3.5 opacity-70"></i> ${displayDate}
+                                </p>
                             </div>
-                            <h3 class="text-xl font-bold text-white/95 truncate leading-tight tracking-tight">${headline}</h3>
-                            <p class="text-xs font-medium text-gray-400 mt-1.5 flex items-center gap-1.5">
-                                <i data-lucide="calendar-clock" class="w-3.5 h-3.5 opacity-70"></i> ${displayDate}
-                            </p>
+                            
+                            <!-- Actions: Hidden by default (opacity-0). Appear on Hover (Desktop) or Focus/Touch (Mobile) -->
+                            <div class="flex flex-col space-y-1 opacity-0 group-hover:opacity-100 group-focus:opacity-100 group-focus-within:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0 group-focus-within:translate-x-0">
+                                <button class="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-white/10 transition active:scale-95" onclick="editCountdown('${id}', '${safeHeadline}', '${targetDate}')">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </button>
+                                <button class="text-gray-400 hover:text-red-400 p-2 rounded-xl hover:bg-red-500/10 transition active:scale-95" onclick="deleteCountdown('${id}')">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
                         
-                        <!-- Actions: Hidden by default (opacity-0). Appear on Hover (Desktop) or Focus/Touch (Mobile) -->
-                        <div class="flex flex-col space-y-1 opacity-0 group-hover:opacity-100 group-focus:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
-                            <button class="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-white/10 transition active:scale-95" onclick="editCountdown('${id}', '${safeHeadline}', '${targetDate}')">
-                                <i data-lucide="pencil" class="w-4 h-4"></i>
-                            </button>
-                            <button class="text-gray-400 hover:text-red-400 p-2 rounded-xl hover:bg-red-500/10 transition active:scale-95" onclick="deleteCountdown('${id}')">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                        <div class="grid ${gridColsClass} gap-2 text-center relative z-10" id="timer-display-${id}">
+                            ${gridItems}
                         </div>
-                    </div>
-                    
-                    <div class="grid ${gridColsClass} gap-2 text-center relative z-10" id="timer-display-${id}">
-                        ${gridItems}
                     </div>
                 `;
 
@@ -800,19 +912,21 @@
                 
                 const mainColor = styles.colorHex;
                 const glowColor = mainColor;
-                const glowColorSoft = hexToRgba(mainColor, 0.4);
+                const glowColorSoft = hexToRgba(mainColor, 0.35);
+                const glowColorInner = hexToRgba(mainColor, 0.07);
 
                 // Update CSS Variables dynamically in case color changed
                 wrapperEl.style.setProperty('--glow-color', glowColor);
                 wrapperEl.style.setProperty('--glow-color-soft', glowColorSoft);
+                wrapperEl.style.setProperty('--glow-color-inner', glowColorInner);
 
                 if (time.isPast && !timerDisplayEl.classList.contains('deadline-passed')) {
                     const expiredBg = hexToRgba(mainColor, 0.1);
                     const expiredBorder = hexToRgba(mainColor, 0.2);
                     
                     timerDisplayEl.innerHTML = `
-                        <div class="col-span-full py-4 rounded-xl border animate-pulse" style="background-color: ${expiredBg}; border-color: ${expiredBorder}">
-                            <p class="text-center text-base font-bold tracking-wide uppercase" style="color: ${mainColor}">Time's Up</p>
+                        <div class="col-span-full py-4 rounded-2xl border" style="background-color: ${expiredBg}; border-color: ${expiredBorder}">
+                            <p class="text-center text-base font-bold tracking-widest uppercase animate-pulse" style="color: ${mainColor}">Time's Up</p>
                         </div>`;
                     timerDisplayEl.classList.add('deadline-passed');
                     wrapperEl.classList.add('is-expired');
@@ -999,6 +1113,18 @@
             renderCountdowns();
             loadingSpinnerEl.style.display = 'none';
         };
+
+        // ── Mouse-tracking spotlight for premium cards (desktop only) ──
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+            countdownListEl.addEventListener('mousemove', e => {
+                const cards = document.querySelectorAll('.premium-card');
+                for (const card of cards) {
+                    const rect = card.getBoundingClientRect();
+                    card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                }
+            });
+        }
 
         initializeApp();
     </script>
