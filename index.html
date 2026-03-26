@@ -102,10 +102,6 @@
             position: relative;
             overflow: hidden;
         }
-        
-        /* The blue strip was removed here for a cleaner, modern look that doesn't 
-           clash with the large border-radius of the parent card!
-        */
 
         #progressFill {
             position: absolute;
@@ -452,9 +448,26 @@
             const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
             document.getElementById('finishClockDisplay').innerText = finishDate.toLocaleTimeString([], options);
             
-            const isTomorrow = finishDate.getDate() !== new Date().getDate();
-            document.getElementById('finishDateLabel').innerText = isTomorrow ? "Finishing tomorrow" : "Finishing today";
-            document.getElementById('finishDateLabel').className = `text-sm sm:text-base italic font-medium ${isTomorrow ? 'text-amber-400' : 'text-zinc-400'}`;
+            // FIX: Correctly calculate the difference in days using midnight timestamps
+            const now = new Date();
+            const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const finishMidnight = new Date(finishDate.getFullYear(), finishDate.getMonth(), finishDate.getDate());
+            const diffDays = Math.round((finishMidnight - todayMidnight) / (1000 * 60 * 60 * 24));
+            
+            let dateText = "Finishing today";
+            let dateClass = "text-zinc-400";
+            
+            if (diffDays === 1) {
+                dateText = "Finishing tomorrow";
+                dateClass = "text-amber-400";
+            } else if (diffDays > 1) {
+                const dateStr = finishDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                dateText = `Finishing on ${dateStr}`;
+                dateClass = "text-indigo-400";
+            }
+
+            document.getElementById('finishDateLabel').innerText = dateText;
+            document.getElementById('finishDateLabel').className = `text-sm sm:text-base italic font-medium ${dateClass}`;
         }
 
         function showError(msg) {
