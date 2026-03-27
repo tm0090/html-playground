@@ -1,4 +1,3 @@
-<DOCUMENT filename="index(4).html">
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -102,26 +101,31 @@
         /* ── PREMIUM CARD SYSTEM ── */
         .premium-card {
             position: relative;
+            /* Fix 1: Crisper visible border at rest — reads clearly on pure black */
             background: rgba(255, 255, 255, 0.09);
             border-radius: 24px;
             padding: 1px;
             overflow: hidden;
+            /* Fix 2: Softer spring — less bounce, more silk */
             transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
                         box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             outline: none;
         }
 
+        /* Expired cards keep a persistent coloured border */
         .premium-card.is-expired {
             background: var(--glow-color-soft);
         }
 
         @media (hover: hover) {
             .premium-card:hover {
+                /* Fix 2: Gentler lift */
                 transform: translateY(-4px) scale(1.012);
                 z-index: 10;
             }
         }
 
+        /* Outer spotlight — follows mouse, uses urgency colour */
         .premium-card::before {
             content: "";
             position: absolute;
@@ -139,12 +143,14 @@
         .premium-card:hover::before,
         .premium-card:focus-within::before { opacity: 1; }
 
+        /* Inner surface */
         .premium-card-inner {
             background: #0d0d0d;
             border-radius: 23px;
             position: relative;
             height: 100%;
             z-index: 1;
+            /* Fix 4: Real depth shadow so card lifts off pure black */
             box-shadow:
                 inset 0 1px 1px rgba(255, 255, 255, 0.05),
                 0 4px 24px rgba(0, 0, 0, 0.7),
@@ -161,6 +167,7 @@
                 0 0 0 0.5px rgba(255, 255, 255, 0.04);
         }
 
+        /* Inner surface subtle colour fill — follows mouse */
         .premium-card-inner::before {
             content: "";
             position: absolute;
@@ -179,6 +186,7 @@
         .premium-card:hover .premium-card-inner::before,
         .premium-card:focus-within .premium-card-inner::before { opacity: 1; }
 
+        /* Fix 3: Timer unit tiles respond to card hover */
         .timer-unit {
             transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
                         background 0.4s ease,
@@ -190,6 +198,7 @@
             border-color: rgba(255, 255, 255, 0.1) !important;
         }
 
+        /* Fix 5: Action buttons — slide in from top-right with blur */
         .card-actions {
             opacity: 0;
             transform: translate(6px, -6px);
@@ -205,10 +214,12 @@
             filter: blur(0px);
         }
 
+        /* Mobile Touch Optimizations */
         @media (max-width: 768px) {
             .premium-card:active {
                 transform: scale(0.97);
             }
+            /* Make inputs larger for touch */
             input, button {
                 min-height: 44px;
             }
@@ -232,9 +243,10 @@
             filter: invert(1);
             opacity: 0.6;
             cursor: pointer;
-            padding: 5px;
+            padding: 5px; /* Larger touch target */
         }
 
+        /* Color Picker Reset */
         input[type="color"] {
             -webkit-appearance: none;
             border: none;
@@ -261,6 +273,7 @@
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
+        /* FAB */
         #add-button-fab {
             position: fixed;
             bottom: 32px;
@@ -269,155 +282,167 @@
             box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.6);
         }
 
-        /* ── MODERN SETTINGS SYSTEM (2026 aesthetic) ── */
-        #settings-modal-content {
-            background: #0f0f13;
-            box-shadow: 0 -30px 80px -15px rgb(129 140 248 / 0.25),
-                        0 0 0 1px rgba(255,255,255,0.08),
-                        inset 0 1px 0 rgba(255,255,255,0.08);
-        }
+        /* ── SETTINGS COMPONENT SYSTEM ── */
 
-        /* Tab strip */
-        .settings-tab {
+        /* Sidebar nav */
+        .settings-nav {
+            width: 148px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 18px 10px;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.25);
+        }
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 12px;
+            border-radius: 11px;
+            border: none;
             background: transparent;
-            color: #94a3b8;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            text-align: left;
+            width: 100%;
         }
-        .settings-tab.active-tab {
-            background: linear-gradient(90deg, rgba(129,140,248,0.25), rgba(192,132,252,0.18));
-            color: #e0e7ff;
-            box-shadow: 0 0 20px -4px rgba(129,140,248,0.5);
-            border: 1px solid rgba(129,140,248,0.3);
-            transform: scale(1.03);
+        .settings-nav-item:hover:not(.active-nav) {
+            background: rgba(255,255,255,0.05);
+            color: #9ca3af;
         }
-        .settings-tab:hover:not(.active-tab) {
-            background: rgba(255,255,255,0.07);
-            color: #cbd5e1;
+        .settings-nav-item.active-nav {
+            background: rgba(99,102,241,0.15);
+            color: #c7d2fe;
+            border: 1px solid rgba(99,102,241,0.2);
         }
+        .settings-nav-icon {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            opacity: 0.75;
+        }
+        .settings-nav-item.active-nav .settings-nav-icon { opacity: 1; }
 
-        /* Sections */
-        .settings-section {
-            margin-bottom: 28px;
-        }
-        .settings-section:last-child { margin-bottom: 12px; }
+        /* Section headers */
+        .settings-section { margin-bottom: 22px; }
+        .settings-section:last-child { margin-bottom: 8px; }
 
         .settings-section-label {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 10px;
-            font-weight: 800;
-            color: #a5b4fc;
-            letter-spacing: 0.15em;
+            gap: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #4b5563;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(165,180,252,0.15);
+            margin-bottom: 10px;
+            padding-bottom: 9px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-        .settings-section-icon { 
-            width: 13px; 
-            height: 13px; 
-            flex-shrink: 0; 
-            color: #a5b4fc;
-        }
-
+        .settings-section-icon { width: 13px; height: 13px; flex-shrink: 0; color: #6366f1; }
         .settings-ext-link {
             margin-left: auto;
-            font-size: 10px;
-            color: #a5b4fc;
+            font-size: 11px;
+            color: #818cf8;
             font-weight: 600;
             text-decoration: none;
-            opacity: 0.7;
+            opacity: 0.65;
             letter-spacing: 0;
             transition: opacity 0.2s;
         }
         .settings-ext-link:hover { opacity: 1; }
 
-        .settings-rows { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
-        .settings-row-stacked { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-        }
-
+        /* Rows */
+        .settings-rows { display: flex; flex-direction: column; gap: 8px; }
+        .settings-row-stacked { display: flex; flex-direction: column; gap: 6px; }
         .settings-field-label {
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
-            color: #cbd5e1;
+            color: #9ca3af;
             letter-spacing: 0.02em;
         }
-
         .settings-text-input {
             width: 100%;
-            padding: 14px 17px;
-            border-radius: 16px;
-            font-size: 15px;
-            background: rgba(255,255,255,0.035);
-            border: 1px solid rgba(255,255,255,0.09);
-            color: #f1f5f9;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .settings-text-input:focus {
-            border-color: #818cf8;
-            box-shadow: 0 0 0 4px rgba(129,140,248,0.22);
-            background: rgba(255,255,255,0.06);
+            padding: 10px 13px;
+            border-radius: 12px;
+            font-size: 13px;
         }
 
+        /* ── Inline mini preview beneath inputs ── */
         .settings-inline-preview {
-            margin-top: 8px;
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
-            font-size: 12.5px;
-            color: #cbd5e1;
+            margin-top: 6px;
+            padding: 9px 13px;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.055);
+            border-radius: 10px;
+            letter-spacing: 0.01em;
+            transition: all 0.25s;
         }
         .settings-inline-preview-label {
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 0.15em;
-            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: #4b5563;
             text-transform: uppercase;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
+        /* Font status badge (loading / found / not found) */
+        .font-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-left: auto;
+            transition: all 0.25s;
+        }
+        .font-status.loading { color: #9ca3af; background: rgba(255,255,255,0.06); }
+        .font-status.found   { color: #34d399; background: rgba(52,211,153,0.1); }
+        .font-status.notfound{ color: #f87171; background: rgba(248,113,113,0.1); }
+
+        /* Stacked font row */
         .settings-font-row {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            padding: 18px 18px;
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 7px;
+            padding: 13px 14px 11px;
+            background: rgba(255,255,255,0.022);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            transition: border-color 0.2s, background 0.2s;
         }
         .settings-font-row:focus-within {
-            border-color: rgba(129,140,248,0.35);
-            background: rgba(255,255,255,0.04);
-            box-shadow: 0 10px 20px -5px rgba(129,140,248,0.15);
+            border-color: rgba(129,140,248,0.25);
+            background: rgba(255,255,255,0.03);
+        }
+        .settings-font-row-header {
+            display: flex;
+            align-items: center;
         }
         .settings-font-label {
             font-size: 11px;
             font-weight: 700;
-            color: #a5b4fc;
-            letter-spacing: 0.05em;
+            color: #818cf8;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
         }
 
+        /* ── Font preview card ── */
         .settings-font-preview {
-            margin-top: 16px;
-            padding: 20px 22px 18px;
-            background: linear-gradient(145deg, #15151a, #1a1a20);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.6),
-                        inset 0 1px 0 rgba(255,255,255,0.06);
+            margin-top: 14px;
+            padding: 16px 18px 14px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
             position: relative;
             overflow: hidden;
         }
@@ -425,123 +450,93 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse at 50% 20%, rgba(129,140,248,0.12), transparent 75%);
+            background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.06), transparent 70%);
             pointer-events: none;
         }
         .settings-font-preview-label {
-            font-size: 9px;
-            font-weight: 800;
-            color: #64748b;
-            letter-spacing: 0.18em;
-            margin-bottom: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #374151;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
         }
         .settings-font-preview-title {
             font-family: var(--preview-title-font, var(--site-title-font), Inter, sans-serif);
-            font-size: 23px;
+            font-size: 22px;
             font-weight: 900;
             color: transparent;
             background: linear-gradient(135deg, #c7d2fe, #fff, #ddd6fe);
             -webkit-background-clip: text;
             background-clip: text;
             letter-spacing: -0.03em;
-            line-height: 1.05;
+            line-height: 1.1;
+            margin-bottom: 6px;
+            transition: font-family 0.3s;
+        }
+        .settings-font-preview-heading {
+            font-family: var(--preview-heading-font, var(--heading-font), Inter, sans-serif);
+            font-size: 13px;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            transition: font-family 0.3s;
+        }
+        .settings-font-preview-numbers {
+            font-family: var(--preview-numbers-font, var(--countdown-font), ui-monospace, monospace);
+            font-size: 18px;
+            font-weight: 700;
+            color: #818cf8;
+            letter-spacing: 0.04em;
+            transition: font-family 0.3s;
         }
 
+        /* Toggle row */
         .settings-toggle-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 20px;
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            gap: 16px;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.022);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            transition: border-color 0.2s, background 0.2s;
+            gap: 12px;
+            cursor: pointer;
         }
         .settings-toggle-row:hover {
-            border-color: rgba(129,140,248,0.25);
-            background: rgba(255,255,255,0.04);
-            box-shadow: 0 8px 16px -6px rgba(0,0,0,0.3);
-            transform: translateY(-1px);
+            border-color: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.032);
         }
-        .settings-toggle-label { 
-            font-size: 15px; 
-            font-weight: 600; 
-            color: #f1f5f9; 
-        }
-        .settings-toggle-desc { 
-            display: block; 
-            font-size: 12px; 
-            color: #64748b; 
-            margin-top: 3px; 
-            line-height: 1.35;
-        }
-        .settings-toggle-switch { 
-            position: relative; 
-            display: inline-flex; 
-            align-items: center; 
-            cursor: pointer; 
-            flex-shrink: 0; 
-        }
-        .settings-toggle-track {
-            width: 52px;
-            height: 28px;
-            background: #1e2937;
-            border-radius: 9999px;
-            position: relative;
-            transition: background 0.3s cubic-bezier(0.4,0,0.2,1);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-        }
-        .settings-toggle-track.peer-checked {
-            background: linear-gradient(90deg, #818cf8, #c084fc);
-            box-shadow: 0 0 15px 4px rgba(129,140,248,0.4);
-        }
-        .settings-toggle-track::after {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 22px;
-            height: 22px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .settings-toggle-track.peer-checked::after {
-            transform: translateX(24px);
-        }
+        .settings-toggle-label { font-size: 13px; font-weight: 500; color: #e5e7eb; }
+        .settings-toggle-desc { display: block; font-size: 11px; color: #4b5563; margin-top: 2px; }
 
+        /* Color row */
         .settings-color-row {
             display: flex;
             align-items: center;
-            gap: 14px;
-            padding: 18px 20px;
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 11px;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.022);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            transition: border-color 0.2s, background 0.2s;
         }
         .settings-color-row:hover {
-            border-color: rgba(129,140,248,0.25);
-            background: rgba(255,255,255,0.04);
-            box-shadow: 0 8px 16px -6px rgba(0,0,0,0.3);
-            transform: translateY(-1px);
+            border-color: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
         }
         .settings-color-dot {
-            width: 24px;
-            height: 24px;
+            width: 11px;
+            height: 11px;
             border-radius: 50%;
             flex-shrink: 0;
-            box-shadow: 0 0 16px 4px currentColor,
-                        inset 0 1px 2px rgba(255,255,255,0.5);
-            transition: all 0.2s;
+            transition: background 0.2s, box-shadow 0.2s;
         }
         .settings-color-swatch {
             -webkit-appearance: none;
-            width: 38px;
-            height: 38px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             border: none;
             padding: 0;
@@ -549,71 +544,232 @@
             cursor: pointer;
             flex-shrink: 0;
             overflow: hidden;
-            box-shadow: 0 0 0 3px rgba(255,255,255,0.15),
-                        0 4px 12px rgba(0,0,0,0.3);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .settings-color-swatch:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 0 4px rgba(129,140,248,0.4);
-        }
+        .settings-color-swatch::-webkit-color-swatch-wrapper { padding: 0; }
+        .settings-color-swatch::-webkit-color-swatch { border: 1.5px solid rgba(255,255,255,0.2); border-radius: 50%; }
 
+        /* Range slider — with JS-driven fill track */
         .settings-range {
             width: 100%;
-            height: 6px;
+            height: 4px;
             -webkit-appearance: none;
             appearance: none;
             background: rgba(255,255,255,0.1);
-            border-radius: 9999px;
+            border-radius: 3px;
             outline: none;
             cursor: pointer;
         }
         .settings-range::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            background: #fff;
-            border: 3px solid #818cf8;
+            width: 15px;
+            height: 15px;
+            background: #818cf8;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 0 0 5px rgba(129,140,248,0.3),
-                        0 10px 20px rgba(129,140,248,0.3);
+            border: 2px solid rgba(255,255,255,0.15);
+            box-shadow: 0 0 6px rgba(129,140,248,0.6);
+            transition: transform 0.15s;
         }
-
+        .settings-range::-webkit-slider-thumb:hover { transform: scale(1.2); }
         .settings-days-badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.25);
+            color: #a5b4fc;
+            border-radius: 6px;
             font-weight: 700;
-            color: #818cf8;
             font-variant-numeric: tabular-nums;
-            min-width: 20px;
-            text-align: center;
-            background: rgba(129,140,248,0.15);
-            padding: 1px 7px;
-            border-radius: 9999px;
-            font-size: 13px;
+            font-size: 12px;
+            min-width: 28px;
+            height: 20px;
+            padding: 0 5px;
         }
 
-        .settings-panel { animation: panelFadeIn 0.22s cubic-bezier(0.23,1,0.32,1) forwards; }
+        /* Panel fade */
+        .settings-panel { animation: panelFadeIn 0.16s ease forwards; }
         @keyframes panelFadeIn {
-            from { opacity: 0; transform: translateY(12px); }
+            from { opacity: 0; transform: translateY(4px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Mobile bottom-sheet (rounded top only) */
+        /* Desktop modal: full rounded */
+        @media (min-width: 640px) {
+            #settings-modal-content {
+                border-radius: 28px !important;
+            }
+        }
+        /* Mobile bottom sheet */
         @media (max-width: 639px) {
             #settings-modal-content {
-                border-radius: 32px 32px 0 0 !important;
+                border-radius: 24px 24px 0 0 !important;
+                margin-top: auto;
             }
+            .settings-nav {
+                width: 100%;
+                flex-direction: row;
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+                padding: 10px 12px;
+                gap: 4px;
+                overflow-x: auto;
+            }
+            .settings-nav-item {
+                font-size: 12px;
+                padding: 8px 12px;
+                white-space: nowrap;
+            }
+            .settings-body-wrap {
+                flex-direction: column !important;
+            }
+        }
+
+        /* Danger / reset button */
+        .settings-reset-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(248,113,113,0.18);
+            background: rgba(248,113,113,0.06);
+            color: #f87171;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .settings-reset-btn:hover {
+            background: rgba(248,113,113,0.12);
+            border-color: rgba(248,113,113,0.3);
+        }
+        .settings-reset-btn i { width: 13px; height: 13px; }
+
+        /* Close (X) button in header */
+        .settings-close-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .settings-close-btn:hover { background: rgba(255,255,255,0.09); }
+
+        /* Save & Close button */
+        .settings-save-btn {
+            flex: 2;
+            padding: 12px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #5b5fd1, #7c3aed);
+            border: 1px solid rgba(129,140,248,0.3);
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: -0.1px;
+            transition: all 0.25s;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .settings-save-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 28px rgba(99,102,241,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        /* Cancel button in footer */
+        .settings-cancel-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 13px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .settings-cancel-btn:hover { background: rgba(255,255,255,0.08); color: #d1d5db; }
+
+        /* Data tab action buttons (Export / Import) */
+        .settings-data-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #d1d5db;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .settings-data-btn:hover {
+            background: rgba(99,102,241,0.12);
+            border-color: rgba(99,102,241,0.4);
+            color: #a5b4fc;
+        }
+        .settings-data-btn i { width: 15px; height: 15px; }
+
+        /* ── Toggle switch — clean CSS-only ── */
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: #1f2937;
+            border-radius: 9999px;
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: background 0.25s, border-color 0.25s;
+        }
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            background: #6b7280;
+            border-radius: 50%;
+            transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), background 0.25s;
+        }
+        .toggle-switch input:checked + .toggle-track {
+            background: #4f46e5;
+            border-color: rgba(99,102,241,0.4);
+        }
+        .toggle-switch input:checked + .toggle-track::after {
+            transform: translateX(16px);
+            background: #fff;
         }
     </style>
     <div id="font-imports"></div>
 </head>
 <body class="font-sans text-text-light min-h-screen p-4 sm:p-6 selection:bg-white/20 selection:text-white" style="background:#000000">
 
-    <!-- Ambient Glow -->
+    <!-- Ambient Glow (hidden on mobile for perf) -->
     <div class="ambient-glow hidden sm:block" style="filter: blur(120px);"></div>
 
-    <!-- Settings FAB -->
+    <!-- Settings FAB — always visible, independent of focus mode -->
     <button id="settings-button" onclick="showSettingsModal()"
         class="fixed top-5 right-5 z-40 p-3 text-gray-400 hover:text-white hover:bg-white/8 border border-white/10 hover:border-white/20 bg-white/5 backdrop-blur-sm transition-all duration-200 rounded-2xl active:scale-95 shadow-lg shadow-black/30">
         <i data-lucide="settings-2" class="w-5 h-5"></i>
@@ -689,284 +845,288 @@
         </div>
     </div>
     
-    <!-- Settings Modal (FIXED: fully rounded on desktop, bottom-sheet on mobile) -->
+    <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-xl transition-opacity duration-300" onclick="hideSettingsModal()"></div>
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-xl transition-opacity duration-300" onclick="cancelSettings()"></div>
         
-        <div class="w-full sm:max-w-lg transform transition-all duration-300 scale-95 opacity-0 relative z-10" id="settings-modal-content"
-             style="max-height: 92dvh; border-radius: 28px; background: #0f0f13; border: 1px solid rgba(129,140,248,0.1); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 -30px 80px -15px rgb(129 140 248 / 0.25), 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.08);">
+        <div class="w-full sm:max-w-2xl transform transition-all duration-300 scale-95 opacity-0 relative z-10" id="settings-modal-content"
+             style="max-height: 92dvh; border-radius: 28px 28px 0 0; background: #0b0b0d; border: 1px solid rgba(255,255,255,0.07); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 -24px 100px rgba(0,0,0,0.9), 0 0 0 0.5px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.05);">
 
             <!-- Header bar -->
-            <div style="padding: 20px 22px 0; flex-shrink: 0; background: linear-gradient(to bottom, rgba(255,255,255,0.025), transparent);">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2)); border: 1px solid rgba(129,140,248,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(99,102,241,0.2);">
-                            <i data-lucide="settings-2" style="width: 15px; height: 15px; color: #a5b4fc;"></i>
-                        </div>
-                        <div>
-                            <span style="font-size: 16px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.4px; display: block; line-height: 1.1;">Settings</span>
-                            <span style="font-size: 10px; color: #4b5563; font-weight: 500; letter-spacing: 0.02em;">Deadline Dashboard</span>
-                        </div>
+            <div style="padding: 18px 20px 14px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.06); background: linear-gradient(to bottom, rgba(255,255,255,0.02), transparent); display:flex; align-items:center; justify-content:space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2)); border: 1px solid rgba(129,140,248,0.2); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="settings-2" style="width: 15px; height: 15px; color: #a5b4fc;"></i>
                     </div>
-                    <button onclick="hideSettingsModal()" style="width: 30px; height: 30px; border-radius: 9px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.09)'; this.style.borderColor='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.borderColor='rgba(255,255,255,0.07)'">
-                        <i data-lucide="x" style="width: 13px; height: 13px; color: #6b7280;"></i>
-                    </button>
+                    <div>
+                        <span style="font-size: 16px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.4px; display: block; line-height: 1.1;">Settings</span>
+                        <span style="font-size: 11px; color: #4b5563; font-weight: 500;">Deadline Dashboard</span>
+                    </div>
                 </div>
-
-                <!-- Tab strip -->
-                <div style="display: flex; gap: 3px; background: rgba(0,0,0,0.35); border-radius: 13px; padding: 3px; margin-bottom: 0; border: 1px solid rgba(255,255,255,0.05);">
-                    <button type="button" onclick="switchTab('appearance')" id="tab-appearance"
-                        class="settings-tab active-tab"
-                        style="flex: 1; padding: 8px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: all 0.22s; border: none; display: flex; align-items: center; justify-content: center; gap: 5px; letter-spacing: 0.1px; white-space: nowrap;">
-                        <i data-lucide="palette" style="width: 12px; height: 12px; flex-shrink: 0;"></i> Appearance
-                    </button>
-                    <button type="button" onclick="switchTab('timers')" id="tab-timers"
-                        class="settings-tab"
-                        style="flex: 1; padding: 8px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: all 0.22s; border: none; display: flex; align-items: center; justify-content: center; gap: 5px; letter-spacing: 0.1px; white-space: nowrap;">
-                        <i data-lucide="timer" style="width: 12px; height: 12px; flex-shrink: 0;"></i> Timers
-                    </button>
-                    <button type="button" onclick="switchTab('data')" id="tab-data"
-                        class="settings-tab"
-                        style="flex: 1; padding: 8px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: all 0.22s; border: none; display: flex; align-items: center; justify-content: center; gap: 5px; letter-spacing: 0.1px; white-space: nowrap;">
-                        <i data-lucide="database" style="width: 12px; height: 12px; flex-shrink: 0;"></i> Data
-                    </button>
-                </div>
+                <button onclick="cancelSettings()" class="settings-close-btn">
+                    <i data-lucide="x" style="width: 14px; height: 14px; color: #6b7280;"></i>
+                </button>
             </div>
 
-            <!-- Scrollable content -->
-            <div style="flex: 1; overflow-y: auto; padding: 18px 22px 0;" id="settings-scroll-area">
-            <form id="settings-form">
+            <!-- Body: sidebar nav + scrollable content -->
+            <div class="settings-body-wrap" style="display:flex; flex:1; overflow:hidden; min-height:0;">
 
-                <!-- ── TAB: APPEARANCE ── -->
-                <div id="panel-appearance" class="settings-panel">
-                    <div class="settings-section">
-                        <div class="settings-section-label">
-                            <i data-lucide="type" class="settings-section-icon"></i>
-                            Branding
-                        </div>
-                        <div class="settings-rows">
-                            <div class="settings-row-stacked">
-                                <label class="settings-field-label">Page Heading</label>
-                                <input type="text" id="site-heading" placeholder="Deadline Dashboard"
-                                    class="glass-input settings-text-input"
-                                    oninput="document.getElementById('preview-site-heading').textContent = this.value || 'Deadline Dashboard'">
-                                <div class="settings-inline-preview">
-                                    <div class="settings-inline-preview-label">Preview</div>
-                                    <span id="preview-site-heading" style="font-size:18px; font-weight:900; color:transparent; background:linear-gradient(135deg,#c7d2fe,#fff,#ddd6fe); -webkit-background-clip:text; background-clip:text; letter-spacing:-0.03em; line-height:1.1; font-family:var(--site-title-font, Inter, sans-serif);">Deadline Dashboard</span>
-                                </div>
-                            </div>
-                            <div class="settings-row-stacked">
-                                <label class="settings-field-label">Sub-heading <span style="color:#374151; font-weight:400;">(leave blank to hide)</span></label>
-                                <input type="text" id="site-subheading" placeholder="Prioritize | Execute | Finish"
-                                    class="glass-input settings-text-input"
-                                    oninput="document.getElementById('preview-site-subheading').textContent = this.value || 'Prioritize | Execute | Finish'">
-                                <div class="settings-inline-preview">
-                                    <div class="settings-inline-preview-label">Preview</div>
-                                    <span id="preview-site-subheading" style="font-size:12px; color:#6b7280; font-style:italic;">Prioritize | Execute | Finish</span>
-                                </div>
-                            </div>
+                <!-- Sidebar nav -->
+                <nav class="settings-nav">
+                    <button type="button" onclick="switchTab('appearance')" id="tab-appearance" class="settings-nav-item active-nav">
+                        <i data-lucide="palette" class="settings-nav-icon"></i> Appearance
+                    </button>
+                    <button type="button" onclick="switchTab('timers')" id="tab-timers" class="settings-nav-item">
+                        <i data-lucide="timer" class="settings-nav-icon"></i> Timers
+                    </button>
+                    <button type="button" onclick="switchTab('data')" id="tab-data" class="settings-nav-item">
+                        <i data-lucide="hard-drive" class="settings-nav-icon"></i> Data
+                    </button>
+                </nav>
 
-                            <div style="display:flex; flex-direction:column; gap:6px; margin-top:2px;">
-                                <div class="settings-toggle-row">
-                                    <div>
-                                        <span class="settings-toggle-label">Hide Heading</span>
-                                        <span class="settings-toggle-desc">Hides the page title &amp; sub-heading</span>
+                <!-- Scrollable content -->
+                <div style="flex:1; overflow-y:auto; padding:20px 22px 28px; min-width:0;" id="settings-scroll-area">
+                <form id="settings-form">
+
+                    <!-- ── TAB: APPEARANCE ── -->
+                    <div id="panel-appearance" class="settings-panel">
+                        <!-- Branding -->
+                        <div class="settings-section">
+                            <div class="settings-section-label">
+                                <i data-lucide="type" class="settings-section-icon"></i>
+                                Branding
+                            </div>
+                            <div class="settings-rows">
+                                <div class="settings-row-stacked">
+                                    <label class="settings-field-label">Page Heading</label>
+                                    <input type="text" id="site-heading" placeholder="Deadline Dashboard"
+                                        class="glass-input settings-text-input"
+                                        oninput="document.getElementById('preview-site-heading').textContent = this.value || 'Deadline Dashboard'">
+                                    <div class="settings-inline-preview">
+                                        <div class="settings-inline-preview-label">Preview</div>
+                                        <span id="preview-site-heading" style="font-size:18px; font-weight:900; color:transparent; background:linear-gradient(135deg,#c7d2fe,#fff,#ddd6fe); -webkit-background-clip:text; background-clip:text; letter-spacing:-0.03em; line-height:1.1; font-family:var(--site-title-font, Inter, sans-serif);">Deadline Dashboard</span>
                                     </div>
-                                    <label class="settings-toggle-switch">
-                                        <input type="checkbox" id="hide-heading" class="sr-only peer">
-                                        <div class="settings-toggle-track peer-checked:bg-indigo-600 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                    </label>
                                 </div>
-                                <div class="settings-toggle-row">
-                                    <div>
-                                        <span class="settings-toggle-label">Hide Bottom Credit</span>
-                                        <span class="settings-toggle-desc">Hides the footer storage note &amp; credit</span>
+                                <div class="settings-row-stacked">
+                                    <label class="settings-field-label">Sub-heading <span style="color:#4b5563; font-weight:400;">(leave blank to hide)</span></label>
+                                    <input type="text" id="site-subheading" placeholder="Prioritize | Execute | Finish"
+                                        class="glass-input settings-text-input"
+                                        oninput="document.getElementById('preview-site-subheading').textContent = this.value || 'Prioritize | Execute | Finish'">
+                                    <div class="settings-inline-preview">
+                                        <div class="settings-inline-preview-label">Preview</div>
+                                        <span id="preview-site-subheading" style="font-size:12px; color:#6b7280; font-style:italic;">Prioritize | Execute | Finish</span>
                                     </div>
-                                    <label class="settings-toggle-switch">
-                                        <input type="checkbox" id="hide-credit" class="sr-only peer">
-                                        <div class="settings-toggle-track peer-checked:bg-indigo-600 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </div>
+
+                                <!-- Visibility Toggles -->
+                                <div style="display:flex; flex-direction:column; gap:6px; margin-top:2px;">
+                                    <label class="settings-toggle-row">
+                                        <div>
+                                            <span class="settings-toggle-label">Hide Heading</span>
+                                            <span class="settings-toggle-desc">Hides the page title &amp; sub-heading</span>
+                                        </div>
+                                        <span class="toggle-switch">
+                                            <input type="checkbox" id="hide-heading">
+                                            <span class="toggle-track"></span>
+                                        </span>
                                     </label>
+                                    <label class="settings-toggle-row">
+                                        <div>
+                                            <span class="settings-toggle-label">Hide Bottom Credit</span>
+                                            <span class="settings-toggle-desc">Hides the footer storage note &amp; credit</span>
+                                        </div>
+                                        <span class="toggle-switch">
+                                            <input type="checkbox" id="hide-credit">
+                                            <span class="toggle-track"></span>
+                                        </span>
+                                    </label>
+                                    <!-- Keep legacy hidden input for backwards compat -->
+                                    <input type="checkbox" id="hide-header" class="hidden">
                                 </div>
-                                <input type="checkbox" id="hide-header" class="hidden">
+                            </div>
+                        </div>
+
+                        <!-- Typography -->
+                        <div class="settings-section">
+                            <div class="settings-section-label">
+                                <i data-lucide="a-large-small" class="settings-section-icon"></i>
+                                Typography
+                                <a href="https://fonts.google.com" target="_blank" rel="noopener" class="settings-ext-link">Browse Fonts ↗</a>
+                            </div>
+                            <div class="settings-rows">
+                                <!-- Title font -->
+                                <div class="settings-font-row">
+                                    <div class="settings-font-row-header">
+                                        <span class="settings-font-label">Title Font</span>
+                                        <span id="font-status-title" class="font-status" style="display:none;"></span>
+                                    </div>
+                                    <input type="text" id="site-title-font" placeholder="e.g. Lemonada"
+                                        class="glass-input settings-text-input" oninput="previewFont(this,'inline-preview-title','--site-title-font','font-status-title')">
+                                    <div class="settings-inline-preview">
+                                        <div class="settings-inline-preview-label">Title Preview</div>
+                                        <span id="inline-preview-title" style="font-size:19px; font-weight:900; color:transparent; background:linear-gradient(135deg,#c7d2fe,#fff,#ddd6fe); -webkit-background-clip:text; background-clip:text; letter-spacing:-0.03em; transition:font-family 0.3s;">Deadline Dashboard</span>
+                                    </div>
+                                </div>
+                                <!-- Headings font -->
+                                <div class="settings-font-row">
+                                    <div class="settings-font-row-header">
+                                        <span class="settings-font-label">Headings Font</span>
+                                        <span id="font-status-heading" class="font-status" style="display:none;"></span>
+                                    </div>
+                                    <input type="text" id="heading-font" placeholder="e.g. DM Sans"
+                                        class="glass-input settings-text-input" oninput="previewFont(this,'inline-preview-heading','--heading-font','font-status-heading')">
+                                    <div class="settings-inline-preview">
+                                        <div class="settings-inline-preview-label">Headings Preview</div>
+                                        <span id="inline-preview-heading" style="font-size:14px; font-weight:600; color:#9ca3af; transition:font-family 0.3s;">Physics Final Exam</span>
+                                    </div>
+                                </div>
+                                <!-- Numbers font -->
+                                <div class="settings-font-row">
+                                    <div class="settings-font-row-header">
+                                        <span class="settings-font-label">Numbers Font</span>
+                                        <span id="font-status-numbers" class="font-status" style="display:none;"></span>
+                                    </div>
+                                    <input type="text" id="countdown-font" placeholder="e.g. Space Mono"
+                                        class="glass-input settings-text-input" oninput="previewFont(this,'inline-preview-numbers','--countdown-font','font-status-numbers')">
+                                    <div class="settings-inline-preview">
+                                        <div class="settings-inline-preview-label">Numbers Preview</div>
+                                        <span id="inline-preview-numbers" style="font-size:18px; font-weight:700; color:#818cf8; letter-spacing:0.08em; transition:font-family 0.3s;">12 : 34 : 59</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="settings-section">
-                        <div class="settings-section-label">
-                            <i data-lucide="a-large-small" class="settings-section-icon"></i>
-                            Typography
-                            <a href="https://fonts.google.com" target="_blank" rel="noopener" class="settings-ext-link">Browse Fonts ↗</a>
-                        </div>
-                        <div class="settings-rows">
-                            <div class="settings-font-row">
-                                <span class="settings-font-label">Title Font</span>
-                                <input type="text" id="site-title-font" placeholder="e.g. Lemonada"
-                                    class="glass-input settings-text-input" oninput="previewFont(this,'preview-title','--preview-title-font'); document.getElementById('inline-preview-title').style.fontFamily = this.value ? this.value + ', Inter, sans-serif' : 'Inter, sans-serif'">
-                                <div class="settings-inline-preview">
-                                    <div class="settings-inline-preview-label">Title Preview</div>
-                                    <span id="inline-preview-title" style="font-size:19px; font-weight:900; color:transparent; background:linear-gradient(135deg,#c7d2fe,#fff,#ddd6fe); -webkit-background-clip:text; background-clip:text; letter-spacing:-0.03em; transition:font-family 0.3s;">Deadline Dashboard</span>
-                                </div>
+                    <!-- ── TAB: TIMERS ── -->
+                    <div id="panel-timers" class="settings-panel" style="display:none;">
+                        <!-- Visible Units -->
+                        <div class="settings-section">
+                            <div class="settings-section-label">
+                                <i data-lucide="eye" class="settings-section-icon"></i>
+                                Visible Units
                             </div>
-                            <div class="settings-font-row">
-                                <span class="settings-font-label">Headings Font</span>
-                                <input type="text" id="heading-font" placeholder="e.g. DM Sans"
-                                    class="glass-input settings-text-input" oninput="previewFont(this,'preview-heading','--preview-heading-font'); document.getElementById('inline-preview-heading').style.fontFamily = this.value ? this.value + ', Inter, sans-serif' : 'Inter, sans-serif'">
-                                <div class="settings-inline-preview">
-                                    <div class="settings-inline-preview-label">Headings Preview</div>
-                                    <span id="inline-preview-heading" style="font-size:14px; font-weight:600; color:#9ca3af; transition:font-family 0.3s;">Physics Final Exam</span>
-                                </div>
-                            </div>
-                            <div class="settings-font-row">
-                                <span class="settings-font-label">Numbers Font</span>
-                                <input type="text" id="countdown-font" placeholder="e.g. Space Mono"
-                                    class="glass-input settings-text-input" oninput="previewFont(this,'preview-numbers','--preview-numbers-font'); document.getElementById('inline-preview-numbers').style.fontFamily = this.value ? this.value + ', monospace' : 'monospace'">
-                                <div class="settings-inline-preview">
-                                    <div class="settings-inline-preview-label">Numbers Preview</div>
-                                    <span id="inline-preview-numbers" style="font-size:18px; font-weight:700; color:#818cf8; letter-spacing:0.08em; transition:font-family 0.3s;">12 : 34 : 59</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="font-preview-card" class="settings-font-preview">
-                            <div class="settings-font-preview-label">COMBINED PREVIEW</div>
-                            <div id="preview-title" class="settings-font-preview-title">Deadline Dashboard</div>
-                            <div id="preview-heading" class="settings-font-preview-heading">Physics Final Exam</div>
-                            <div id="preview-numbers" class="settings-font-preview-numbers">12 : 34 : 59</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ── TAB: TIMERS ── -->
-                <div id="panel-timers" class="settings-panel" style="display:none;">
-                    <div class="settings-section">
-                        <div class="settings-section-label">
-                            <i data-lucide="eye" class="settings-section-icon"></i>
-                            Visible Units
-                        </div>
-                        <div class="settings-rows">
-                            <div class="settings-toggle-row">
-                                <span class="settings-toggle-label">Hours</span>
-                                <label class="settings-toggle-switch">
-                                    <input type="checkbox" id="toggle-hours" class="sr-only peer">
-                                    <div class="settings-toggle-track peer-checked:bg-indigo-600 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                            <div class="settings-rows">
+                                <label class="settings-toggle-row">
+                                    <span class="settings-toggle-label">Hours</span>
+                                    <span class="toggle-switch">
+                                        <input type="checkbox" id="toggle-hours">
+                                        <span class="toggle-track"></span>
+                                    </span>
+                                </label>
+                                <label class="settings-toggle-row">
+                                    <span class="settings-toggle-label">Minutes</span>
+                                    <span class="toggle-switch">
+                                        <input type="checkbox" id="toggle-minutes">
+                                        <span class="toggle-track"></span>
+                                    </span>
+                                </label>
+                                <label class="settings-toggle-row">
+                                    <span class="settings-toggle-label">Seconds</span>
+                                    <span class="toggle-switch">
+                                        <input type="checkbox" id="toggle-seconds">
+                                        <span class="toggle-track"></span>
+                                    </span>
                                 </label>
                             </div>
-                            <div class="settings-toggle-row">
-                                <span class="settings-toggle-label">Minutes</span>
-                                <label class="settings-toggle-switch">
-                                    <input type="checkbox" id="toggle-minutes" class="sr-only peer">
-                                    <div class="settings-toggle-track peer-checked:bg-indigo-600 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                </label>
+                        </div>
+
+                        <!-- Status & Colors -->
+                        <div class="settings-section">
+                            <div class="settings-section-label">
+                                <i data-lucide="zap" class="settings-section-icon"></i>
+                                Status &amp; Colors
                             </div>
-                            <div class="settings-toggle-row">
-                                <span class="settings-toggle-label">Seconds</span>
-                                <label class="settings-toggle-switch">
-                                    <input type="checkbox" id="toggle-seconds" class="sr-only peer">
-                                    <div class="settings-toggle-track peer-checked:bg-indigo-600 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                </label>
+                            <div class="settings-rows">
+                                <!-- Urgent -->
+                                <div class="settings-color-row">
+                                    <div id="urgent-dot" class="settings-color-dot" style="background:#f87171; box-shadow:0 0 7px rgba(248,113,113,0.7);"></div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div class="settings-field-label" style="margin-bottom:5px;">Urgent — within <span class="settings-days-badge" id="urgent-days-badge">4</span> days</div>
+                                        <input type="range" id="urgent-days" min="1" max="30" value="4" step="1"
+                                            class="settings-range" oninput="updateRangeFill(this); document.getElementById('urgent-days-badge').textContent=this.value;">
+                                    </div>
+                                    <input type="color" id="urgent-color" class="settings-color-swatch" oninput="updateColorDot('urgent')">
+                                </div>
+                                <!-- Soon -->
+                                <div class="settings-color-row">
+                                    <div id="soon-dot" class="settings-color-dot" style="background:#facc15; box-shadow:0 0 7px rgba(250,204,21,0.7);"></div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div class="settings-field-label" style="margin-bottom:5px;">Soon — within <span class="settings-days-badge" id="soon-days-badge">15</span> days</div>
+                                        <input type="range" id="soon-days" min="1" max="90" value="15" step="1"
+                                            class="settings-range" oninput="updateRangeFill(this); document.getElementById('soon-days-badge').textContent=this.value; document.getElementById('on-track-threshold-label').textContent=this.value;">
+                                    </div>
+                                    <input type="color" id="soon-color" class="settings-color-swatch" oninput="updateColorDot('soon')">
+                                </div>
+                                <!-- On Track -->
+                                <div class="settings-color-row">
+                                    <div id="ontrack-dot" class="settings-color-dot" style="background:#34d399; box-shadow:0 0 7px rgba(52,211,153,0.7);"></div>
+                                    <div style="flex:1;">
+                                        <div class="settings-field-label">On Track</div>
+                                        <div style="font-size:11px; color:#4b5563; margin-top:2px;">More than <span id="on-track-threshold-label">15</span> days away</div>
+                                    </div>
+                                    <input type="color" id="ontrack-color" class="settings-color-swatch" oninput="updateColorDot('ontrack')">
+                                </div>
+                                <!-- Expired -->
+                                <div class="settings-color-row">
+                                    <div id="expired-dot" class="settings-color-dot" style="background:#ef4444; box-shadow:0 0 7px rgba(239,68,68,0.7);"></div>
+                                    <div style="flex:1;">
+                                        <div class="settings-field-label">Expired</div>
+                                        <div style="font-size:11px; color:#4b5563; margin-top:2px;">Deadline has passed</div>
+                                    </div>
+                                    <input type="color" id="expired-color" class="settings-color-swatch" oninput="updateColorDot('expired')">
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="settings-section">
-                        <div class="settings-section-label">
-                            <i data-lucide="zap" class="settings-section-icon"></i>
-                            Status &amp; Colors
-                        </div>
-                        <div class="settings-rows">
-                            <div class="settings-color-row">
-                                <div class="settings-color-dot" style="background: var(--preview-urgent, #f87171);"></div>
-                                <div style="flex:1; min-width:0;">
-                                    <div class="settings-field-label" style="margin-bottom:4px;">Urgent — within <span class="settings-days-badge" id="urgent-days-badge">4</span> days</div>
-                                    <input type="range" id="urgent-days" min="1" max="30" value="4"
-                                        class="settings-range" oninput="document.getElementById('urgent-days-badge').textContent=this.value; document.querySelector('.settings-color-dot').style.background=document.getElementById('urgent-color').value">
-                                </div>
-                                <input type="color" id="urgent-color" class="settings-color-swatch" oninput="updateColorDot('urgent')">
+                    <!-- ── TAB: DATA ── -->
+                    <div id="panel-data" class="settings-panel" style="display:none;">
+                        <div class="settings-section">
+                            <div class="settings-section-label">
+                                <i data-lucide="archive" class="settings-section-icon"></i>
+                                Backup &amp; Restore
                             </div>
-                            <div class="settings-color-row">
-                                <div class="settings-color-dot" id="soon-dot" style="background: var(--preview-soon, #facc15);"></div>
-                                <div style="flex:1; min-width:0;">
-                                    <div class="settings-field-label" style="margin-bottom:4px;">Soon — within <span class="settings-days-badge" id="soon-days-badge">15</span> days</div>
-                                    <input type="range" id="soon-days" min="1" max="90" value="15"
-                                        class="settings-range" oninput="document.getElementById('soon-days-badge').textContent=this.value">
+                            <div style="padding: 4px 0;">
+                                <p style="font-size:12px; color:#6b7280; line-height:1.6; margin-bottom:16px;">Your timers and settings are stored in this browser's local storage. Export a backup to keep your data safe or transfer it to another device.</p>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                    <button type="button" onclick="exportData()" class="settings-data-btn">
+                                        <i data-lucide="file-output"></i> Export
+                                    </button>
+                                    <button type="button" onclick="document.getElementById('import-file').click()" class="settings-data-btn">
+                                        <i data-lucide="file-input"></i> Import
+                                    </button>
+                                    <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(this)">
                                 </div>
-                                <input type="color" id="soon-color" class="settings-color-swatch" oninput="updateColorDot('soon')">
-                            </div>
-                            <div class="settings-color-row">
-                                <div class="settings-color-dot" id="ontrack-dot" style="background: #34d399;"></div>
-                                <div style="flex:1;">
-                                    <div class="settings-field-label">On Track</div>
-                                </div>
-                                <input type="color" id="ontrack-color" class="settings-color-swatch" oninput="updateColorDot('ontrack')">
-                            </div>
-                            <div class="settings-color-row">
-                                <div class="settings-color-dot" id="expired-dot" style="background: #ef4444;"></div>
-                                <div style="flex:1;">
-                                    <div class="settings-field-label">Expired</div>
-                                </div>
-                                <input type="color" id="expired-color" class="settings-color-swatch" oninput="updateColorDot('expired')">
+                                <p id="import-status" style="font-size:11px; text-align:center; margin-top:12px; height:16px; font-weight:700; opacity:0; transition:opacity 0.3s;" class="text-emerald-400"></p>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- ── TAB: DATA ── -->
-                <div id="panel-data" class="settings-panel" style="display:none;">
-                    <div class="settings-section">
-                        <div class="settings-section-label">
-                            <i data-lucide="hard-drive" class="settings-section-icon"></i>
-                            Backup &amp; Restore
-                        </div>
-                        <div style="padding: 16px 0 4px;">
-                            <p style="font-size:12px; color:#6b7280; line-height:1.5; margin-bottom:16px;">Your timers and settings are stored in this browser's local storage. Export a backup to keep your data safe or transfer it to another device.</p>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                <button type="button" onclick="exportData()"
-                                    style="display:flex; align-items:center; justify-content:center; gap:10px; padding:16px 20px; border-radius:18px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.035); cursor:pointer; transition:all 0.25s cubic-bezier(0.4,0,0.2,1); color:#e2e8f0; font-size:14px; font-weight:600; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);"
-                                    onmouseover="this.style.background='rgba(129,140,248,0.15)'; this.style.borderColor='rgba(129,140,248,0.4)'; this.style.color='#c7d2fe'; this.style.transform='translateY(-1px)'"
-                                    onmouseout="this.style.background='rgba(255,255,255,0.035)'; this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='#e2e8f0'; this.style.transform='translateY(0)'">
-                                    <i data-lucide="upload" style="width:18px; height:18px;"></i> Export
+                        <!-- Danger Zone -->
+                        <div class="settings-section">
+                            <div class="settings-section-label">
+                                <i data-lucide="alert-triangle" class="settings-section-icon" style="color:#f87171;"></i>
+                                <span style="color:#f87171;">Danger Zone</span>
+                            </div>
+                            <div style="padding: 4px 0;">
+                                <p style="font-size:12px; color:#6b7280; line-height:1.6; margin-bottom:12px;">Reset all appearance and timer settings back to their defaults. Your timers will not be deleted.</p>
+                                <button type="button" onclick="resetToDefaults()" class="settings-reset-btn">
+                                    <i data-lucide="rotate-ccw"></i> Reset to Defaults
                                 </button>
-                                <button type="button" onclick="document.getElementById('import-file').click()"
-                                    style="display:flex; align-items:center; justify-content:center; gap:10px; padding:16px 20px; border-radius:18px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.035); cursor:pointer; transition:all 0.25s cubic-bezier(0.4,0,0.2,1); color:#e2e8f0; font-size:14px; font-weight:600; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);"
-                                    onmouseover="this.style.background='rgba(129,140,248,0.15)'; this.style.borderColor='rgba(129,140,248,0.4)'; this.style.color='#c7d2fe'; this.style.transform='translateY(-1px)'"
-                                    onmouseout="this.style.background='rgba(255,255,255,0.035)'; this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='#e2e8f0'; this.style.transform='translateY(0)'">
-                                    <i data-lucide="download" style="width:18px; height:18px;"></i> Import
-                                </button>
-                                <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(this)">
                             </div>
-                            <p id="import-status" class="text-[10px] text-center mt-3 h-4 text-emerald-400 font-bold opacity-0 transition-opacity"></p>
                         </div>
                     </div>
 
-                    <div class="settings-section">
-                        <div class="settings-section-label">
-                            <i data-lucide="info" class="settings-section-icon"></i>
-                            About
-                        </div>
-                        <div style="padding: 12px 0 4px; display:flex; flex-direction:column; gap:8px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:12px; color:#6b7280;">Storage location</span>
-                                <span style="font-size:11px; color:#4b5563; background:rgba(255,255,255,0.04); padding:3px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.06);">Browser localStorage</span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:12px; color:#6b7280;">Created by</span>
-                                <span style="font-size:12px; color:#818cf8; font-weight:600;">Tamim</span>
-                            </div>
-                        </div>
-                    </div>
+                </form>
                 </div>
-
-            </form>
             </div>
 
             <!-- Sticky footer -->
-            <div style="padding: 14px 22px 22px; flex-shrink: 0; border-top: 1px solid rgba(255,255,255,0.05); background: linear-gradient(to top, #0f0f13 80%, transparent);">
-                <button type="button" onclick="saveSettings()"
-                    style="width:100%; padding:16px; border-radius:18px; background:linear-gradient(135deg,#6366f1,#a855f7); border: 1px solid rgba(129,140,248,0.4); color:white; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:-0.02em; transition:all 0.25s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 10px 25px -5px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.2);"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 20px 30px -8px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px -5px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'">
-                    Apply Changes
+            <div style="padding: 12px 20px 18px; flex-shrink: 0; border-top: 1px solid rgba(255,255,255,0.06); background: linear-gradient(to top, #0b0b0d 80%, transparent); display:flex; gap:10px;">
+                <button type="button" onclick="cancelSettings()" class="settings-cancel-btn">
+                    Cancel
+                </button>
+                <button type="button" onclick="saveSettings()" class="settings-save-btn">
+                    Save &amp; Close
                 </button>
             </div>
         </div>
@@ -1017,6 +1177,7 @@
         const settingsModalEl = document.getElementById('settings-modal');
         const settingsModalContentEl = document.getElementById('settings-modal-content');
         
+        // Settings Inputs
         const siteTitleFontInput = document.getElementById('site-title-font');
         const headingFontInput = document.getElementById('heading-font');
         const countdownFontInput = document.getElementById('countdown-font');
@@ -1038,6 +1199,28 @@
 
         const fontImportsContainer = document.getElementById('font-imports');
         const cleanFontName = (name) => name.trim().replace(/\s+/g, '+');
+
+        // Slider cross-validation: urgent must always be < soon
+        const validateSliders = () => {
+            const urgent = parseInt(urgentDaysInput.value);
+            const soon   = parseInt(soonDaysInput.value);
+            if (urgent >= soon) {
+                urgentDaysInput.value = soon - 1;
+                document.getElementById('urgent-days-badge').textContent = soon - 1;
+                updateRangeFill(urgentDaysInput);
+            }
+        };
+        urgentDaysInput.addEventListener('input', validateSliders);
+        soonDaysInput.addEventListener('input', () => {
+            const urgent = parseInt(urgentDaysInput.value);
+            const soon   = parseInt(soonDaysInput.value);
+            if (soon <= urgent) {
+                soonDaysInput.value = urgent + 1;
+                document.getElementById('soon-days-badge').textContent = urgent + 1;
+                document.getElementById('on-track-threshold-label').textContent = urgent + 1;
+                updateRangeFill(soonDaysInput);
+            }
+        });
 
         const hexToRgba = (hex, alpha) => {
             let r = 0, g = 0, b = 0;
@@ -1125,6 +1308,7 @@
             toggleMinutesInput.checked = currentSettings.showMinutes;
             toggleSecondsInput.checked = currentSettings.showSeconds;
 
+            // Apply heading & subheading text
             const headingEl = document.getElementById('site-heading-display');
             const subheadingEl = document.getElementById('site-subheading-display');
             const headerEl = document.getElementById('site-header');
@@ -1137,10 +1321,12 @@
             if (subheadingEl) subheadingEl.textContent = subheading;
             document.title = heading;
 
+            // Hide/show header independently from footer credit
             const shouldHideHeading = currentSettings.hideHeading || currentSettings.hideHeader;
             const shouldHideCredit = currentSettings.hideCredit || currentSettings.hideHeader;
             if (headerEl) headerEl.style.display = shouldHideHeading ? 'none' : '';
             if (footerEl) footerEl.style.display = shouldHideCredit ? 'none' : '';
+            // Prevent cards from sliding under settings FAB in focus mode
             const mainEl = document.getElementById('countdown-list');
             if (mainEl) mainEl.style.paddingTop = shouldHideHeading ? '72px' : '';
         };
@@ -1309,6 +1495,7 @@
                 countdownDiv.style.animationDelay = `${index * 50}ms`;
                 countdownDiv.setAttribute('tabindex', '0'); 
                 
+                // Pass dynamic urgency colors as CSS variables
                 countdownDiv.style.setProperty('--glow-color', glowColor);
                 countdownDiv.style.setProperty('--glow-color-soft', glowColorSoft);
                 countdownDiv.style.setProperty('--glow-color-inner', glowColorInner);
@@ -1356,6 +1543,7 @@
                                 </p>
                             </div>
                             
+                            <!-- Actions: Hidden by default (opacity-0). Appear on Hover (Desktop) or Focus/Touch (Mobile) -->
                             <div class="flex flex-col space-y-1 opacity-0 group-hover:opacity-100 group-focus:opacity-100 group-focus-within:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0 group-focus-within:translate-x-0">
                                 <button class="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-white/10 transition active:scale-95" onclick="editCountdown('${id}', '${safeHeadline}', '${targetDate}')">
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -1395,6 +1583,7 @@
                 const glowColorSoft = hexToRgba(mainColor, 0.35);
                 const glowColorInner = hexToRgba(mainColor, 0.07);
 
+                // Update CSS Variables dynamically in case color changed
                 wrapperEl.style.setProperty('--glow-color', glowColor);
                 wrapperEl.style.setProperty('--glow-color-soft', glowColorSoft);
                 wrapperEl.style.setProperty('--glow-color-inner', glowColorInner);
@@ -1411,8 +1600,12 @@
                     wrapperEl.classList.add('is-expired');
                 
                 } else if (!time.isPast) {
+                    // Remove expired class if user updated date to future
                     wrapperEl.classList.remove('is-expired');
                     
+                    // If returning from expired state, we'd need to re-render grid, but simplest is just update text
+                    // NOTE: If structure changed (Time's Up -> Grid), renderCountdowns handles it on next full render/edit
+                    // For pure time updates:
                     const unitElements = timerDisplayEl.querySelectorAll('[data-unit]');
                     if(unitElements.length > 0) {
                         unitElements.forEach(el => {
@@ -1426,6 +1619,7 @@
                              if (daysEl) daysEl.textContent = Math.ceil(time.totalDays);
                         }
                     } else if (timerDisplayEl.classList.contains('deadline-passed')) {
+                        // Was passed, now future (e.g. quick edit without full reload), force full re-render
                         renderCountdowns();
                     }
                 }
@@ -1477,29 +1671,60 @@
             showModal(id, headline.replace(/&apos;/g, "'"), targetDate);
         };
 
+        // ── Font preview helper ──
         const fontPreviewDebounce = {};
-        window.previewFont = (input, previewElId, cssVar) => {
+        window.previewFont = (input, previewElId, cssVar, statusElId) => {
             const name = input.value.trim();
             clearTimeout(fontPreviewDebounce[previewElId]);
+
+            const statusEl = statusElId ? document.getElementById(statusElId) : null;
+
+            // Clear when empty
+            if (!name) {
+                document.documentElement.style.removeProperty(cssVar);
+                const previewEl = document.getElementById(previewElId);
+                if (previewEl) previewEl.style.fontFamily = '';
+                if (statusEl) statusEl.style.display = 'none';
+                return;
+            }
+
+            // Show loading state immediately
+            if (statusEl) {
+                statusEl.className = 'font-status loading';
+                statusEl.textContent = '⋯ Loading';
+                statusEl.style.display = 'inline-flex';
+            }
+
             fontPreviewDebounce[previewElId] = setTimeout(() => {
                 const previewEl = document.getElementById(previewElId);
                 if (!previewEl) return;
-                if (!name) {
-                    document.documentElement.style.removeProperty(cssVar);
-                    previewEl.style.fontFamily = '';
-                    return;
-                }
                 const clean = name.replace(/\s+/g, '+');
                 const existingLink = document.querySelector(`link[data-preview-font="${clean}"]`);
-                if (!existingLink) {
-                    const link = document.createElement('link');
-                    link.href = `https://fonts.googleapis.com/css2?family=${clean}:wght@400;700;900&display=swap`;
-                    link.rel = 'stylesheet';
-                    link.setAttribute('data-preview-font', clean);
-                    document.head.appendChild(link);
-                }
+                const link = existingLink || (() => {
+                    const l = document.createElement('link');
+                    l.href = `https://fonts.googleapis.com/css2?family=${clean}:wght@400;700;900&display=swap`;
+                    l.rel = 'stylesheet';
+                    l.setAttribute('data-preview-font', clean);
+                    document.head.appendChild(l);
+                    return l;
+                })();
+
                 document.documentElement.style.setProperty(cssVar, `'${name}', Inter, sans-serif`);
                 previewEl.style.fontFamily = `'${name}', Inter, sans-serif`;
+
+                // Check if font loaded after a brief render window
+                setTimeout(() => {
+                    if (statusEl) {
+                        const loaded = document.fonts.check(`700 16px '${name}'`);
+                        if (loaded) {
+                            statusEl.className = 'font-status found';
+                            statusEl.textContent = '✓ Found';
+                        } else {
+                            statusEl.className = 'font-status notfound';
+                            statusEl.textContent = '✗ Not found';
+                        }
+                    }
+                }, 900);
             }, 400);
         };
 
@@ -1507,26 +1732,53 @@
             ['appearance','timers','data'].forEach(t => {
                 document.getElementById('panel-' + t).style.display = t === tab ? 'block' : 'none';
                 const btn = document.getElementById('tab-' + t);
-                btn.classList.toggle('active-tab', t === tab);
+                btn.classList.toggle('active-nav', t === tab);
             });
             document.getElementById('settings-scroll-area').scrollTop = 0;
         };
 
         window.updateColorDot = (type) => {
             const colorMap = {
-                urgent: { color: 'urgent-color', dot: '.settings-color-dot' },
-                soon: { color: 'soon-color', dot: '#soon-dot' },
-                ontrack: { color: 'ontrack-color', dot: '#ontrack-dot' },
-                expired: { color: 'expired-color', dot: '#expired-dot' },
+                urgent:  { color: 'urgent-color',  dot: 'urgent-dot' },
+                soon:    { color: 'soon-color',     dot: 'soon-dot' },
+                ontrack: { color: 'ontrack-color',  dot: 'ontrack-dot' },
+                expired: { color: 'expired-color',  dot: 'expired-dot' },
             };
             const entry = colorMap[type];
             if (!entry) return;
-            const color = document.getElementById(entry.color).value;
-            const dot = document.querySelector(entry.dot);
-            if (dot) dot.style.background = color;
+            const colorHex = document.getElementById(entry.color).value;
+            syncColorDotGlow(document.getElementById(entry.dot), colorHex);
+            // Update on-track threshold label when soon slider moves
+            if (type === 'soon') {
+                const soonVal = document.getElementById('soon-days').value;
+                const el = document.getElementById('on-track-threshold-label');
+                if (el) el.textContent = soonVal;
+            }
+        };
+
+        // Snapshot of settings at the moment the modal opens (for Cancel)
+        let settingsSnapshot = null;
+
+        const updateRangeFill = (input) => {
+            const pct = ((input.value - input.min) / (input.max - input.min)) * 100;
+            input.style.background = `linear-gradient(to right, #818cf8 ${pct}%, rgba(255,255,255,0.1) ${pct}%)`;
+        };
+        window.updateRangeFill = updateRangeFill;
+
+        const syncColorDotGlow = (dotEl, colorHex) => {
+            if (!dotEl || !colorHex) return;
+            dotEl.style.background = colorHex;
+            // Parse hex to get a proper glow — avoids the currentColor bug
+            const r = parseInt(colorHex.slice(1,3),16);
+            const g = parseInt(colorHex.slice(3,5),16);
+            const b = parseInt(colorHex.slice(5,7),16);
+            dotEl.style.boxShadow = `0 0 7px rgba(${r},${g},${b},0.75)`;
         };
 
         window.showSettingsModal = () => {
+            // Take a snapshot so Cancel can restore
+            settingsSnapshot = JSON.parse(JSON.stringify(currentSettings));
+
             siteTitleFontInput.value = currentSettings.siteTitleFont === defaultSettings.siteTitleFont ? '' : currentSettings.siteTitleFont;
             headingFontInput.value = currentSettings.headingFont === defaultSettings.headingFont ? '' : currentSettings.headingFont;
             countdownFontInput.value = currentSettings.countdownFont === defaultSettings.countdownFont ? '' : currentSettings.countdownFont;
@@ -1538,24 +1790,27 @@
             soonDaysInput.value = currentSettings.soonDays;
             document.getElementById('urgent-days-badge').textContent = currentSettings.urgentDays;
             document.getElementById('soon-days-badge').textContent = currentSettings.soonDays;
+            document.getElementById('on-track-threshold-label').textContent = currentSettings.soonDays;
             urgentColorInput.value = currentSettings.urgentColor;
             soonColorInput.value = currentSettings.soonColor;
             onTrackColorInput.value = currentSettings.onTrackColor;
             expiredColorInput.value = currentSettings.expiredColor;
-            const urgentDot = document.querySelector('.settings-color-dot');
-            if (urgentDot) urgentDot.style.background = currentSettings.urgentColor;
-            const soonDot = document.getElementById('soon-dot');
-            if (soonDot) soonDot.style.background = currentSettings.soonColor;
-            const ontrackDot = document.getElementById('ontrack-dot');
-            if (ontrackDot) ontrackDot.style.background = currentSettings.onTrackColor;
-            const expiredDot = document.getElementById('expired-dot');
-            if (expiredDot) expiredDot.style.background = currentSettings.expiredColor;
+
+            // Sync color dots with proper glow
+            syncColorDotGlow(document.getElementById('urgent-dot'), currentSettings.urgentColor);
+            syncColorDotGlow(document.getElementById('soon-dot'), currentSettings.soonColor);
+            syncColorDotGlow(document.getElementById('ontrack-dot'), currentSettings.onTrackColor);
+            syncColorDotGlow(document.getElementById('expired-dot'), currentSettings.expiredColor);
+
+            // Sync range fill tracks
+            [urgentDaysInput, soonDaysInput].forEach(updateRangeFill);
 
             siteHeadingInput.value = currentSettings.siteHeading === defaultSettings.siteHeading ? '' : currentSettings.siteHeading;
             siteSubheadingInput.value = currentSettings.siteSubheading === defaultSettings.siteSubheading ? '' : (currentSettings.siteSubheading || '');
             hideHeaderInput.checked = !!currentSettings.hideHeader;
             hideHeadingInput.checked = !!(currentSettings.hideHeading || currentSettings.hideHeader);
             hideCreditInput.checked = !!(currentSettings.hideCredit || currentSettings.hideHeader);
+
             document.getElementById('preview-site-heading').textContent = currentSettings.siteHeading || 'Deadline Dashboard';
             document.getElementById('preview-site-subheading').textContent = currentSettings.siteSubheading || 'Prioritize | Execute | Finish';
 
@@ -1574,9 +1829,9 @@
                     el.style.fontFamily = `'${fontName}', Inter, sans-serif`;
                     document.documentElement.style.setProperty(cssVar, `'${fontName}', Inter, sans-serif`);
                 };
-                applyPreview('preview-title',   '--preview-title-font',   currentSettings.siteTitleFont);
-                applyPreview('preview-heading', '--preview-heading-font', currentSettings.headingFont);
-                applyPreview('preview-numbers', '--preview-numbers-font', currentSettings.countdownFont);
+                applyPreview('inline-preview-title',   '--site-title-font',   currentSettings.siteTitleFont);
+                applyPreview('inline-preview-heading', '--heading-font', currentSettings.headingFont);
+                applyPreview('inline-preview-numbers', '--countdown-font', currentSettings.countdownFont);
                 const syncInline = (elId, fontName) => {
                     const el = document.getElementById(elId);
                     if (!el) return;
@@ -1594,6 +1849,26 @@
             setTimeout(() => {
                 settingsModalEl.classList.add('hidden');
             }, 300);
+        };
+
+        window.cancelSettings = () => {
+            // Restore snapshot without saving
+            if (settingsSnapshot) {
+                currentSettings = JSON.parse(JSON.stringify(settingsSnapshot));
+                applySettings();
+                renderCountdowns();
+                settingsSnapshot = null;
+            }
+            hideSettingsModal();
+        };
+
+        window.resetToDefaults = () => {
+            if (!confirmAction('Reset all settings to defaults? Your timers will be kept.')) return;
+            currentSettings = { ...defaultSettings };
+            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(currentSettings));
+            applySettings();
+            renderCountdowns();
+            showSettingsModal();
         };
 
         window.exportData = () => {
@@ -1677,6 +1952,7 @@
             loadingSpinnerEl.style.display = 'none';
         };
 
+        // ── Mouse-tracking spotlight for premium cards (desktop only) ──
         if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
             countdownListEl.addEventListener('mousemove', e => {
                 const cards = document.querySelectorAll('.premium-card');
@@ -1692,4 +1968,3 @@
     </script>
 </body>
 </html>
-</DOCUMENT>
