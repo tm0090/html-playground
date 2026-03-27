@@ -1,8 +1,7 @@
-const CACHE = 'deadline-dashboard-v1';
+const CACHE = 'deadline-dashboard-v2';
 
 const PRECACHE = [
-  './',
-  './index.html',
+  '/',
   './manifest.json',
   './favicon.svg',
   './icon-192.svg',
@@ -24,6 +23,20 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // For navigation requests (opening the app), always serve '/'
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put('/', clone));
+          return res;
+        })
+        .catch(() => caches.match('/'))
+    );
+    return;
+  }
+
   const url = new URL(e.request.url);
 
   if (url.origin === location.origin) {
@@ -34,7 +47,7 @@ self.addEventListener('fetch', e => {
           const clone = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
           return res;
-        }).catch(() => caches.match('./index.html'));
+        });
       })
     );
     return;
