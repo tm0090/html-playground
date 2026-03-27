@@ -2,7 +2,7 @@
   "name": "Deadline Dashboard",
   "short_name": "Deadlines",
   "description": "Track your deadlines with style.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
