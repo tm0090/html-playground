@@ -227,8 +227,17 @@
             line-height: 1.2;
         }
 
-        /* Speed preset dropdown */
-        select#speedPreset {
+        /* Custom speed preset dropdown */
+        .custom-select-wrapper {
+            position: relative;
+        }
+        .custom-select-trigger {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.4rem;
             background: var(--input-bg);
             border: 1px solid var(--input-border);
             color: #a1a1aa;
@@ -236,26 +245,89 @@
             font-weight: 600;
             font-size: 0.95rem;
             cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding: 1rem 2.2rem 1rem 1.1rem;
+            padding: 1rem 0.75rem 1rem 0.9rem;
+            border-radius: 0.75rem;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-            align-self: stretch;
+            white-space: nowrap;
         }
-        select#speedPreset:focus {
-            outline: none;
+        @media (min-width: 640px) {
+            .custom-select-trigger {
+                border-radius: 1rem;
+                padding: 1rem 1rem 1rem 1.1rem;
+            }
+        }
+        .custom-select-trigger:hover,
+        .custom-select-trigger[aria-expanded="true"] {
             border-color: var(--accent);
-            background-color: rgba(24, 24, 27, 0.9);
+            background: rgba(24, 24, 27, 0.9);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0,0,0,0.2);
             color: #f4f4f5;
         }
-        select#speedPreset option {
-            background: #18181b;
+        .custom-select-trigger:focus-visible {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .custom-select-arrow {
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            color: #71717a;
+        }
+        .custom-select-trigger[aria-expanded="true"] .custom-select-arrow {
+            transform: rotate(180deg);
+            color: var(--accent);
+        }
+        .custom-select-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #111113;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 0.85rem;
+            overflow-y: auto;
+            max-height: 220px;
+            z-index: 50;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.08);
+            animation: dropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(99,102,241,0.3) transparent;
+        }
+        .custom-select-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-select-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-select-panel::-webkit-scrollbar-thumb {
+            background: rgba(99,102,241,0.3);
+            border-radius: 99px;
+        }
+        @keyframes dropdownIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .custom-select-option {
+            padding: 0.7rem 1.1rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #a1a1aa;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .custom-select-option:last-child { border-bottom: none; }
+        .custom-select-option:hover,
+        .custom-select-option:focus {
+            background: rgba(99, 102, 241, 0.15);
             color: #f4f4f5;
+            outline: none;
+        }
+        .custom-select-option[aria-selected="true"] {
+            color: var(--accent);
+            background: rgba(99, 102, 241, 0.08);
         }
 
         /* Copy finish time button */
@@ -330,7 +402,7 @@
                 </div>
             </div>
 
-            <button onclick="resetSystem()" class="btn-base btn-idle font-bold py-4 px-10 rounded-2xl text-base sm:text-lg uppercase tracking-widest">
+            <button id="overlayTrackAnotherBtn" onclick="resetSystem()" class="btn-base btn-idle font-bold py-4 px-10 rounded-2xl text-base sm:text-lg uppercase tracking-widest">
                 Track another
             </button>
         </div>
@@ -346,18 +418,18 @@
                 <div class="input-group">
                     <label>Current Progress</label>
                     <div class="flex gap-2 sm:gap-4">
-                        <input type="number" id="currH" placeholder="H" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0">
-                        <input type="number" id="currM" placeholder="M" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
-                        <input type="number" id="currS" placeholder="S" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
+                        <input type="number" id="currH" placeholder="H" aria-label="Current hours" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0">
+                        <input type="number" id="currM" placeholder="M" aria-label="Current minutes" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
+                        <input type="number" id="currS" placeholder="S" aria-label="Current seconds" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
                     </div>
                 </div>
 
                 <div class="input-group">
                     <label>Total Duration</label>
                     <div class="flex gap-2 sm:gap-4">
-                        <input type="number" id="totalH" placeholder="H" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0">
-                        <input type="number" id="totalM" placeholder="M" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
-                        <input type="number" id="totalS" placeholder="S" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
+                        <input type="number" id="totalH" placeholder="H" aria-label="Total hours" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0">
+                        <input type="number" id="totalM" placeholder="M" aria-label="Total minutes" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
+                        <input type="number" id="totalS" placeholder="S" aria-label="Total seconds" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
                     </div>
                 </div>
             </div>
@@ -365,46 +437,54 @@
             <!-- Speed and Calculate -->
             <div class="input-group w-full">
                 <label>Playback Speed (x)</label>
-                <div class="flex gap-3 flex-wrap md:flex-nowrap items-stretch">
+                <div class="flex gap-2 sm:gap-3 items-stretch">
 
-                    <!-- Speed input + Preset: side by side, compact on md+ -->
-                    <div class="flex gap-2 sm:gap-3 flex-1 md:flex-none">
-                        <input type="number" id="speed" step="0.05" value="1.00"
-                            class="w-24 sm:w-32 md:w-36 shrink-0 py-4 sm:py-5 px-3 sm:px-4 rounded-xl sm:rounded-2xl font-semibold text-xl sm:text-2xl text-center"
-                            min="0.1">
-                        <select id="speedPreset" onchange="applySpeedPreset(this.value)"
-                            class="flex-1 md:flex-none rounded-xl sm:rounded-2xl px-4 shrink-0">
-                            <option value="" disabled selected>Preset</option>
-                            <option value="0.75">0.75×</option>
-                            <option value="1">1×</option>
-                            <option value="1.25">1.25×</option>
-                            <option value="1.5">1.5×</option>
-                            <option value="1.75">1.75×</option>
-                            <option value="2">2×</option>
-                        </select>
-                    </div>
+                    <!-- Speed input -->
+                    <input type="number" id="speed" step="0.05" value="1.00"
+                        class="w-16 sm:w-28 shrink-0 py-4 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl font-semibold text-lg sm:text-2xl text-center"
+                        min="0.1" aria-label="Playback speed multiplier">
 
-                    <!-- Button group: fills remaining space on md+, full width on mobile -->
-                    <div class="flex gap-3 w-full md:flex-1 items-stretch">
-                        <button id="calcBtn" onclick="toggleLiveSystem()"
-                            class="btn-base btn-idle flex-1 whitespace-nowrap font-bold py-4 sm:py-5 px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest">
-                            Start Tracking
-                        </button>
+                    <!-- Preset dropdown — icon-only on mobile, label on sm+ -->
+                    <div class="custom-select-wrapper shrink-0" id="speedPresetWrapper">
+                            <button type="button" class="custom-select-trigger" id="speedPresetTrigger"
+                                onclick="toggleSpeedDropdown()" aria-haspopup="listbox" aria-expanded="false"
+                                aria-label="Speed preset">
+                                <span id="speedPresetLabel">Preset</span>
+                                <svg class="custom-select-arrow w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="custom-select-panel hidden" id="speedPresetPanel" role="listbox" aria-label="Speed presets">
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="0.75" onclick="applySpeedPreset('0.75')">0.75×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="1"    onclick="applySpeedPreset('1')">1×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="1.25" onclick="applySpeedPreset('1.25')">1.25×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="1.5"  onclick="applySpeedPreset('1.5')">1.5×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="1.75" onclick="applySpeedPreset('1.75')">1.75×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="2"    onclick="applySpeedPreset('2')">2×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="2.5"  onclick="applySpeedPreset('2.5')">2.5×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="3"    onclick="applySpeedPreset('3')">3×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="3.5"  onclick="applySpeedPreset('3.5')">3.5×</div>
+                                <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="4"    onclick="applySpeedPreset('4')">4×</div>
+                            </div>
+                        </div>
 
-                        <!-- Reset button — only visible when finished -->
-                        <button id="resetBtn" onclick="resetSystem()" title="Reset"
-                            class="btn-base btn-reset hidden items-center justify-center rounded-xl sm:rounded-2xl py-4 px-4 sm:py-5 sm:px-5 active:scale-95 shrink-0">
-                            <svg class="reset-icon w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                                <path d="M3 3v5h5"/>
-                            </svg>
-                        </button>
-                    </div>
+                    <!-- Button fills remaining space -->
+                    <button id="calcBtn" onclick="toggleLiveSystem()"
+                        class="btn-base btn-idle flex-1 min-w-0 font-bold py-4 sm:py-5 px-2 sm:px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-xs sm:text-xl uppercase tracking-widest">
+                        Start Tracking
+                    </button>
+
+                    <!-- Reset button — only visible when finished -->
+                    <button id="resetBtn" onclick="resetSystem()" title="Reset"
+                        class="btn-base btn-reset hidden items-center justify-center rounded-xl sm:rounded-2xl py-4 px-4 sm:py-5 sm:px-5 active:scale-95 shrink-0">
+                        <svg class="reset-icon w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
             <!-- Results Section -->
-            <div id="results" class="hidden space-y-4 sm:space-y-6 animate-fade-in pt-4 sm:pt-6">
+            <div id="results" class="hidden space-y-4 sm:space-y-6 animate-fade-in pt-4 sm:pt-6" aria-live="polite" aria-atomic="false">
                 
                 <div class="result-box-primary p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem]">
                     <!-- Background Progress Fill -->
@@ -420,7 +500,7 @@
                                 <span id="liveText">Tracking</span>
                             </div>
                         </div>
-                        <h2 id="remainingDisplay" class="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">h</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">m</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">s</span></h2>
+                        <h2 id="remainingDisplay" role="status" aria-label="Time remaining" class="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">h</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">m</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">s</span></h2>
                         <div class="flex items-center justify-between gap-4 mt-2">
                             <p class="text-sm sm:text-base text-zinc-400 font-medium">Watching at <span id="speedLabel" class="text-white font-bold">1.0</span>x speed</p>
                             <p id="savedTimeRow" class="hidden text-sm sm:text-base font-medium text-right whitespace-nowrap">
@@ -524,7 +604,7 @@
             const badgeText = document.getElementById('liveText');
             const results = document.getElementById('results');
 
-            const baseBtnClasses = "btn-base flex-1 whitespace-nowrap font-bold py-4 sm:py-5 px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest ";
+            const baseBtnClasses = "btn-base flex-1 min-w-0 font-bold py-4 sm:py-5 px-2 sm:px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-xs sm:text-xl uppercase tracking-widest ";
 
             if (!isSystemLive) {
                 // START
@@ -541,12 +621,12 @@
                 cornerBtn.classList.remove('hidden');
                 cornerBtn.classList.add('flex');
                 
-                btn.innerText = "Pause";
+                btn.textContent = "Pause";
                 btn.className = baseBtnClasses + "btn-live";
                 
                 badge.className = "flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
                 badgeDot.className = "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 tracking-dot";
-                badgeText.innerText = "Tracking";
+                badgeText.textContent = "Tracking";
                 badge.classList.remove('hidden');
                 
                 results.classList.remove('hidden');
@@ -562,12 +642,12 @@
                 // PAUSE
                 isPaused = true;
                 
-                btn.innerText = "Resume";
+                btn.textContent = "Resume";
                 btn.className = baseBtnClasses + "btn-paused";
                 
                 badge.className = "flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400";
                 badgeDot.className = "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400"; 
-                badgeText.innerText = "Paused";
+                badgeText.textContent = "Paused";
                 
                 lastTickTime = Date.now(); 
 
@@ -575,12 +655,12 @@
                 // RESUME
                 isPaused = false;
                 
-                btn.innerText = "Pause";
+                btn.textContent = "Pause";
                 btn.className = baseBtnClasses + "btn-live";
                 
                 badge.className = "flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
                 badgeDot.className = "w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 tracking-dot";
-                badgeText.innerText = "Tracking";
+                badgeText.textContent = "Tracking";
 
                 lastTickTime = Date.now(); 
             }
@@ -601,12 +681,14 @@
             ['currH','currM','currS'].forEach(id => document.getElementById(id).value = '');
             ['totalH','totalM','totalS'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('speed').value = '1.00';
-            document.getElementById('speedPreset').selectedIndex = 0;
+            document.getElementById('speedPresetLabel').textContent = 'Preset';
+            document.querySelectorAll('.custom-select-option').forEach(opt => opt.setAttribute('aria-selected', 'false'));
+            closeSpeedDropdown();
 
             // Reset button states
             const btn = document.getElementById('calcBtn');
-            btn.innerText = "Start Tracking";
-            btn.className = "btn-base btn-idle flex-1 whitespace-nowrap font-bold py-4 sm:py-5 px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest";
+            btn.textContent = "Start Tracking";
+            btn.className = "btn-base btn-idle flex-1 min-w-0 font-bold py-4 sm:py-5 px-2 sm:px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-xs sm:text-xl uppercase tracking-widest";
 
             // Hide reset button
             document.getElementById('resetBtn').classList.add('hidden');
@@ -761,7 +843,22 @@
                     check.style.strokeDashoffset = '0';
                 }, 500);
             }, 50);
+
+            // Move focus into the overlay so keyboard users aren't stranded
+            setTimeout(() => {
+                document.getElementById('overlayTrackAnotherBtn')?.focus();
+            }, 550);
         }
+
+        // Focus trap for completion overlay
+        document.getElementById('completionOverlay').addEventListener('keydown', (e) => {
+            if (e.key !== 'Tab') return;
+            const focusable = document.getElementById('completionOverlay').querySelectorAll('button, [tabindex="0"]');
+            const first = focusable[0];
+            const last  = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        });
 
         function performCalculations(isTickUpdate = false) {
             const totH = parseInt(document.getElementById('totalH').value) || 0;
@@ -770,6 +867,11 @@
             const durationTotalSeconds = (totH * 3600) + (totM * 60) + totS;
 
             const speed = parseFloat(document.getElementById('speed').value) || 1;
+
+            if (speed <= 0) {
+                showError("Speed must be greater than 0");
+                return;
+            }
 
             if (!isTickUpdate) {
                 const curH = parseInt(document.getElementById('currH').value) || 0;
@@ -797,8 +899,8 @@
                         isPaused = false;
 
                         const btn = document.getElementById('calcBtn');
-                        btn.innerText = "Finished!";
-                        btn.className = "btn-base flex-1 whitespace-nowrap font-bold py-4 sm:py-5 px-8 rounded-xl sm:rounded-2xl text-lg sm:text-xl uppercase tracking-widest bg-zinc-800 text-zinc-400 cursor-default";
+                        btn.textContent = "Finished!";
+                        btn.className = "btn-base flex-1 min-w-0 font-bold py-4 sm:py-5 px-2 sm:px-8 rounded-xl sm:rounded-2xl text-xs sm:text-xl uppercase tracking-widest bg-zinc-800 text-zinc-400 cursor-default";
                         document.getElementById('liveBadge').classList.add('hidden');
 
                         // Hide corner reset
@@ -853,7 +955,7 @@
                 `${remM}<span class="text-indigo-300 text-xl sm:text-2xl md:text-3xl font-medium ml-1 mr-2 sm:mr-3">m</span> ` +
                 `${remS}<span class="text-indigo-300 text-xl sm:text-2xl md:text-3xl font-medium ml-1">s</span>`;
                 
-            document.getElementById('speedLabel').innerText = speed.toFixed(2);
+            document.getElementById('speedLabel').textContent = speed.toFixed(2);
 
             // Saved time at current speed vs 1× (only shown when speed > 1)
             const savedTimeRow = document.getElementById('savedTimeRow');
@@ -875,7 +977,7 @@
 
             const finishDate = new Date(targetFinishTimestamp);
             const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-            document.getElementById('finishClockDisplay').innerText = finishDate.toLocaleTimeString([], options);
+            document.getElementById('finishClockDisplay').textContent = finishDate.toLocaleTimeString([], options);
             
             const now = new Date();
             const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -894,37 +996,81 @@
                 dateClass = "text-indigo-400";
             }
 
-            document.getElementById('finishDateLabel').innerText = dateText;
+            document.getElementById('finishDateLabel').textContent = dateText;
             document.getElementById('finishDateLabel').className = `text-sm sm:text-base italic font-medium ${dateClass}`;
         }
 
         function showError(msg) {
             document.getElementById('remainingDisplay').innerHTML = '<span class="text-2xl sm:text-3xl text-red-400">Invalid Range</span>';
-            document.getElementById('finishClockDisplay').innerText = "--:-- --";
-            document.getElementById('finishDateLabel').innerText = msg;
+            document.getElementById('finishClockDisplay').textContent = "--:-- --";
+            document.getElementById('finishDateLabel').textContent = msg;
             document.getElementById('finishDateLabel').className = "text-sm sm:text-base italic font-medium text-red-400";
             document.getElementById('progressFill').style.width = '0%';
             document.getElementById('savedTimeRow').classList.add('hidden');
         }
 
+        // Custom speed preset dropdown
+        function toggleSpeedDropdown() {
+            const panel = document.getElementById('speedPresetPanel');
+            const trigger = document.getElementById('speedPresetTrigger');
+            const isOpen = !panel.classList.contains('hidden');
+            if (isOpen) {
+                panel.classList.add('hidden');
+                trigger.setAttribute('aria-expanded', 'false');
+            } else {
+                panel.classList.remove('hidden');
+                trigger.setAttribute('aria-expanded', 'true');
+                // Focus first option for keyboard nav
+                panel.querySelector('.custom-select-option')?.focus();
+            }
+        }
+
+        function closeSpeedDropdown() {
+            document.getElementById('speedPresetPanel').classList.add('hidden');
+            document.getElementById('speedPresetTrigger').setAttribute('aria-expanded', 'false');
+        }
+
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('speedPresetWrapper').contains(e.target)) {
+                closeSpeedDropdown();
+            }
+        });
+
+        // Keyboard nav inside dropdown
+        document.getElementById('speedPresetPanel').addEventListener('keydown', (e) => {
+            const options = [...document.querySelectorAll('.custom-select-option')];
+            const focused = document.activeElement;
+            const idx = options.indexOf(focused);
+            if (e.key === 'ArrowDown') { e.preventDefault(); options[Math.min(idx + 1, options.length - 1)]?.focus(); }
+            if (e.key === 'ArrowUp')   { e.preventDefault(); options[Math.max(idx - 1, 0)]?.focus(); }
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focused.click(); }
+            if (e.key === 'Escape') { closeSpeedDropdown(); document.getElementById('speedPresetTrigger').focus(); }
+        });
+
         // Speed preset dropdown
         function applySpeedPreset(val) {
             if (!val) return;
-            const input = document.getElementById('speed');
-            input.value = parseFloat(val).toFixed(2);
-            // Reset select visual back to placeholder so it stays neutral
-            document.getElementById('speedPreset').selectedIndex = 0;
+            const numVal = parseFloat(val);
+            document.getElementById('speed').value = numVal.toFixed(2);
+            document.getElementById('speedPresetLabel').textContent = numVal % 1 === 0 ? numVal + '×' : numVal + '×';
+            // Update aria-selected
+            document.querySelectorAll('.custom-select-option').forEach(opt => {
+                opt.setAttribute('aria-selected', opt.dataset.value === String(val));
+            });
+            closeSpeedDropdown();
             if (isSystemLive) performCalculations(false);
         }
 
-        // Sync preset select when user manually types a speed
+        // Reset preset label when user types manually
         document.getElementById('speed').addEventListener('input', () => {
-            document.getElementById('speedPreset').selectedIndex = 0;
+            document.getElementById('speedPresetLabel').textContent = 'Preset';
+            document.querySelectorAll('.custom-select-option').forEach(opt => opt.setAttribute('aria-selected', 'false'));
         });
 
         // Copy finish time to clipboard
         function copyFinishTime() {
-            const time = document.getElementById('finishClockDisplay').innerText;
+            const time = document.getElementById('finishClockDisplay').textContent;
             if (time === '--:-- --') return;
             navigator.clipboard.writeText(time).then(() => {
                 const btn = document.getElementById('copyBtn');
