@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Video Finish Calculator</title>
+    <title>Finish Timer — When do I finish watching?</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #09090b; /* Deep zinc */
+            --bg-base: #09090b;
             --card-bg: rgba(24, 24, 27, 0.6);
             --card-border: rgba(255, 255, 255, 0.08);
             --input-bg: rgba(9, 9, 11, 0.7);
             --input-border: rgba(255, 255, 255, 0.05);
-            --accent: #6366f1; /* Indigo */
+            --accent: #6366f1;
         }
 
         body {
@@ -28,7 +28,6 @@
             overflow-x: hidden;
         }
 
-        /* Ambient Background Mesh */
         .ambient-bg {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -39,7 +38,6 @@
             filter: blur(60px);
         }
 
-        /* Premium Glass Card */
         .glass-card {
             background: var(--card-bg);
             backdrop-filter: blur(32px);
@@ -48,7 +46,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
-        /* Input Styling */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -63,7 +60,7 @@
             font-size: 0.75rem;
             font-weight: 600;
             margin-bottom: 0.75rem;
-            color: #a1a1aa; /* zinc-400 */
+            color: #a1a1aa;
             text-transform: uppercase;
             letter-spacing: 0.1em;
         }
@@ -83,7 +80,7 @@
         }
 
         input::placeholder {
-            color: #71717a; /* zinc-500 for better watermark visibility */
+            color: #71717a;
             font-weight: 500;
         }
 
@@ -95,7 +92,6 @@
             transform: translateY(-2px);
         }
 
-        /* Results Boxes */
         .result-box-primary {
             background: rgba(9, 9, 11, 0.4); 
             border: 1px solid rgba(99, 102, 241, 0.2);
@@ -120,7 +116,6 @@
             box-shadow: inset 0 4px 20px rgba(0,0,0,0.4);
         }
 
-        /* Animations */
         .animate-fade-in {
             animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -130,7 +125,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Button States */
         .btn-base {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -167,6 +161,25 @@
             transform: translateY(-2px);
         }
 
+        /* Reset button */
+        .btn-reset {
+            background: rgba(39, 39, 42, 0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #a1a1aa;
+        }
+        .btn-reset:hover {
+            background: rgba(63, 63, 70, 0.9);
+            color: #f4f4f5;
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.15);
+        }
+        .btn-reset:hover .reset-icon {
+            transform: rotate(-180deg);
+        }
+        .reset-icon {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         @keyframes pulse-ring {
             0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
@@ -175,6 +188,92 @@
         .tracking-dot {
             animation: pulse-ring 2s infinite;
         }
+
+        /* Completion Overlay */
+        #completionOverlay {
+            background: rgba(9, 9, 11, 0.93);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        @keyframes overlayIn {
+            from { opacity: 0; transform: scale(0.97) translateY(10px); }
+            to   { opacity: 1; transform: scale(1)    translateY(0); }
+        }
+        .overlay-in {
+            animation: overlayIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes drawCircle {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 45; }
+        }
+        .stat-card {
+            background: rgba(24, 24, 27, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .stat-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #52525b;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.4rem;
+        }
+        .stat-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #f4f4f5;
+            line-height: 1.2;
+        }
+
+        /* Speed preset dropdown */
+        select#speedPreset {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: #a1a1aa;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding: 1rem 2.2rem 1rem 1.1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            align-self: stretch;
+        }
+        select#speedPreset:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: rgba(24, 24, 27, 0.9);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0,0,0,0.2);
+            color: #f4f4f5;
+        }
+        select#speedPreset option {
+            background: #18181b;
+            color: #f4f4f5;
+        }
+
+        /* Copy finish time button */
+        .copy-hover-group .copy-btn {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, color 0.2s, transform 0.15s;
+        }
+        .copy-hover-group:hover .copy-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        @media (max-width: 639px) {
+            .copy-hover-group .copy-btn {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
     </style>
 </head>
 <body class="p-4 sm:p-6">
@@ -182,6 +281,60 @@
     <div class="ambient-bg"></div>
 
     <div class="glass-card w-full max-w-2xl rounded-3xl md:rounded-[2.5rem] p-6 sm:p-10 md:p-14 relative z-10 mx-auto">
+
+        <!-- Subtle corner reset — visible while tracking or paused -->
+        <button id="cornerResetBtn" onclick="resetSystem()" title="Reset"
+            class="hidden absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-xl items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all duration-200 active:scale-95">
+            <svg class="reset-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+            </svg>
+        </button>
+
+        <!-- Completion overlay -->
+        <div id="completionOverlay" class="hidden absolute inset-0 rounded-3xl md:rounded-[2.5rem] z-20 flex flex-col items-center justify-center p-8 sm:p-12 text-center">
+            <!-- Animated checkmark -->
+            <div class="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-7">
+                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <circle id="checkCircle" cx="40" cy="40" r="36"
+                        stroke="#10b981" stroke-width="2.5" fill="rgba(16,185,129,0.07)"
+                        stroke-dasharray="226" stroke-dashoffset="226"
+                        stroke-linecap="round"
+                        style="transform-origin:center; transform:rotate(-90deg)"/>
+                    <path id="checkMark" d="M24 41L35 52L57 28"
+                        stroke="#10b981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+                        fill="none" stroke-dasharray="50" stroke-dashoffset="0"/>
+                </svg>
+            </div>
+
+            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-1">All done</h2>
+            <p id="overlayTagline" class="text-zinc-500 text-sm sm:text-base mb-8 sm:mb-10 font-medium">Here's how your session went</p>
+
+            <!-- Stats: 2×2 grid -->
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-xs sm:max-w-sm mb-8 sm:mb-10">
+                <div class="stat-card rounded-2xl p-3 sm:p-4">
+                    <p class="stat-label">Watched</p>
+                    <p id="statDuration" class="stat-value">—</p>
+                </div>
+                <div class="stat-card rounded-2xl p-3 sm:p-4">
+                    <p class="stat-label">Speed</p>
+                    <p id="statSpeed" class="stat-value">—</p>
+                </div>
+                <div class="stat-card rounded-2xl p-3 sm:p-4">
+                    <p class="stat-label">Time saved</p>
+                    <p id="statSaved" class="stat-value">—</p>
+                </div>
+                <div class="stat-card rounded-2xl p-3 sm:p-4">
+                    <p class="stat-label">Finished at</p>
+                    <p id="statFinishedAt" class="stat-value">—</p>
+                </div>
+            </div>
+
+            <button onclick="resetSystem()" class="btn-base btn-idle font-bold py-4 px-10 rounded-2xl text-base sm:text-lg uppercase tracking-widest">
+                Track another
+            </button>
+        </div>
+
         <header class="mb-8 md:mb-12 text-center">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-2 sm:mb-4">Finish Timer</h1>
             <p class="text-zinc-400 text-base sm:text-xl font-light">Calculate exactly when you'll finish watching.</p>
@@ -210,15 +363,44 @@
             </div>
 
             <!-- Speed and Calculate -->
-            <div class="flex flex-col md:flex-row gap-6 sm:gap-10 items-end">
-                <div class="input-group flex-1 w-full">
-                    <label>Playback Speed (x)</label>
-                    <input type="number" id="speed" step="0.05" value="1.00" class="w-full py-4 sm:py-5 px-6 sm:px-8 rounded-xl sm:rounded-2xl font-semibold text-xl sm:text-2xl text-center md:text-left" min="0.1">
+            <div class="input-group w-full">
+                <label>Playback Speed (x)</label>
+                <div class="flex gap-3 flex-wrap md:flex-nowrap items-stretch">
+
+                    <!-- Speed input + Preset: side by side, compact on md+ -->
+                    <div class="flex gap-2 sm:gap-3 flex-1 md:flex-none">
+                        <input type="number" id="speed" step="0.05" value="1.00"
+                            class="w-24 sm:w-32 md:w-36 shrink-0 py-4 sm:py-5 px-3 sm:px-4 rounded-xl sm:rounded-2xl font-semibold text-xl sm:text-2xl text-center"
+                            min="0.1">
+                        <select id="speedPreset" onchange="applySpeedPreset(this.value)"
+                            class="flex-1 md:flex-none rounded-xl sm:rounded-2xl px-4 shrink-0">
+                            <option value="" disabled selected>Preset</option>
+                            <option value="0.75">0.75×</option>
+                            <option value="1">1×</option>
+                            <option value="1.25">1.25×</option>
+                            <option value="1.5">1.5×</option>
+                            <option value="1.75">1.75×</option>
+                            <option value="2">2×</option>
+                        </select>
+                    </div>
+
+                    <!-- Button group: fills remaining space on md+, full width on mobile -->
+                    <div class="flex gap-3 w-full md:flex-1 items-stretch">
+                        <button id="calcBtn" onclick="toggleLiveSystem()"
+                            class="btn-base btn-idle flex-1 whitespace-nowrap font-bold py-4 sm:py-5 px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest">
+                            Start Tracking
+                        </button>
+
+                        <!-- Reset button — only visible when finished -->
+                        <button id="resetBtn" onclick="resetSystem()" title="Reset"
+                            class="btn-base btn-reset hidden items-center justify-center rounded-xl sm:rounded-2xl py-4 px-4 sm:py-5 sm:px-5 active:scale-95 shrink-0">
+                            <svg class="reset-icon w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                
-                <button id="calcBtn" onclick="toggleLiveSystem()" class="btn-base btn-idle w-full md:w-auto font-bold py-4 sm:py-5 md:py-6 px-8 sm:px-12 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest">
-                    Start Tracking
-                </button>
             </div>
 
             <!-- Results Section -->
@@ -239,11 +421,24 @@
                             </div>
                         </div>
                         <h2 id="remainingDisplay" class="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">h</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">m</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">s</span></h2>
-                        <p class="text-sm sm:text-base text-zinc-400 mt-2 font-medium">Watching at <span id="speedLabel" class="text-white font-bold">1.0</span>x speed</p>
+                        <div class="flex items-center justify-between gap-4 mt-2">
+                            <p class="text-sm sm:text-base text-zinc-400 font-medium">Watching at <span id="speedLabel" class="text-white font-bold">1.0</span>x speed</p>
+                            <p id="savedTimeRow" class="hidden text-sm sm:text-base font-medium text-right whitespace-nowrap">
+                                <span id="savedTimeDisplay" class="text-emerald-400 font-bold"></span><span class="text-zinc-500"> saved in total</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="result-box-secondary p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem]">
+                <div class="result-box-secondary p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] relative copy-hover-group">
+                    <!-- Copy finish time — desktop: appears on hover; mobile: always visible -->
+                    <button id="copyBtn" onclick="copyFinishTime()" title="Copy finish time"
+                        class="copy-btn absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-white/10 active:scale-90">
+                        <svg id="copyIcon" class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
                     <p class="text-[10px] sm:text-xs text-zinc-500 font-bold uppercase tracking-[0.2em] mb-2 sm:mb-3">Target Arrival Time</p>
                     <h2 id="finishClockDisplay" class="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight">--:-- --</h2>
                     <div class="flex items-center gap-3 mt-2 sm:mt-3">
@@ -268,9 +463,30 @@
         let targetFinishTimestamp = 0;
         let lastTickTime = 0;
 
-        // 1. Setup Input Event Listeners
+        // Clamp minute/second fields to 0–59
+        function clampMinSec(input) {
+            if (['currM','currS','totalM','totalS'].includes(input.id)) {
+                const v = parseInt(input.value);
+                if (!isNaN(v)) {
+                    if (v > 59) input.value = 59;
+                    if (v < 0)  input.value = 0;
+                }
+            }
+        }
+
+        // Input Event Listeners
+        const autoAdvanceMap = { currH: 'currM', currM: 'currS', totalH: 'totalM', totalM: 'totalS' };
+
         document.querySelectorAll('input[type="number"]').forEach(input => {
             input.addEventListener('input', () => {
+                clampMinSec(input);
+                // Auto-advance to next field when 2 digits entered in H/M/S fields
+                const nextId = autoAdvanceMap[input.id];
+                if (nextId && String(input.value).length >= 2) {
+                    const next = document.getElementById(nextId);
+                    next.focus();
+                    next.select();
+                }
                 if (isSystemLive) performCalculations(false);
             });
 
@@ -292,11 +508,10 @@
                 } else {
                     input.value = Math.round(newValue);
                 }
-
+                clampMinSec(input);
                 if (isSystemLive) performCalculations(false);
             });
 
-            // Auto select for quick typing
             input.addEventListener('focus', function() {
                 this.select();
             });
@@ -309,12 +524,22 @@
             const badgeText = document.getElementById('liveText');
             const results = document.getElementById('results');
 
-            const baseBtnClasses = "btn-base w-full md:w-auto font-bold py-4 sm:py-5 md:py-6 px-8 sm:px-12 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest ";
+            const baseBtnClasses = "btn-base flex-1 whitespace-nowrap font-bold py-4 sm:py-5 px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest ";
 
             if (!isSystemLive) {
                 // START
                 isSystemLive = true;
                 isPaused = false;
+
+                // Hide reset button if it was showing from a previous completion
+                const resetBtn = document.getElementById('resetBtn');
+                resetBtn.classList.add('hidden');
+                resetBtn.classList.remove('flex');
+
+                // Show the subtle corner reset
+                const cornerBtn = document.getElementById('cornerResetBtn');
+                cornerBtn.classList.remove('hidden');
+                cornerBtn.classList.add('flex');
                 
                 btn.innerText = "Pause";
                 btn.className = baseBtnClasses + "btn-live";
@@ -361,6 +586,183 @@
             }
         }
 
+        function resetSystem() {
+            // Stop any running interval
+            clearInterval(clockInterval);
+
+            // Reset state
+            isSystemLive = false;
+            isPaused = false;
+            exactCurrentSeconds = 0;
+            targetFinishTimestamp = 0;
+            lastTickTime = 0;
+
+            // Reset inputs
+            ['currH','currM','currS'].forEach(id => document.getElementById(id).value = '');
+            ['totalH','totalM','totalS'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('speed').value = '1.00';
+            document.getElementById('speedPreset').selectedIndex = 0;
+
+            // Reset button states
+            const btn = document.getElementById('calcBtn');
+            btn.innerText = "Start Tracking";
+            btn.className = "btn-base btn-idle flex-1 whitespace-nowrap font-bold py-4 sm:py-5 px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-lg sm:text-xl uppercase tracking-widest";
+
+            // Hide reset button
+            document.getElementById('resetBtn').classList.add('hidden');
+            document.getElementById('resetBtn').classList.remove('flex');
+            document.getElementById('cornerResetBtn').classList.add('hidden');
+            document.getElementById('cornerResetBtn').classList.remove('flex');
+
+            // Hide completion overlay and reset its animations
+            const overlay = document.getElementById('completionOverlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('overlay-in');
+            const circle = document.getElementById('checkCircle');
+            const check  = document.getElementById('checkMark');
+            circle.style.transition = '';
+            circle.style.strokeDashoffset = '226';
+            check.style.transition = '';
+            check.style.strokeDashoffset = '50';
+
+            // Hide badge and results
+            document.getElementById('liveBadge').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+
+            // Reset result displays
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('savedTimeRow').classList.add('hidden');
+        }
+
+        function showCompletionOverlay(durationSecs, speed) {
+            // Format total duration
+            const dH = Math.floor(durationSecs / 3600);
+            const dM = Math.floor((durationSecs % 3600) / 60);
+            const dS = Math.floor(durationSecs % 60);
+            let durStr = dH > 0 ? `${dH}h ${dM}m` : dM > 0 ? `${dM}m ${dS}s` : `${dS}s`;
+
+            // Format saved time — no upper limit
+            let savedStr = '—';
+            let savedSecs = 0;
+            if (speed > 1) {
+                savedSecs = Math.max(0, durationSecs - durationSecs / speed);
+                const sH = Math.floor(savedSecs / 3600);
+                const sM = Math.floor((savedSecs % 3600) / 60);
+                const sS = Math.floor(savedSecs % 60);
+                savedStr = sH > 0 ? `${sH}h ${sM}m` : sM > 0 ? `${sM}m ${sS}s` : `${sS}s`;
+            }
+
+            // Finished at — actual current time
+            const now = new Date();
+            const finishedHour = now.getHours();
+            const finishedAtStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+            // ── Tier taglines (no upper cap) ──────────────────────────────────────
+            let tagline = 'Here\'s how your session went';
+            if (speed < 1) {
+                tagline = 'Slow and steady. You really savoured it.';
+            } else if (speed === 1) {
+                tagline = 'Full pace. No shortcuts, no regrets.';
+            } else if (savedSecs < 60) {
+                tagline = 'Every second counts. Even these ones.';
+            } else if (savedSecs < 300) {
+                tagline = 'A little time saved goes a long way.';
+            } else if (savedSecs < 600) {
+                tagline = 'That\'s a coffee break reclaimed.';
+            } else if (savedSecs < 1800) {
+                tagline = 'A solid chunk of time back in your day.';
+            } else if (savedSecs < 3600) {
+                tagline = 'Over half an hour saved — well spent.';
+            } else if (savedSecs < 7200) {
+                tagline = 'You reclaimed over an hour. Nice.';
+            } else if (savedSecs < 10800) {
+                tagline = 'Two hours saved. That\'s basically a movie.';
+            } else if (savedSecs < 18000) {
+                tagline = 'Three+ hours saved. You\'re speedrunning life.';
+            } else if (savedSecs < 28800) {
+                tagline = 'Five hours saved? Are you even watching or just vibing?';
+            } else if (savedSecs < 36000) {
+                tagline = 'Eight hours saved. That\'s a full sleep cycle you reclaimed.';
+            } else if (savedSecs < 50400) {
+                tagline = 'Ten hours saved. You basically skipped an entire workday.';
+            } else if (savedSecs < 64800) {
+                tagline = 'Fourteen hours saved. You\'re not watching content, you\'re harvesting it.';
+            } else if (savedSecs < 86400) {
+                tagline = 'Over eighteen hours saved. That\'s a full day back. Unreal.';
+            } else {
+                const savedHrs = Math.round(savedSecs / 3600);
+                tagline = `${savedHrs} hours saved. Time is officially broken now.`;
+            }
+
+            // ── Easter eggs — most specific last (they win) ───────────────────────
+
+            // Late night watch club
+            if (finishedHour >= 1 && finishedHour < 5) {
+                tagline = `Done at ${finishedAtStr}. Go to sleep. Seriously.`;
+            }
+            if (finishedHour === 0) {
+                tagline = 'Midnight finisher. The streets respect you.';
+            }
+
+            // Exact speed easter eggs
+            if (speed === 0.75) tagline = '0.75×. Slowing it down. Every word mattered to you.';
+            if (speed === 1.25) tagline = '1.25×. The subtle speedster. YouTube approves.';
+            if (speed === 1.5) tagline = '1.5×. The classic sweet spot. Certified speedwatcher.';
+            if (speed === 1.75) tagline = '1.75×. Chaos gremlin energy. Respect.';
+            if (speed === 2)    tagline = '2×. You weren\'t watching — you were processing.';
+            if (speed === 3)    tagline = '3×? You weren\'t watching, you were scanning for keywords.';
+            if (speed >= 4)     tagline = `${speed}×? At that speed it's not a video, it's morse code.`;
+
+            // Long video easter eggs
+            if (durationSecs >= 36000 && durationSecs < 57600) {
+                tagline = `A ${Math.round(durationSecs/3600)}h video. That's not a watch, that's a commitment.`;
+            }
+            if (durationSecs >= 57600) {
+                tagline = `A ${Math.round(durationSecs/3600)}h video. That's longer than a workday. Unhinged.`;
+            }
+
+            // Saved more than half the content duration
+            if (savedSecs > durationSecs * 0.55) {
+                tagline = 'You saved more time than you spent. Paradox unlocked.';
+            }
+
+            // The glorious 18h video / 11h saved combo (and anything similar)
+            if (durationSecs >= 60000 && savedSecs >= 36000) {
+                tagline = `An ${Math.round(durationSecs/3600)}h video, ${Math.round(savedSecs/3600)}h saved. This wasn't watching — this was a data transfer.`;
+            }
+
+            // High speed + long video combo
+            if (speed >= 2 && durationSecs >= 36000 && savedSecs >= 18000) {
+                tagline = `${speed}× on a ${Math.round(durationSecs/3600)}h video. Elite-level content consumption. Terrifying.`;
+            }
+
+            document.getElementById('statDuration').textContent = durStr;
+            document.getElementById('statSpeed').textContent = speed.toFixed(2) + '×';
+            document.getElementById('statSaved').textContent = savedStr;
+            document.getElementById('statFinishedAt').textContent = finishedAtStr;
+            document.getElementById('overlayTagline').textContent = tagline;
+
+            const overlay = document.getElementById('completionOverlay');
+            overlay.classList.remove('hidden');
+            // Trigger reflow so animation fires fresh
+            void overlay.offsetWidth;
+            overlay.classList.add('overlay-in');
+
+            // Animate the checkmark: circle draws first, then the tick
+            const circle = document.getElementById('checkCircle');
+            const check  = document.getElementById('checkMark');
+            circle.style.transition = 'stroke-dashoffset 0.65s cubic-bezier(0.4, 0, 0.2, 1)';
+            check.style.transition   = '';
+            check.style.strokeDashoffset = '50';
+            setTimeout(() => {
+                circle.style.strokeDashoffset = '0';
+                setTimeout(() => {
+                    check.style.transition = 'stroke-dashoffset 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                    check.style.strokeDashoffset = '0';
+                }, 500);
+            }, 50);
+        }
+
         function performCalculations(isTickUpdate = false) {
             const totH = parseInt(document.getElementById('totalH').value) || 0;
             const totM = parseInt(document.getElementById('totalM').value) || 0;
@@ -393,11 +795,18 @@
                         clearInterval(clockInterval);
                         isSystemLive = false;
                         isPaused = false;
-                        
+
                         const btn = document.getElementById('calcBtn');
                         btn.innerText = "Finished!";
-                        btn.className = "btn-base w-full md:w-auto font-bold py-4 sm:py-5 md:py-6 px-8 sm:px-12 rounded-xl sm:rounded-2xl text-lg sm:text-xl uppercase tracking-widest bg-zinc-800 text-zinc-400 cursor-default";
+                        btn.className = "btn-base flex-1 whitespace-nowrap font-bold py-4 sm:py-5 px-8 rounded-xl sm:rounded-2xl text-lg sm:text-xl uppercase tracking-widest bg-zinc-800 text-zinc-400 cursor-default";
                         document.getElementById('liveBadge').classList.add('hidden');
+
+                        // Hide corner reset
+                        document.getElementById('cornerResetBtn').classList.add('hidden');
+                        document.getElementById('cornerResetBtn').classList.remove('flex');
+
+                        // Show completion overlay after a brief moment so the progress bar hits 100% first
+                        setTimeout(() => showCompletionOverlay(durationTotalSeconds, speed), 600);
                     }
 
                     document.getElementById('currH').value = Math.floor(exactCurrentSeconds / 3600);
@@ -407,6 +816,8 @@
 
                 const secondsLeft = Math.max(0, durationTotalSeconds - exactCurrentSeconds);
                 const actualSecondsToWait = secondsLeft / speed;
+
+                // Always recalculate finish time (intentional: shows when you'd finish if you resumed now)
                 targetFinishTimestamp = Date.now() + (actualSecondsToWait * 1000);
             }
 
@@ -444,11 +855,28 @@
                 
             document.getElementById('speedLabel').innerText = speed.toFixed(2);
 
+            // Saved time at current speed vs 1× (only shown when speed > 1)
+            const savedTimeRow = document.getElementById('savedTimeRow');
+            const savedTimeDisplay = document.getElementById('savedTimeDisplay');
+            if (speed > 1 && durationTotalSeconds > 0) {
+                const savedSeconds = Math.max(0, durationTotalSeconds - durationTotalSeconds / speed);
+                const svH = Math.floor(savedSeconds / 3600);
+                const svM = Math.floor((savedSeconds % 3600) / 60);
+                const svS = Math.floor(savedSeconds % 60);
+                let savedStr = '';
+                if (svH > 0) savedStr += `${svH}h `;
+                if (svM > 0 || svH > 0) savedStr += `${svM}m `;
+                savedStr += `${svS}s`;
+                savedTimeDisplay.textContent = savedStr.trim();
+                savedTimeRow.classList.remove('hidden');
+            } else {
+                savedTimeRow.classList.add('hidden');
+            }
+
             const finishDate = new Date(targetFinishTimestamp);
             const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
             document.getElementById('finishClockDisplay').innerText = finishDate.toLocaleTimeString([], options);
             
-            // FIX: Correctly calculate the difference in days using midnight timestamps
             const now = new Date();
             const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const finishMidnight = new Date(finishDate.getFullYear(), finishDate.getMonth(), finishDate.getDate());
@@ -476,7 +904,54 @@
             document.getElementById('finishDateLabel').innerText = msg;
             document.getElementById('finishDateLabel').className = "text-sm sm:text-base italic font-medium text-red-400";
             document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('savedTimeRow').classList.add('hidden');
         }
+
+        // Speed preset dropdown
+        function applySpeedPreset(val) {
+            if (!val) return;
+            const input = document.getElementById('speed');
+            input.value = parseFloat(val).toFixed(2);
+            // Reset select visual back to placeholder so it stays neutral
+            document.getElementById('speedPreset').selectedIndex = 0;
+            if (isSystemLive) performCalculations(false);
+        }
+
+        // Sync preset select when user manually types a speed
+        document.getElementById('speed').addEventListener('input', () => {
+            document.getElementById('speedPreset').selectedIndex = 0;
+        });
+
+        // Copy finish time to clipboard
+        function copyFinishTime() {
+            const time = document.getElementById('finishClockDisplay').innerText;
+            if (time === '--:-- --') return;
+            navigator.clipboard.writeText(time).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const icon = document.getElementById('copyIcon');
+                icon.innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>';
+                btn.style.color = '#10b981';
+                setTimeout(() => {
+                    icon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+                    btn.style.color = '';
+                }, 1600);
+            });
+        }
+
+        // Spacebar → pause / resume while tracking
+        // Enter → start tracking when idle
+        document.addEventListener('keydown', (e) => {
+            const tag = document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'SELECT' || tag === 'BUTTON') return;
+            if (e.code === 'Space' && isSystemLive) {
+                e.preventDefault();
+                toggleLiveSystem();
+            }
+            if (e.code === 'Enter' && !isSystemLive) {
+                e.preventDefault();
+                toggleLiveSystem();
+            }
+        });
     </script>
 </body>
 </html>
