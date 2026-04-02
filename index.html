@@ -313,7 +313,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      width: 130px;
+      width: 140px;
     }
     .slider-val-input {
       font-family: 'Open Sans', sans-serif;
@@ -365,32 +365,125 @@
       transform: scale(1.2);
     }
 
-    /* Text Input & Select */
-    .txt, .sel {
+    /* Text Input & Custom Select */
+    .txt, .custom-select {
+      width: 140px;
+    }
+    
+    .txt {
       background: rgba(0,0,0,0.2);
       border: 1px solid var(--control-border);
       border-radius: 8px;
       color: var(--panel-text);
       font-size: 0.8rem;
       padding: 6px 10px;
-      width: 130px;
       font-family: 'Open Sans', sans-serif;
       outline: none;
       transition: all 0.2s;
       height: 32px;
     }
-    .txt:focus, .sel:focus { 
+    .txt:focus { 
       border-color: var(--accent-color);
       background: rgba(0,0,0,0.4);
     }
-    .sel {
+
+    /* Custom Dropdown Styling */
+    .custom-select {
+      position: relative;
+      user-select: none;
+    }
+    
+    .select-trigger {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--control-border);
+      border-radius: 8px;
+      color: var(--panel-text);
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      font-family: 'Open Sans', sans-serif;
       cursor: pointer;
-      -webkit-appearance: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 32px;
+      transition: all 0.2s;
+    }
+    
+    .select-trigger:hover, .custom-select.open .select-trigger {
+      border-color: var(--accent-color);
+      background: rgba(0,0,0,0.4);
+    }
+    
+    .select-trigger span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100px;
+    }
+    
+    .select-trigger .arrow {
+      width: 10px;
+      height: 10px;
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-size: contain;
       background-repeat: no-repeat;
-      background-position: right 10px top 50%;
-      background-size: 10px auto;
-      padding-right: 28px;
+      background-position: center;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .custom-select.open .arrow {
+      transform: rotate(180deg);
+    }
+    
+    .select-options {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      width: 170px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-5px);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 200;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+    
+    .custom-select.open .select-options {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .select-options::-webkit-scrollbar { width: 6px; }
+    .select-options::-webkit-scrollbar-track { background: transparent; }
+    .select-options::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 6px; }
+    .select-options::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+    
+    .option {
+      padding: 8px 14px;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.8rem;
+      color: var(--panel-text);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    
+    .option:hover {
+      background: var(--control-hover);
+    }
+    
+    .option.selected {
+      font-weight: 700;
+      color: var(--accent-color);
+      background: var(--control-bg);
     }
 
     /* ── Light mode ── */
@@ -406,15 +499,17 @@
       --control-hover: rgba(0, 0, 0, 0.06);
     }
     
-    body.light-mode .sel {
+    body.light-mode .select-trigger .arrow {
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2318181b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
     }
-    body.light-mode .txt, body.light-mode .sel {
+    body.light-mode .txt, body.light-mode .select-trigger {
       background: rgba(255,255,255,0.6);
     }
-    body.light-mode .txt:focus, body.light-mode .sel:focus {
+    body.light-mode .txt:focus, body.light-mode .select-trigger:hover, body.light-mode .custom-select.open .select-trigger {
       background: #fff;
     }
+    body.light-mode .select-options::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+    body.light-mode .select-options::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
   </style>
 </head>
 <body>
@@ -475,13 +570,26 @@
         </div>
         <div class="row">
           <span class="row-label">Format</span>
-          <select class="sel" id="dateFormat">
-            <option value="long">Wed, Apr 2</option>
-            <option value="short">04/02/2025</option>
-            <option value="iso">2025-04-02</option>
-            <option value="full">Wednesday, April 2</option>
-            <option value="compact">2 Apr 2025</option>
-          </select>
+          
+          <!-- Custom CSS Dropdown -->
+          <div class="custom-select" id="dateFormatSelect">
+            <div class="select-trigger">
+              <span id="dateFormatLabel">...</span>
+              <div class="arrow"></div>
+            </div>
+            <div class="select-options">
+              <div class="option" data-value="long"></div>
+              <div class="option" data-value="short"></div>
+              <div class="option" data-value="euro"></div>
+              <div class="option" data-value="iso"></div>
+              <div class="option" data-value="euro-dots"></div>
+              <div class="option" data-value="full"></div>
+              <div class="option" data-value="full-year"></div>
+              <div class="option" data-value="compact"></div>
+              <div class="option" data-value="med"></div>
+            </div>
+          </div>
+
         </div>
         <div class="row">
           <span class="row-label">Date Size</span>
@@ -568,19 +676,83 @@
   const format12hEl    = $('format12h');
   const showAmPmEl     = $('showAmPm');
   const showDateEl     = $('showDate');
-  const dateFormatEl   = $('dateFormat');
+  const hoverShowIconEl = $('hoverShowIcon');
   const mainTimeEl     = $('mainTime');
   const ampmEl         = $('ampm');
   const dateDisplayEl  = $('dateDisplay');
-  const hoverShowIconEl = $('hoverShowIcon');
 
   let fontLinkTag = null, dateFontLinkTag = null;
   let panelOpen   = false;
+  let currentDateFormat = 'long';
+
+  // ── Date Formatting Logic ────────────────────────────────
+  function formatDate(d, fmt) {
+    const days  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months= ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const shortM= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const D  = d.getDate(), M = d.getMonth(), Y = d.getFullYear();
+    const DD = String(D).padStart(2,'0'), MM = String(M+1).padStart(2,'0');
+    switch(fmt) {
+      case 'long':       return `${days[d.getDay()].slice(0,3)}, ${shortM[M]} ${D}, ${Y}`;
+      case 'short':      return `${MM}/${DD}/${Y}`;
+      case 'euro':       return `${DD}/${MM}/${Y}`;
+      case 'iso':        return `${Y}-${MM}-${DD}`;
+      case 'euro-dots':  return `${DD}.${MM}.${Y}`;
+      case 'full':       return `${days[d.getDay()]}, ${months[M]} ${D}`;
+      case 'full-year':  return `${days[d.getDay()]}, ${shortM[M]} ${D}, ${Y}`;
+      case 'compact':    return `${D} ${shortM[M]} ${Y}`;
+      case 'med':        return `${shortM[M]} ${D} ${Y}`;
+      default:           return `${days[d.getDay()].slice(0,3)}, ${shortM[M]} ${D}, ${Y}`;
+    }
+  }
+
+  // ── Custom Dropdown Logic ────────────────────────────────
+  const customSelect = $('dateFormatSelect');
+  const selectTrigger = customSelect.querySelector('.select-trigger');
+  const dateFormatLabel = $('dateFormatLabel');
+  const options = customSelect.querySelectorAll('.option');
+
+  // Populate the dropdown with today's date representations dynamically
+  function populateDropdown() {
+    const now = new Date();
+    options.forEach(opt => {
+      opt.textContent = formatDate(now, opt.dataset.value);
+    });
+  }
+  populateDropdown();
+
+  selectTrigger.addEventListener('click', (e) => {
+    customSelect.classList.toggle('open');
+    e.stopPropagation(); // Stop click from propagating up
+  });
+
+  options.forEach(option => {
+    option.addEventListener('click', (e) => {
+      currentDateFormat = option.dataset.value;
+      dateFormatLabel.textContent = option.textContent;
+      
+      options.forEach(opt => opt.classList.remove('selected'));
+      option.classList.add('selected');
+      
+      customSelect.classList.remove('open');
+      applyPrefs();
+      savePrefs();
+      e.stopPropagation();
+    });
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (!customSelect.contains(e.target)) {
+      customSelect.classList.remove('open');
+    }
+  });
 
   // ── Panel open/close logic ───────────────────────────────
   function togglePanel() {
     panelOpen = !panelOpen;
     document.body.classList.toggle('panel-open', panelOpen);
+    if(!panelOpen) customSelect.classList.remove('open'); // close dropdown if panel closes
   }
 
   settingsBtn.addEventListener('click', (e) => {
@@ -592,8 +764,10 @@
     if (panelOpen) togglePanel();
   });
 
+  // Close panel if clicked outside
   document.addEventListener('click', e => {
-    if (panelOpen && !settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
+    // Only close if it's open, and click target isn't the panel, settings btn, OR a child of the select
+    if (panelOpen && !settingsPanel.contains(e.target) && !settingsBtn.contains(e.target) && !customSelect.contains(e.target)) {
       togglePanel();
     }
   });
@@ -622,23 +796,7 @@
     ampmEl.style.display   = (is12h && doAmPm) ? '' : 'none';
 
     dateDisplayEl.style.display = showDateEl.checked ? '' : 'none';
-    if (showDateEl.checked) dateDisplayEl.textContent = formatDate(now, dateFormatEl.value);
-  }
-
-  function formatDate(d, fmt) {
-    const days  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const months= ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const shortM= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const D  = d.getDate(), M = d.getMonth(), Y = d.getFullYear();
-    const DD = String(D).padStart(2,'0'), MM = String(M+1).padStart(2,'0');
-    switch(fmt) {
-      case 'long':    return `${days[d.getDay()].slice(0,3)}, ${shortM[M]} ${D}, ${Y}`;
-      case 'short':   return `${MM}/${DD}/${Y}`;
-      case 'iso':     return `${Y}-${MM}-${DD}`;
-      case 'full':    return `${days[d.getDay()]}, ${months[M]} ${D}, ${Y}`;
-      case 'compact': return `${D} ${shortM[M]} ${Y}`;
-      default:        return `${days[d.getDay()].slice(0,3)}, ${shortM[M]} ${D}, ${Y}`;
-    }
+    if (showDateEl.checked) dateDisplayEl.textContent = formatDate(now, currentDateFormat);
   }
 
   setInterval(updateTime, 1000);
@@ -694,28 +852,21 @@
   }
 
   // ── Manual Size Logic ────────────────────────────────────
-  // Allows users to type numbers larger than the standard slider max
   function bindDynamicSlider(numInput, rangeInput, minMax, absoluteMax) {
     numInput.addEventListener('input', () => {
       let val = parseFloat(numInput.value);
       if (isNaN(val)) return;
-      
-      // Enforce hard cap if an absoluteMax is provided
       if (absoluteMax !== undefined && val > absoluteMax) {
         val = absoluteMax;
         numInput.value = val;
       }
-      
-      // Expand slider max if the typed value exceeds the default max
       rangeInput.max = Math.max(minMax, val);
       rangeInput.value = val;
-      
       applyPrefs();
       savePrefs();
     });
 
     rangeInput.addEventListener('change', () => {
-      // Snap max back to default if they slide down below it
       let val = parseFloat(rangeInput.value);
       if (val <= minMax) {
         rangeInput.max = minMax;
@@ -723,12 +874,12 @@
     });
   }
 
-  bindDynamicSlider(clockSizeValEl, clockSizeEl, 30); // Slider max won't go below 30
-  bindDynamicSlider(dateSizeValEl, dateSizeEl, 5, 20); // Slider max won't go below 5, hard-capped at 20
+  bindDynamicSlider(clockSizeValEl, clockSizeEl, 30); 
+  bindDynamicSlider(dateSizeValEl, dateSizeEl, 5, 20); 
 
   // ── Persist ──────────────────────────────────────────────
   function savePrefs() {
-    localStorage.setItem('liveClockPrefs7', JSON.stringify({
+    localStorage.setItem('liveClockPrefs9', JSON.stringify({
       bgColor:       bgColorEl.value,
       textColor:     textColorEl.value,
       clockColor:    clockColorEl.value,
@@ -743,29 +894,29 @@
       format12h:     format12hEl.checked,
       showAmPm:      showAmPmEl.checked,
       showDate:      showDateEl.checked,
-      dateFormat:    dateFormatEl.value,
+      dateFormat:    currentDateFormat,
       hoverShowIcon: hoverShowIconEl.checked,
     }));
   }
 
   function loadPrefs() {
     let p;
-    try { p = JSON.parse(localStorage.getItem('liveClockPrefs7')); } catch(e){}
+    try { p = JSON.parse(localStorage.getItem('liveClockPrefs9')); } catch(e){}
     
     // Fallbacks
+    if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs8')); } catch(e){} }
+    if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs7')); } catch(e){} }
     if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs6')); } catch(e){} }
     if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs4')); } catch(e){} }
-    if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs3')); } catch(e){} }
     
     if (!p) { applyPrefs(); return; }
 
-    // Account for dynamically expanded max values before setting
     let sClock = parseFloat(p.clockSize) || 14;
     clockSizeEl.max = Math.max(30, sClock);
     clockSizeEl.value = sClock;
 
     let sDate = parseFloat(p.dateSize) || 1.8;
-    if (sDate > 20) sDate = 20; // Cap loaded value just in case
+    if (sDate > 20) sDate = 20;
     dateSizeEl.max = Math.max(5, sDate);
     dateSizeEl.value = sDate;
 
@@ -781,8 +932,20 @@
     format12hEl.checked    = p.format12h  || false;
     showAmPmEl.checked     = p.showAmPm   !== false;
     showDateEl.checked     = p.showDate   !== false;
-    dateFormatEl.value     = p.dateFormat || 'long';
     hoverShowIconEl.checked= p.hoverShowIcon || false;
+    
+    // Check if loaded format exists in our options, otherwise fallback to long
+    const loadedFormat = p.dateFormat || 'long';
+    const selectedOpt = customSelect.querySelector(`.option[data-value="${loadedFormat}"]`);
+    if (selectedOpt) {
+      currentDateFormat = loadedFormat;
+      dateFormatLabel.textContent = selectedOpt.textContent;
+      options.forEach(opt => opt.classList.remove('selected'));
+      selectedOpt.classList.add('selected');
+    } else {
+      currentDateFormat = 'long';
+      dateFormatLabel.textContent = customSelect.querySelector('.option[data-value="long"]').textContent;
+    }
 
     applyPrefs();
   }
@@ -806,10 +969,9 @@
     savePrefs();
   });
 
-  // Other Inputs
+  // Attach standard listeners
   [bgColorEl, textColorEl, clockColorEl, dateColorEl, dateGlowColorEl, fontFamilyEl, dateFontEl,
-   clockSizeEl, dateSizeEl, showSecondsEl, format12hEl,
-   showAmPmEl, showDateEl, dateFormatEl, hoverShowIconEl
+   clockSizeEl, dateSizeEl, showSecondsEl, format12hEl, showAmPmEl, showDateEl, hoverShowIconEl
   ].forEach(el => el.addEventListener('input', () => { applyPrefs(); savePrefs(); }));
 
   loadPrefs();
