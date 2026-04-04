@@ -510,6 +510,10 @@
     }
     body.light-mode .select-options::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
     body.light-mode .select-options::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+    /* Auto-hide cursor */
+    body.cursor-hidden { cursor: none !important; }
+    body.cursor-hidden * { cursor: none !important; }
   </style>
 </head>
 <body>
@@ -640,6 +644,10 @@
           <span class="row-label">Show Icon on Hover</span>
           <label class="tog"><input type="checkbox" id="hoverShowIcon"><span class="tog-track"></span></label>
         </div>
+        <div class="row">
+          <span class="row-label">Auto-Hide Cursor</span>
+          <label class="tog"><input type="checkbox" id="autohideCursor"><span class="tog-track"></span></label>
+        </div>
       </div>
 
     </div>
@@ -676,7 +684,8 @@
   const format12hEl    = $('format12h');
   const showAmPmEl     = $('showAmPm');
   const showDateEl     = $('showDate');
-  const hoverShowIconEl = $('hoverShowIcon');
+  const hoverShowIconEl   = $('hoverShowIcon');
+  const autohideCursorEl  = $('autohideCursor');
   const mainTimeEl     = $('mainTime');
   const ampmEl         = $('ampm');
   const dateDisplayEl  = $('dateDisplay');
@@ -684,6 +693,42 @@
   let fontLinkTag = null, dateFontLinkTag = null;
   let panelOpen   = false;
   let currentDateFormat = 'long';
+
+  // ── Auto-hide cursor logic ───────────────────────────────
+  let cursorHideTimer = null;
+
+  function resetCursorHideTimer() {
+    if (!autohideCursorEl.checked) return;
+    document.body.classList.remove('cursor-hidden');
+    clearTimeout(cursorHideTimer);
+    cursorHideTimer = setTimeout(() => {
+      if (autohideCursorEl.checked) {
+        document.body.classList.add('cursor-hidden');
+      }
+    }, 3000);
+  }
+
+  function enableCursorAutoHide() {
+    document.addEventListener('mousemove', resetCursorHideTimer);
+    document.addEventListener('mousedown', resetCursorHideTimer);
+    resetCursorHideTimer();
+  }
+
+  function disableCursorAutoHide() {
+    clearTimeout(cursorHideTimer);
+    document.body.classList.remove('cursor-hidden');
+    document.removeEventListener('mousemove', resetCursorHideTimer);
+    document.removeEventListener('mousedown', resetCursorHideTimer);
+  }
+
+  autohideCursorEl.addEventListener('change', () => {
+    if (autohideCursorEl.checked) {
+      enableCursorAutoHide();
+    } else {
+      disableCursorAutoHide();
+    }
+    savePrefs();
+  });
 
   // ── Date Formatting Logic ────────────────────────────────
   function formatDate(d, fmt) {
@@ -835,12 +880,10 @@
     root.style.setProperty('--date-shadow-color', dateGlowColorEl.value);
 
     const csz = clockSizeEl.value;
-    clockSizeValEl.value       = csz;
     clockEl.style.fontSize     = `${csz}vw`;
     ampmEl.style.fontSize      = `${csz * 0.14}vw`;
 
     const dsz = parseFloat(dateSizeEl.value).toFixed(1);
-    dateSizeValEl.value        = dsz;
     root.style.setProperty('--date-size', `${dsz}vw`);
 
     document.body.classList.toggle('light-mode', lightModeEl.checked);
@@ -853,24 +896,36 @@
 
   // ── Manual Size Logic ────────────────────────────────────
   function bindDynamicSlider(numInput, rangeInput, minMax, absoluteMax) {
-    numInput.addEventListener('input', () => {
-      let val = parseFloat(numInput.value);
-      if (isNaN(val)) return;
-      if (absoluteMax !== undefined && val > absoluteMax) {
-        val = absoluteMax;
-        numInput.value = val;
-      }
-      rangeInput.max = Math.max(minMax, val);
-      rangeInput.value = val;
+    // Range dragging → update number input live + apply
+    rangeInput.addEventListener('input', () => {
+      numInput.value = parseFloat(rangeInput.value);
       applyPrefs();
       savePrefs();
     });
 
-    rangeInput.addEventListener('change', () => {
-      let val = parseFloat(rangeInput.value);
-      if (val <= minMax) {
-        rangeInput.max = minMax;
+    // Number input → apply only on commit (Enter or blur), not on every keystroke
+    function commitNumInput() {
+      let val = parseFloat(numInput.value);
+      if (isNaN(val) || val <= 0) {
+        // Revert to current range value if invalid
+        numInput.value = parseFloat(rangeInput.value);
+        return;
       }
+      if (absoluteMax !== undefined && val > absoluteMax) {
+        val = absoluteMax;
+      }
+      val = Math.max(0.1, val);
+      numInput.value  = val;
+      rangeInput.max  = Math.max(minMax, val);
+      rangeInput.value = val;
+      applyPrefs();
+      savePrefs();
+    }
+
+    numInput.addEventListener('change', commitNumInput);
+    numInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commitNumInput(); numInput.blur(); }
+      if (e.key === 'Escape') { numInput.value = parseFloat(rangeInput.value); numInput.blur(); }
     });
   }
 
@@ -896,6 +951,7 @@
       showDate:      showDateEl.checked,
       dateFormat:    currentDateFormat,
       hoverShowIcon: hoverShowIconEl.checked,
+      autohideCursor: autohideCursorEl.checked,
     }));
   }
 
@@ -909,16 +965,23 @@
     if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs6')); } catch(e){} }
     if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs4')); } catch(e){} }
     
-    if (!p) { applyPrefs(); return; }
+    if (!p) {
+      clockSizeValEl.value = clockSizeEl.value;
+      dateSizeValEl.value  = dateSizeEl.value;
+      applyPrefs();
+      return;
+    }
 
     let sClock = parseFloat(p.clockSize) || 14;
     clockSizeEl.max = Math.max(30, sClock);
     clockSizeEl.value = sClock;
+    clockSizeValEl.value = sClock;
 
     let sDate = parseFloat(p.dateSize) || 1.8;
     if (sDate > 20) sDate = 20;
     dateSizeEl.max = Math.max(5, sDate);
     dateSizeEl.value = sDate;
+    dateSizeValEl.value = sDate;
 
     bgColorEl.value        = p.bgColor    || '#000000';
     textColorEl.value      = p.textColor  || '#ffffff';
@@ -933,6 +996,7 @@
     showAmPmEl.checked     = p.showAmPm   !== false;
     showDateEl.checked     = p.showDate   !== false;
     hoverShowIconEl.checked= p.hoverShowIcon || false;
+    autohideCursorEl.checked = p.autohideCursor || false;
     
     // Check if loaded format exists in our options, otherwise fallback to long
     const loadedFormat = p.dateFormat || 'long';
@@ -971,10 +1035,15 @@
 
   // Attach standard listeners
   [bgColorEl, textColorEl, clockColorEl, dateColorEl, dateGlowColorEl, fontFamilyEl, dateFontEl,
-   clockSizeEl, dateSizeEl, showSecondsEl, format12hEl, showAmPmEl, showDateEl, hoverShowIconEl
+   showSecondsEl, format12hEl, showAmPmEl, showDateEl, hoverShowIconEl
   ].forEach(el => el.addEventListener('input', () => { applyPrefs(); savePrefs(); }));
 
   loadPrefs();
+
+  // Activate cursor auto-hide if it was saved as enabled
+  if (autohideCursorEl.checked) {
+    enableCursorAutoHide();
+  }
 </script>
 </body>
 </html>
