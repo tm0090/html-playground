@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="tab-title">Saved links</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,7 +56,7 @@
         /* ── Premium Card ── */
         .premium-card {
             position: relative;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255,255,255,0.03);
             border-radius: 20px;
             padding: 1px;
             overflow: hidden;
@@ -78,7 +78,6 @@
         }
         .premium-card:hover::before { opacity: 1; }
 
-        /* Folder card: amber shimmer on hover border */
         .folder-card::before {
             background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(251,191,36,0.25), transparent 40%);
         }
@@ -90,7 +89,7 @@
             height: 100%;
             z-index: 1;
             box-shadow: inset 0 1px 1px rgba(255,255,255,0.04);
-            transition: background 0.4s ease, transform 0.3s ease;
+            transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.25s ease;
         }
         @media (min-width: 640px) { .premium-card-inner { border-radius: 23px; } }
         .premium-card:hover .premium-card-inner { background: #111113; }
@@ -107,14 +106,73 @@
         }
         .premium-card:hover .premium-card-inner::before { opacity: 1; }
 
-        /* Folder inner: subtle amber tint glow */
         .folder-card .premium-card-inner::before {
             background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(251,191,36,0.04), transparent 40%);
         }
 
         /* ── Sortable ── */
-        .sortable-ghost { opacity: 0.05; transform: scale(0.95); }
-        .sortable-drag { cursor: grabbing !important; box-shadow: 0 40px 80px rgba(0,0,0,0.9); }
+        .sortable-ghost { opacity: 0.04; transform: scale(0.93); border-radius: 20px; }
+        .sortable-drag  { cursor: grabbing !important; box-shadow: 0 40px 80px rgba(0,0,0,0.9); opacity: 0.96; }
+
+        /* ── Drag-over-folder: instant, clean highlight ── */
+        /* This is the only live highlight during drag – folders stay in place so they can be colored perfectly */
+        .folder-drag-over {
+            transform: scale(1.04) translateY(-3px) !important;
+            z-index: 20;
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .folder-drag-over .premium-card-inner {
+            background: rgba(251,191,36,0.09) !important;
+            box-shadow: 0 0 0 1.5px rgba(251,191,36,0.55), 0 0 28px rgba(251,191,36,0.12), inset 0 1px 1px rgba(255,255,255,0.06) !important;
+        }
+        .folder-drag-over::before {
+            opacity: 1 !important;
+        }
+
+        /* ── Root drop zone (drag link out of folder) ── */
+        #root-drop-zone {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 39;
+            height: 96px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 16px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
+        }
+        #root-drop-zone.drag-active {
+            pointer-events: auto;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #root-drop-zone-pill {
+            background: rgba(255,255,255,0.05);
+            border: 1.5px dashed rgba(255,255,255,0.2);
+            border-radius: 999px;
+            padding: 9px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.45);
+            transition: all 0.18s ease;
+            backdrop-filter: blur(16px);
+            white-space: nowrap;
+        }
+        #root-drop-zone.hovering #root-drop-zone-pill {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.7);
+            border-style: solid;
+            color: #fff;
+            box-shadow: 0 0 32px rgba(255,255,255,0.12), 0 0 0 5px rgba(255,255,255,0.04);
+            transform: scale(1.06);
+        }
 
         /* ── Nav ── */
         .glass-nav {
@@ -178,6 +236,21 @@
         @keyframes toastEnter { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes toastLeave { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
 
+        /* ── Letter avatar (favicon fallback) ── */
+        .letter-avatar {
+            width: 100%; height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.04);
+            border-radius: inherit;
+            letter-spacing: -0.03em;
+            user-select: none;
+        }
+
         /* ── Folder selector chips ── */
         .folder-chip {
             background: rgba(255,255,255,0.02);
@@ -196,9 +269,14 @@
             border-color: rgba(255,255,255,0.14);
             color: #e4e4e7;
         }
+
+        /* drag: disable transitions on cards during active drag for performance */
+        body.is-dragging .premium-card:not(.folder-drag-over):not(.sortable-drag):not(.sortable-ghost) {
+            transition: none !important;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col relative selection:bg-white/20">
+<body class="min-h-screen flex flex-col relative">
 
     <div class="ambient-glow animate-pulse-slow hidden sm:block blur-[120px]"></div>
 
@@ -206,13 +284,11 @@
     <nav class="glass-nav sticky top-0 z-40 w-full animate-slide-down">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-0 min-h-[4.5rem] sm:min-h-[5.5rem] flex flex-col sm:flex-row sm:items-center justify-center gap-3 sm:gap-6">
 
-            <!-- Left: Title / Breadcrumb -->
             <div class="flex items-center justify-between w-full sm:w-auto sm:mr-auto">
                 <div class="flex items-center gap-3 sm:gap-6 min-w-0">
                     <div id="live-time" class="text-[10px] sm:text-xs font-mono text-zinc-500 tracking-wider hidden sm:block"></div>
                     <div class="h-6 w-px bg-white/[0.06] hidden sm:block"></div>
 
-                    <!-- Root title -->
                     <h1 id="main-title"
                         contenteditable="true"
                         spellcheck="false"
@@ -221,7 +297,6 @@
                         onkeydown="handleTextKeydown(event)"
                         onclick="selectAllOnFocus(this)">Saved links</h1>
 
-                    <!-- Folder breadcrumb (hidden by default) -->
                     <div id="folder-breadcrumb" class="hidden items-center gap-2 min-w-0">
                         <button onclick="navigateBack()" class="flex items-center p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 transition-all group" title="Back">
                             <i class="ph ph-arrow-left text-base group-hover:-translate-x-0.5 transition-transform duration-200"></i>
@@ -233,7 +308,6 @@
                     </div>
                 </div>
 
-                <!-- Mobile header actions -->
                 <div class="flex items-center gap-1 sm:hidden text-zinc-400">
                     <button onclick="triggerImport()" class="p-2 rounded-xl hover:bg-white/10 active:scale-95 transition-all" title="Import">
                         <i class="ph ph-download-simple text-lg"></i>
@@ -244,7 +318,6 @@
                 </div>
             </div>
 
-            <!-- Search -->
             <div class="w-full sm:w-auto flex-1 sm:max-w-[260px] order-3 sm:order-2">
                 <div class="relative group cmd-input rounded-xl sm:rounded-2xl flex items-center px-4 py-3 sm:py-2.5 cursor-text" onclick="document.getElementById('search-input').focus()">
                     <i class="ph ph-magnifying-glass text-lg sm:text-base text-zinc-500 group-focus-within:text-zinc-300 transition-colors"></i>
@@ -253,7 +326,6 @@
                 </div>
             </div>
 
-            <!-- Desktop Actions -->
             <div class="hidden sm:flex items-center gap-2 order-2 sm:order-3">
                 <button onclick="triggerImport()" class="p-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition-all" title="Import Data">
                     <i class="ph ph-download-simple text-xl"></i>
@@ -263,14 +335,10 @@
                     <i class="ph ph-upload-simple text-xl"></i>
                 </button>
                 <div class="h-6 w-px bg-white/[0.06] mx-1"></div>
-
-                <!-- New Folder -->
                 <button id="new-folder-btn" onclick="openFolderModal()" class="px-4 py-2.5 text-zinc-400 hover:text-zinc-200 border border-white/[0.07] hover:border-white/[0.12] hover:bg-white/[0.03] rounded-2xl text-sm font-medium transition-all flex items-center gap-2">
                     <i class="ph ph-folder-plus text-lg text-amber-500/70"></i>
                     <span>New Folder</span>
                 </button>
-
-                <!-- Add Link -->
                 <button onclick="openModal()" class="ml-1 px-5 py-2.5 bg-white text-black text-sm font-bold rounded-2xl hover:bg-zinc-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
                     <i class="ph ph-plus text-xl"></i>
                     <span>Add Link</span>
@@ -279,13 +347,21 @@
         </div>
     </nav>
 
+    <!-- ══ Root Drop Zone (drag link out of folder) ══ -->
+    <div id="root-drop-zone">
+        <div id="root-drop-zone-pill">
+            <i class="ph ph-arrow-line-down text-sm"></i>
+            <span>Drop here to remove from folder</span>
+        </div>
+    </div>
+
     <!-- ══ Main ══ -->
     <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 z-10 flex flex-col items-center">
         <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 w-full"></div>
 
         <div id="bottom-hints" class="flex flex-col items-center justify-center gap-1.5 mt-6 mb-1 w-full max-w-md mx-auto">
-            <div class="text-zinc-500 text-[13px] font-medium">
-                <span>Click to open • Long press to drag and rearrange</span>
+            <div class="text-zinc-500 text-[13px] font-medium text-center">
+                Click to open · Drag to reorder · Drag onto folder to move in · Drag to bottom bar to exit folder
             </div>
             <div class="text-[12px] sm:text-[13px] text-indigo-500/90 bg-indigo-500/5 border border-indigo-500/15 px-4 py-2 rounded-xl text-center w-fit mx-auto">
                 <span>Data is saved in your browser. </span>
@@ -338,7 +414,23 @@
                         <input type="text" id="input-name" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. GitHub">
                     </div>
                 </div>
-                <!-- Folder selector (hidden when no folders exist) -->
+
+                <!-- Custom Logo (letters or emoji) -->
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">Custom logo <span class="text-zinc-700 font-normal">— optional (emoji or 1-3 letters)</span></label>
+                    <div class="cmd-input rounded-2xl p-1 flex items-center gap-3">
+                        <input 
+                            type="text" 
+                            id="input-link-custom-icon" 
+                            maxlength="4"
+                            class="flex-1 bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base font-medium" 
+                            placeholder="📚 or AI or DB">
+                        <div id="link-custom-preview" class="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-3xl shrink-0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Folder selector -->
                 <div id="folder-selector-wrap" class="hidden">
                     <label class="block text-xs font-medium text-zinc-500 mb-2">Folder</label>
                     <div id="folder-chips" class="flex flex-wrap gap-2"></div>
@@ -362,10 +454,27 @@
                 </div>
                 <h2 id="folder-modal-title" class="text-xl sm:text-2xl font-medium text-white tracking-tight">New Folder</h2>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-zinc-500 mb-2">Folder Name</label>
-                <div class="cmd-input rounded-2xl p-1">
-                    <input type="text" id="input-folder-name" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. Work, Reading List…">
+            <div class="space-y-4 sm:space-y-5">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">Folder Name</label>
+                    <div class="cmd-input rounded-2xl p-1">
+                        <input type="text" id="input-folder-name" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. Work, Reading List…">
+                    </div>
+                </div>
+
+                <!-- Custom Logo (letters or emoji) -->
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">Custom folder icon <span class="text-zinc-700 font-normal">— optional (emoji or 1-3 letters)</span></label>
+                    <div class="cmd-input rounded-2xl p-1 flex items-center gap-3">
+                        <input 
+                            type="text" 
+                            id="input-folder-custom-icon" 
+                            maxlength="4"
+                            class="flex-1 bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base font-medium" 
+                            placeholder="📁 or HR or AI">
+                        <div id="folder-custom-preview" class="w-12 h-12 rounded-2xl bg-white/[0.03] border border-amber-400/20 flex items-center justify-center text-3xl shrink-0">
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="flex gap-3 mt-8 sm:mt-10">
@@ -383,6 +492,9 @@
         <div class="space-y-2">
             <button onclick="handleActionEdit()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
                 <i class="ph ph-pencil-simple text-xl text-zinc-400"></i><span>Edit Link</span>
+            </button>
+            <button onclick="handleActionChangeIcon()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
+                <i class="ph ph-smiley text-xl text-zinc-400"></i><span>Change logo</span>
             </button>
             <button onclick="handleActionMove()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
                 <i class="ph ph-folder-open text-xl text-amber-500/70"></i><span>Move to Folder</span>
@@ -402,6 +514,9 @@
         <div class="space-y-2">
             <button onclick="handleFolderActionRename()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
                 <i class="ph ph-pencil-simple text-xl text-zinc-400"></i><span>Rename Folder</span>
+            </button>
+            <button onclick="handleFolderActionChangeIcon()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
+                <i class="ph ph-smiley text-xl text-zinc-400"></i><span>Change icon</span>
             </button>
             <button onclick="handleFolderActionDelete()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-rose-400 hover:bg-rose-500/10 active:bg-rose-500/20 transition-colors text-left font-medium text-[15px]">
                 <i class="ph ph-trash text-xl"></i><span>Delete Folder</span>
@@ -435,7 +550,6 @@
             <p class="text-zinc-500 text-[13px] sm:text-base max-w-sm mb-6 sm:mb-8 leading-relaxed px-4">Begin by curating your essential resources. Tap the <i class="ph ph-plus inline-block bg-white/[0.05] p-0.5 rounded align-middle mx-1"></i> button.</p>
         </div>
     </template>
-
     <template id="empty-folder-state">
         <div class="col-span-full flex flex-col items-center justify-center py-16 sm:py-20 lg:py-32 text-center opacity-0 animate-fade-in h-full flex-1">
             <div class="relative w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6">
@@ -447,7 +561,6 @@
             <p class="text-zinc-500 text-[13px] sm:text-sm max-w-sm leading-relaxed px-4">Add a link and assign it to this folder, or move existing links here.</p>
         </div>
     </template>
-
     <template id="no-results-state">
         <div class="col-span-full flex flex-col items-center justify-center py-16 sm:py-20 lg:py-40 text-center opacity-0 animate-fade-in h-full flex-1">
             <div class="relative w-14 h-14 sm:w-20 sm:h-20 mb-5 sm:mb-6">
@@ -469,13 +582,13 @@
     let links   = JSON.parse(localStorage.getItem('premiumLinks'))   || [];
     let folders = JSON.parse(localStorage.getItem('premiumFolders')) || [];
     let workspaceTitle    = localStorage.getItem('p_workspaceTitle') || 'Saved links';
-    let currentFolderId   = null;   // null = root view
-    let editingId         = null;   // link index being edited
-    let editingFolderId   = null;   // folder index being edited
+    let currentFolderId   = null;
+    let editingId         = null;
+    let editingFolderId   = null;
     let currentActionIndex       = null;
     let currentFolderActionIndex = null;
     let movingLinkIndex          = null;
-    let selectedFolderForLink    = undefined; // undefined=unset, null=no folder, string=folder id
+    let selectedFolderForLink    = undefined;
 
     const grid           = document.getElementById('cards-grid');
     const searchInput    = document.getElementById('search-input');
@@ -498,15 +611,56 @@
         try {
             const v = /^https?:\/\//i.test(url) ? url : `https://${url}`;
             return `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(v)}&size=128`;
-        } catch {
-            return 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://google.com&size=128';
+        } catch { return ''; }
+    }
+
+    function handleFaviconError(img, name, domain) {
+        if (!img.dataset.fbStep) {
+            img.dataset.fbStep = '1';
+            img.src = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+            return;
         }
+        if (img.dataset.fbStep === '1') {
+            img.dataset.fbStep = '2';
+            img.src = `https://${domain}/favicon.ico`;
+            return;
+        }
+        img.style.display = 'none';
+        const avatar = img.parentElement.querySelector('.letter-avatar');
+        if (avatar) avatar.style.display = 'flex';
     }
 
     // ─── Persistence ──────────────────────────────────────────────────────────
     function save() {
         localStorage.setItem('premiumLinks',   JSON.stringify(links));
         localStorage.setItem('premiumFolders', JSON.stringify(folders));
+    }
+
+    // ─── Custom Icon Live Preview ─────────────────────────────────────────────
+    function updateLinkCustomPreview() {
+        const input = document.getElementById('input-link-custom-icon');
+        const preview = document.getElementById('link-custom-preview');
+        const val = (input.value || '').trim();
+        if (val) {
+            preview.innerHTML = `<span style="font-size: 1.75rem; line-height: 1;">${val}</span>`;
+            preview.style.borderColor = 'rgba(255,255,255,0.2)';
+        } else {
+            preview.innerHTML = `<i class="ph ph-smiley text-2xl text-zinc-500"></i>`;
+            preview.style.borderColor = 'rgba(255,255,255,0.1)';
+        }
+    }
+
+    function updateFolderCustomPreview() {
+        const input = document.getElementById('input-folder-custom-icon');
+        const preview = document.getElementById('folder-custom-preview');
+        const val = (input.value || '').trim();
+        if (val) {
+            preview.innerHTML = `<span style="font-size: 1.75rem; line-height: 1;">${val}</span>`;
+            preview.style.borderColor = 'rgba(251,191,36,0.3)';
+        } else {
+            preview.innerHTML = `<i class="ph ph-folder text-2xl text-amber-400/70"></i>`;
+            preview.style.borderColor = 'rgba(251,191,36,0.15)';
+        }
     }
 
     // ─── Clock ────────────────────────────────────────────────────────────────
@@ -537,11 +691,11 @@
     }
 
     function updateNavChrome() {
-        const mainTitle      = document.getElementById('main-title');
-        const breadcrumb     = document.getElementById('folder-breadcrumb');
-        const folderCrumb    = document.getElementById('folder-crumb-name');
-        const rootCrumb      = document.getElementById('root-crumb');
-        const newFolderBtn   = document.getElementById('new-folder-btn');
+        const mainTitle       = document.getElementById('main-title');
+        const breadcrumb      = document.getElementById('folder-breadcrumb');
+        const folderCrumb     = document.getElementById('folder-crumb-name');
+        const rootCrumb       = document.getElementById('root-crumb');
+        const newFolderBtn    = document.getElementById('new-folder-btn');
         const mobileFolderFab = document.getElementById('mobile-folder-fab');
 
         if (currentFolderId !== null) {
@@ -570,9 +724,7 @@
         const visibleLinks   = overrideLinks !== null
             ? overrideLinks
             : links.filter(l =>
-                currentFolderId === null
-                    ? !l.folderId
-                    : l.folderId === currentFolderId
+                currentFolderId === null ? !l.folderId : l.folderId === currentFolderId
               );
 
         const isEmpty = visibleFolders.length === 0 && visibleLinks.length === 0;
@@ -608,22 +760,23 @@
             const fi        = folders.findIndex(f => f.id === folder.id);
             const linkCount = links.filter(l => l.folderId === folder.id).length;
             const card      = document.createElement('div');
-            card.className  = `premium-card folder-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200`;
+            card.className  = 'premium-card folder-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200';
             card.style.animationDelay = `${cardIdx * 40}ms`;
             card.setAttribute('data-folder-id', folder.id);
 
+            const iconHtml = folder.icon
+                ? `<span style="font-size:1.7rem;line-height:1;display:block">${folder.icon}</span>`
+                : `<i class="ph-fill ph-folder text-2xl sm:text-[28px] text-amber-400/75 group-hover:text-amber-400 transition-colors duration-300"></i>`;
+
             card.innerHTML = `
                 <div class="premium-card-inner p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-start relative min-h-[76px] sm:min-h-[160px]">
-                    <!-- Icon -->
                     <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] sm:rounded-2xl bg-amber-400/[0.06] border border-amber-400/[0.14] flex items-center justify-center shrink-0 group-hover:scale-[1.05] group-hover:bg-amber-400/[0.1] transition-all duration-400 relative z-10 mr-4 sm:mr-0 pointer-events-none">
-                        <i class="ph-fill ph-folder text-2xl sm:text-[28px] text-amber-400/75 group-hover:text-amber-400 transition-colors duration-300"></i>
+                        ${iconHtml}
                     </div>
-                    <!-- Text -->
                     <div class="flex-1 min-w-0 relative z-10 pointer-events-none mt-0 sm:mt-5 pr-10 sm:pr-8">
                         <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${folder.name}</h3>
                         <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${linkCount} ${linkCount === 1 ? 'link' : 'links'}</p>
                     </div>
-                    <!-- Desktop actions -->
                     <div class="hidden sm:flex absolute right-5 top-5 items-center gap-1 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 z-20 pointer-events-auto">
                         <button onclick="openFolderModal(event,${fi})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Rename">
                             <i class="ph ph-pencil-simple text-lg"></i>
@@ -632,13 +785,11 @@
                             <i class="ph ph-trash text-lg"></i>
                         </button>
                     </div>
-                    <!-- Mobile 3-dots -->
                     <div class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
                         <button onclick="openFolderActionSheet(event,${fi})" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all">
                             <i class="ph ph-dots-three-vertical text-xl"></i>
                         </button>
                     </div>
-                    <!-- Arrow -->
                     <div class="absolute bottom-5 right-6 text-zinc-600 opacity-0 -translate-x-3 translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:group-hover:translate-y-0 transition-all duration-400 pointer-events-none z-10 hidden sm:block">
                         <i class="ph ph-arrow-right text-xl"></i>
                     </div>
@@ -652,24 +803,29 @@
 
         // ── Link cards ────────────────────────────────────────────────────────
         visibleLinks.forEach(link => {
-            const ri          = links.findIndex(l => l.id === link.id);
-            const card        = document.createElement('div');
-            card.className    = `premium-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200`;
+            const ri   = links.findIndex(l => l.id === link.id);
+            const card = document.createElement('div');
+            card.className = 'premium-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200';
             card.style.animationDelay = `${cardIdx * 40}ms`;
             card.setAttribute('data-id', link.id);
 
-            const fbIcon = `https://icons.duckduckgo.com/ip3/${getDomain(link.url)}.ico`;
+            const domain = getDomain(link.url);
+            const safeName = link.name.replace(/'/g, "\\'");
+
+            const iconHtml = link.icon
+                ? `<span style="font-size:1.55rem;line-height:1;display:block">${link.icon}</span>`
+                : `<img src="${getFavicon(link.url)}" class="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-md" onerror="handleFaviconError(this,'${safeName}','${domain}')">
+                   <span class="letter-avatar" style="font-size:1.15rem">${(link.name.charAt(0) || '?').toUpperCase()}</span>`;
 
             card.innerHTML = `
                 <div class="premium-card-inner p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-start relative min-h-[76px] sm:min-h-[160px] transition-all duration-300">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] sm:rounded-2xl bg-white/[0.03] border border-white/[0.06] shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-[1.05] group-hover:bg-white/[0.05] transition-all duration-400 relative z-10 mr-4 sm:mr-0 pointer-events-none">
-                        <img src="${getFavicon(link.url)}" class="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-md" onerror="this.onerror=null;this.src='${fbIcon}'">
+                        ${iconHtml}
                     </div>
                     <div class="flex-1 min-w-0 relative z-10 pointer-events-none mt-0 sm:mt-6 pr-10 sm:pr-8">
                         <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${link.name}</h3>
-                        <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${getDomain(link.url)}</p>
+                        <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${domain}</p>
                     </div>
-                    <!-- Desktop actions -->
                     <div class="hidden sm:flex absolute right-5 top-5 items-center gap-1 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 z-20 pointer-events-auto">
                         <button onclick="openModal(event,${ri})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Edit">
                             <i class="ph ph-pencil-simple text-lg"></i>
@@ -678,13 +834,11 @@
                             <i class="ph ph-trash text-lg"></i>
                         </button>
                     </div>
-                    <!-- Mobile 3-dots -->
                     <div class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
                         <button onclick="openActionSheet(event,${ri})" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all">
                             <i class="ph ph-dots-three-vertical text-xl"></i>
                         </button>
                     </div>
-                    <!-- Arrow -->
                     <div class="absolute bottom-5 right-6 text-zinc-600 opacity-0 -translate-x-3 translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:group-hover:translate-y-0 transition-all duration-400 pointer-events-none z-10 hidden sm:block">
                         <i class="ph ph-arrow-up-right text-xl"></i>
                     </div>
@@ -715,7 +869,7 @@
         searchInput.focus();
     }
 
-    // ─── Folder-chip selector (inside link modal) ─────────────────────────────
+    // ─── Folder-chip selector ─────────────────────────────────────────────────
     function buildFolderChips() {
         const wrap  = document.getElementById('folder-selector-wrap');
         const chips = document.getElementById('folder-chips');
@@ -724,20 +878,22 @@
         if (folders.length === 0) { wrap.classList.add('hidden'); return; }
         wrap.classList.remove('hidden');
 
-        // "None" chip
         const none = document.createElement('button');
-        none.type  = 'button';
+        none.type      = 'button';
         none.className = `folder-chip px-3 py-1.5 rounded-xl text-sm font-medium text-zinc-400 ${selectedFolderForLink === null ? 'selected-none' : ''}`;
         none.innerText = 'None';
         none.onclick   = () => { selectedFolderForLink = null; buildFolderChips(); };
         chips.appendChild(none);
 
         folders.forEach(f => {
-            const btn    = document.createElement('button');
-            btn.type     = 'button';
-            const sel    = selectedFolderForLink === f.id;
+            const btn = document.createElement('button');
+            btn.type  = 'button';
+            const sel = selectedFolderForLink === f.id;
             btn.className = `folder-chip px-3 py-1.5 rounded-xl text-sm font-medium flex items-center gap-1.5 ${sel ? 'selected' : 'text-zinc-400'}`;
-            btn.innerHTML = `<i class="ph-fill ph-folder text-sm ${sel ? 'text-amber-400' : 'text-zinc-600'}"></i>${f.name}`;
+            const iconDisplay = f.icon
+                ? `<span style="font-size:0.9rem;line-height:1">${f.icon}</span>`
+                : `<i class="ph-fill ph-folder text-sm ${sel ? 'text-amber-400' : 'text-zinc-600'}"></i>`;
+            btn.innerHTML = `${iconDisplay}${f.name}`;
             btn.onclick   = () => { selectedFolderForLink = f.id; buildFolderChips(); };
             chips.appendChild(btn);
         });
@@ -777,6 +933,11 @@
 
         buildFolderChips();
 
+        const linkIconInput = document.getElementById('input-link-custom-icon');
+        linkIconInput.value = index !== null ? (links[index].icon || '') : '';
+        linkIconInput.oninput = updateLinkCustomPreview;
+        updateLinkCustomPreview();
+
         if (index !== null) {
             editingId = index;
             document.getElementById('modal-title').innerText = 'Edit Link';
@@ -805,11 +966,12 @@
         if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
         const folderId = selectedFolderForLink || undefined;
+        const icon     = document.getElementById('input-link-custom-icon').value.trim() || undefined;
 
         if (editingId !== null) {
-            links[editingId] = { ...links[editingId], name, url, folderId };
+            links[editingId] = { ...links[editingId], name, url, folderId, icon };
         } else {
-            links.unshift({ id: generateId(), name, url, folderId });
+            links.unshift({ id: generateId(), name, url, folderId, icon });
         }
         searchInput.value = '';
         render();
@@ -845,9 +1007,14 @@
         folderModal.classList.remove('opacity-0');
         folderModal.classList.add('is-open');
 
+        const folderIconInput = document.getElementById('input-folder-custom-icon');
+        folderIconInput.value = index !== null ? (folders[index].icon || '') : '';
+        folderIconInput.oninput = updateFolderCustomPreview;
+        updateFolderCustomPreview();
+
         if (index !== null) {
             editingFolderId = index;
-            document.getElementById('folder-modal-title').innerText = 'Rename Folder';
+            document.getElementById('folder-modal-title').innerText = 'Edit Folder';
             folderNameInput.value = folders[index].name;
         } else {
             editingFolderId = null;
@@ -867,27 +1034,26 @@
     function saveFolder() {
         const name = folderNameInput.value.trim();
         if (!name) return showToast('Please enter a folder name');
+        const icon = document.getElementById('input-folder-custom-icon').value.trim() || undefined;
 
         if (editingFolderId !== null) {
-            folders[editingFolderId] = { ...folders[editingFolderId], name };
-            // Update breadcrumb if we're inside this folder
+            folders[editingFolderId] = { ...folders[editingFolderId], name, icon };
             if (currentFolderId === folders[editingFolderId].id) {
                 document.getElementById('folder-crumb-name').innerText = name;
             }
         } else {
-            folders.unshift({ id: generateId(), name });
+            folders.unshift({ id: generateId(), name, icon });
         }
         render();
         closeFolderModal();
-        showToast(editingFolderId !== null ? 'Folder renamed' : 'Folder created');
+        showToast(editingFolderId !== null ? 'Folder updated' : 'Folder created');
     }
 
     function deleteFolder(event, index) {
         if (event) event.stopPropagation();
-        const deleted      = folders[index];
-        const affectedIds  = links.filter(l => l.folderId === deleted.id).map(l => l.id);
+        const deleted     = folders[index];
+        const affectedIds = links.filter(l => l.folderId === deleted.id).map(l => l.id);
 
-        // Move contained links back to root
         links   = links.map(l => l.folderId === deleted.id ? { ...l, folderId: undefined } : l);
         folders.splice(index, 1);
 
@@ -906,7 +1072,7 @@
         if (e.key === 'Escape') closeFolderModal();
     });
 
-    // ─── Link Action Sheet (Mobile) ───────────────────────────────────────────
+    // ─── Action Sheets ────────────────────────────────────────────────────────
     const sheetBackdrop = document.getElementById('action-sheet-backdrop');
     const actionSheet   = document.getElementById('action-sheet');
 
@@ -923,13 +1089,13 @@
     function closeActionSheet() {
         sheetBackdrop.classList.add('opacity-0');
         actionSheet.classList.add('translate-y-full');
-        setTimeout(() => sheetBackdrop.classList.add('hidden'), 300);
+        setTimeout(() => { sheetBackdrop.classList.add('hidden'); actionSheet.classList.add('hidden'); }, 300);
     }
-    function handleActionEdit()   { closeActionSheet(); setTimeout(() => openModal(null, currentActionIndex), 300); }
-    function handleActionMove()   { closeActionSheet(); setTimeout(() => openMoveSheet(currentActionIndex), 300); }
-    function handleActionDelete() { closeActionSheet(); setTimeout(() => deleteLink(null, currentActionIndex), 300); }
+    function handleActionEdit()   { closeActionSheet(); setTimeout(() => openModal(null, currentActionIndex), 320); }
+    function handleActionChangeIcon() { closeActionSheet(); setTimeout(() => openModal(null, currentActionIndex), 320); }
+    function handleActionMove()   { closeActionSheet(); setTimeout(() => openMoveSheet(currentActionIndex), 320); }
+    function handleActionDelete() { closeActionSheet(); setTimeout(() => deleteLink(null, currentActionIndex), 320); }
 
-    // ─── Folder Action Sheet (Mobile) ─────────────────────────────────────────
     const folderSheetBackdrop = document.getElementById('folder-action-sheet-backdrop');
     const folderActionSheet   = document.getElementById('folder-action-sheet');
 
@@ -946,12 +1112,13 @@
     function closeFolderActionSheet() {
         folderSheetBackdrop.classList.add('opacity-0');
         folderActionSheet.classList.add('translate-y-full');
-        setTimeout(() => folderSheetBackdrop.classList.add('hidden'), 300);
+        setTimeout(() => { folderSheetBackdrop.classList.add('hidden'); folderActionSheet.classList.add('hidden'); }, 300);
     }
-    function handleFolderActionRename() { closeFolderActionSheet(); setTimeout(() => openFolderModal(null, currentFolderActionIndex), 300); }
-    function handleFolderActionDelete() { closeFolderActionSheet(); setTimeout(() => deleteFolder(null, currentFolderActionIndex), 300); }
+    function handleFolderActionRename()     { closeFolderActionSheet(); setTimeout(() => openFolderModal(null, currentFolderActionIndex), 320); }
+    function handleFolderActionChangeIcon() { closeFolderActionSheet(); setTimeout(() => openFolderModal(null, currentFolderActionIndex), 320); }
+    function handleFolderActionDelete()     { closeFolderActionSheet(); setTimeout(() => deleteFolder(null, currentFolderActionIndex), 320); }
 
-    // ─── Move-to-Folder Sheet (Mobile) ────────────────────────────────────────
+    // ─── Move Sheet ───────────────────────────────────────────────────────────
     const moveSheetBackdrop = document.getElementById('move-sheet-backdrop');
     const moveSheet         = document.getElementById('move-sheet');
 
@@ -961,24 +1128,26 @@
         container.innerHTML = '';
         const link = links[index];
 
-        const makeBtn = (label, icon, iconClass, selected, onClick) => {
+        const makeBtn = (label, iconHtml, selected, onClick) => {
             const btn = document.createElement('button');
             btn.className = `w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-colors text-left font-medium text-[15px] ${selected ? 'text-white bg-white/5' : 'text-zinc-300 hover:bg-white/5 active:bg-white/10'}`;
-            btn.innerHTML = `<i class="${icon} text-xl ${iconClass}"></i><span>${label}</span>${selected ? '<i class="ph ph-check ml-auto text-zinc-400"></i>' : ''}`;
+            btn.innerHTML = `${iconHtml}<span>${label}</span>${selected ? '<i class="ph ph-check ml-auto text-zinc-400"></i>' : ''}`;
             btn.onclick = onClick;
             return btn;
         };
 
-        // No folder
-        const noneSelected = !link.folderId;
-        container.appendChild(makeBtn('No Folder', 'ph ph-prohibit', 'text-zinc-500', noneSelected, () => {
-            links[movingLinkIndex] = { ...links[movingLinkIndex], folderId: undefined };
-            save(); render(); closeMoveSheet(); showToast('Moved to root');
-        }));
+        container.appendChild(makeBtn('No Folder',
+            `<i class="ph ph-prohibit text-xl text-zinc-500"></i>`,
+            !link.folderId,
+            () => { links[movingLinkIndex] = { ...links[movingLinkIndex], folderId: undefined }; save(); render(); closeMoveSheet(); showToast('Moved to root'); }
+        ));
 
         folders.forEach(f => {
             const sel = link.folderId === f.id;
-            container.appendChild(makeBtn(f.name, 'ph-fill ph-folder', sel ? 'text-amber-400' : 'text-zinc-500', sel, () => {
+            const iconHtml = f.icon
+                ? `<span style="font-size:1.2rem;line-height:1">${f.icon}</span>`
+                : `<i class="ph-fill ph-folder text-xl ${sel ? 'text-amber-400' : 'text-zinc-500'}"></i>`;
+            container.appendChild(makeBtn(f.name, iconHtml, sel, () => {
                 links[movingLinkIndex] = { ...links[movingLinkIndex], folderId: f.id };
                 save(); render(); closeMoveSheet(); showToast(`Moved to "${f.name}"`);
             }));
@@ -998,7 +1167,7 @@
     function closeMoveSheet() {
         moveSheetBackdrop.classList.add('opacity-0');
         moveSheet.classList.add('translate-y-full');
-        setTimeout(() => moveSheetBackdrop.classList.add('hidden'), 300);
+        setTimeout(() => { moveSheetBackdrop.classList.add('hidden'); moveSheet.classList.add('hidden'); }, 300);
     }
 
     // ─── Header ───────────────────────────────────────────────────────────────
@@ -1067,9 +1236,9 @@
 
     // ─── Keyboard Shortcuts ───────────────────────────────────────────────────
     document.addEventListener('keydown', e => {
-        if (e.key === '/' && document.activeElement !== document.getElementById('search-input') && !document.activeElement.isContentEditable && document.activeElement.tagName !== 'INPUT') {
+        if (e.key === '/' && document.activeElement !== searchInput && !document.activeElement.isContentEditable && document.activeElement.tagName !== 'INPUT') {
             e.preventDefault();
-            document.getElementById('search-input').focus();
+            searchInput.focus();
         }
         if (e.key === 'Escape' && currentFolderId !== null && !modalContent.classList.contains('is-open') && !folderModal.classList.contains('is-open'))
             navigateBack();
@@ -1109,16 +1278,149 @@
         }
     }
 
-    // ─── Drag & Drop ──────────────────────────────────────────────────────────
+    // ─── Drag & Drop (folder glow only – instant on/off) ──────────────────────
+    let hoveredFolder   = null;
+    let draggingLinkId  = null;
+    let rootZoneHovered = false;
+    let lastDragPos     = { x: 0, y: 0 };
+
+    const rootDropZone = document.getElementById('root-drop-zone');
+
+    function setHoveredFolder(el) {
+        if (hoveredFolder === el) return;
+        clearHoveredFolder();
+        hoveredFolder = el;
+        if (el) el.classList.add('folder-drag-over');
+    }
+
+    function clearHoveredFolder() {
+        if (hoveredFolder) {
+            hoveredFolder.classList.remove('folder-drag-over');
+            hoveredFolder = null;
+        }
+    }
+
+    function getClientXY(evt) {
+        if (evt.clientX !== undefined) return { x: evt.clientX, y: evt.clientY };
+        if (evt.changedTouches?.length) return { x: evt.changedTouches[0].clientX, y: evt.changedTouches[0].clientY };
+        if (evt.touches?.length) return { x: evt.touches[0].clientX, y: evt.touches[0].clientY };
+        return { x: 0, y: 0 };
+    }
+
+    function isOverRect(x, y, rect) {
+        return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }
+
+    function onDragMove(e) {
+        if (!draggingLinkId) return;
+        const { x, y } = getClientXY(e);
+        lastDragPos = { x, y };
+
+        // Instant folder glow – turns on when over folder card, turns off the moment you leave it
+        const el = document.elementFromPoint(x, y);
+        const folderCard = el?.closest('[data-folder-id]') || null;
+        setHoveredFolder(folderCard);
+
+        // Root zone tracking
+        if (currentFolderId !== null) {
+            const over = isOverRect(x, y, rootDropZone.getBoundingClientRect());
+            if (over !== rootZoneHovered) {
+                rootZoneHovered = over;
+                rootDropZone.classList.toggle('hovering', over);
+            }
+        }
+    }
+
     Sortable.create(grid, {
-        animation: 400,
+        animation: 300,
         easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
         ghostClass: 'sortable-ghost',
-        delay: 150,
+        dragClass: 'sortable-drag',
+        delay: 120,
         delayOnTouchOnly: true,
-        fallbackTolerance: 3,
-        onEnd() {
+        fallbackTolerance: 4,
+
+        onStart(evt) {
+            draggingLinkId = evt.item.getAttribute('data-id') || null;
+            rootZoneHovered = false;
+            document.body.classList.add('is-dragging');
+
+            document.addEventListener('pointermove', onDragMove, { passive: true });
+            document.addEventListener('touchmove',  onDragMove, { passive: true });
+
+            if (draggingLinkId && currentFolderId !== null) {
+                rootDropZone.classList.add('drag-active');
+            }
+        },
+
+        onMove(evt) {
+            if (evt.dragged.getAttribute('data-id') && evt.related.getAttribute('data-folder-id'))
+                return false;
+        },
+
+        onEnd(evt) {
+            document.removeEventListener('pointermove', onDragMove);
+            document.removeEventListener('touchmove',  onDragMove);
+            document.body.classList.remove('is-dragging');
+
+            const linkId = draggingLinkId || evt.item.getAttribute('data-id');
+            draggingLinkId = null;
+
+            const oe = evt.originalEvent;
+            const rawPos = oe ? getClientXY(oe) : { x: 0, y: 0 };
+            const { x, y } = (rawPos.x || rawPos.y) ? rawPos : lastDragPos;
+
+            let dropFolderCard = hoveredFolder;
+            if (!dropFolderCard) {
+                const el = document.elementFromPoint(x, y);
+                dropFolderCard = el?.closest('[data-folder-id]') || null;
+            }
+            clearHoveredFolder();
+
+            // Dropped onto folder
+            if (linkId && dropFolderCard) {
+                const folderId = dropFolderCard.getAttribute('data-folder-id');
+                const idx = links.findIndex(l => l.id === linkId);
+                const folder = folders.find(f => f.id === folderId);
+                if (idx !== -1 && folder) {
+                    const prevFolderId = links[idx].folderId;
+                    links[idx] = { ...links[idx], folderId };
+                    rootDropZone.classList.remove('drag-active', 'hovering');
+                    rootZoneHovered = false;
+                    save(); render();
+                    showToast(`Moved to "${folder.name}"`, 'Undo', () => {
+                        const i = links.findIndex(l => l.id === linkId);
+                        if (i !== -1) { links[i] = { ...links[i], folderId: prevFolderId }; save(); render(); }
+                    });
+                    return;
+                }
+            }
+
+            // Dropped on root zone (remove from folder)
+            const finalOverRoot = currentFolderId !== null && isOverRect(x, y, rootDropZone.getBoundingClientRect());
+            if ((rootZoneHovered || finalOverRoot) && linkId && currentFolderId !== null) {
+                const idx = links.findIndex(l => l.id === linkId);
+                if (idx !== -1) {
+                    const prevFolderId = links[idx].folderId;
+                    links[idx] = { ...links[idx], folderId: undefined };
+                    rootDropZone.classList.remove('drag-active', 'hovering');
+                    rootZoneHovered = false;
+                    save(); render();
+                    showToast('Moved to root', 'Undo', () => {
+                        const i = links.findIndex(l => l.id === linkId);
+                        if (i !== -1) { links[i] = { ...links[i], folderId: prevFolderId }; save(); render(); }
+                    });
+                    return;
+                }
+            }
+
+            // Cleanup
+            rootDropZone.classList.remove('drag-active', 'hovering');
+            rootZoneHovered = false;
+
+            // Normal reorder
             if (searchInput.value.trim()) return;
+
             const newFolders = [], newLinks = [];
             grid.querySelectorAll('.premium-card').forEach(card => {
                 const fid = card.getAttribute('data-folder-id');
