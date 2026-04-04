@@ -5,18 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="tab-title">Saved links</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- SortableJS for Drag & Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
@@ -24,13 +17,8 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        surface: '#09090b', 
-                        surfaceHover: '#121214', 
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { surface: '#09090b', surfaceHover: '#121214' },
                     animation: {
                         'fade-in': 'fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'slide-down': 'slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
@@ -38,36 +26,25 @@
                         'pulse-slow': 'pulseSlow 4s ease-in-out infinite',
                     },
                     keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideDown: {
-                            '0%': { transform: 'translateY(-20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        staggerUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        pulseSlow: {
-                            '0%, 100%': { opacity: '0.4' },
-                            '50%': { opacity: '0.8' },
-                        }
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideDown: { '0%': { transform: 'translateY(-20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        staggerUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        pulseSlow: { '0%, 100%': { opacity: '0.4' }, '50%': { opacity: '0.8' } }
                     }
                 }
             }
         }
     </script>
+
     <style>
-        body { 
+        body {
             background-color: #000000;
             color: #ededed;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
             letter-spacing: -0.015em;
-            overscroll-behavior-y: none; 
+            overscroll-behavior-y: none;
         }
 
         ::-webkit-scrollbar { width: 4px; }
@@ -76,6 +53,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
         ::selection { background: rgba(255,255,255,0.15); color: #fff; }
 
+        /* ── Premium Card ── */
         .premium-card {
             position: relative;
             background: rgba(255, 255, 255, 0.03);
@@ -84,37 +62,29 @@
             overflow: hidden;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        @media (min-width: 640px) {
-            .premium-card { border-radius: 24px; }
-        }
-
+        @media (min-width: 640px) { .premium-card { border-radius: 24px; } }
         @media (hover: hover) {
-            .premium-card:hover {
-                transform: translateY(-4px) scale(1.01);
-                z-index: 10;
-            }
+            .premium-card:hover { transform: translateY(-4px) scale(1.01); z-index: 10; }
         }
-
         .premium-card::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit;
-            background: radial-gradient(
-                600px circle at var(--mouse-x) var(--mouse-y), 
-                rgba(255, 255, 255, 0.4), 
-                transparent 40%
-            );
+            background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.4), transparent 40%);
             opacity: 0;
             transition: opacity 0.3s ease;
             z-index: 0;
         }
-
         .premium-card:hover::before { opacity: 1; }
 
+        /* Folder card: amber shimmer on hover border */
+        .folder-card::before {
+            background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(251,191,36,0.25), transparent 40%);
+        }
+
         .premium-card-inner {
-            background: #09090b; 
+            background: #09090b;
             border-radius: 19px;
             position: relative;
             height: 100%;
@@ -122,23 +92,14 @@
             box-shadow: inset 0 1px 1px rgba(255,255,255,0.04);
             transition: background 0.4s ease, transform 0.3s ease;
         }
-
-        @media (min-width: 640px) {
-            .premium-card-inner { border-radius: 23px; }
-        }
-
+        @media (min-width: 640px) { .premium-card-inner { border-radius: 23px; } }
         .premium-card:hover .premium-card-inner { background: #111113; }
-
         .premium-card-inner::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit;
-            background: radial-gradient(
-                400px circle at var(--mouse-x) var(--mouse-y), 
-                rgba(255, 255, 255, 0.04), 
-                transparent 40%
-            );
+            background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.04), transparent 40%);
             opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
@@ -146,16 +107,24 @@
         }
         .premium-card:hover .premium-card-inner::before { opacity: 1; }
 
+        /* Folder inner: subtle amber tint glow */
+        .folder-card .premium-card-inner::before {
+            background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(251,191,36,0.04), transparent 40%);
+        }
+
+        /* ── Sortable ── */
         .sortable-ghost { opacity: 0.05; transform: scale(0.95); }
         .sortable-drag { cursor: grabbing !important; box-shadow: 0 40px 80px rgba(0,0,0,0.9); }
 
+        /* ── Nav ── */
         .glass-nav {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0,0,0,0.3);
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
             border-bottom: 1px solid rgba(255,255,255,0.03);
         }
 
+        /* ── Inputs ── */
         .cmd-input {
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.04);
@@ -166,10 +135,10 @@
             border-color: rgba(255,255,255,0.1);
             box-shadow: 0 0 20px rgba(255,255,255,0.03);
         }
-
         [contenteditable] { outline: none; transition: opacity 0.2s; }
         [contenteditable]:focus { opacity: 0.7; }
 
+        /* ── Ambient glow ── */
         .ambient-glow {
             position: fixed;
             top: -20%;
@@ -180,150 +149,179 @@
             background: radial-gradient(ellipse at top, rgba(255,255,255,0.04), transparent 70%);
             pointer-events: none;
             z-index: -1;
-            /* Heavy blur causes lag on mobile devices, restricted to sm+ */
         }
 
-        #modal-content {
+        /* ── Modals ── */
+        #modal-content, #folder-modal-content {
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
         }
-        
         @media (max-width: 639px) {
-            #modal-content {
+            #modal-content, #folder-modal-content {
                 bottom: 0; left: 0; right: 0;
                 transform: translateY(100%);
             }
-            #modal-content.is-open {
-                transform: translateY(0);
-            }
+            #modal-content.is-open, #folder-modal-content.is-open { transform: translateY(0); }
         }
-        
         @media (min-width: 640px) {
-            #modal-content {
+            #modal-content, #folder-modal-content {
                 top: 50%; left: 50%;
                 transform: translate(-50%, -50%) scale(0.95);
             }
-            #modal-content.is-open {
+            #modal-content.is-open, #folder-modal-content.is-open {
                 transform: translate(-50%, -50%) scale(1);
             }
         }
 
+        /* ── Toasts ── */
         .toast-enter { animation: toastEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .toast-leave { animation: toastLeave 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes toastEnter { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes toastLeave { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
+
+        /* ── Folder selector chips ── */
+        .folder-chip {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .folder-chip:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .folder-chip.selected {
+            background: rgba(251,191,36,0.08);
+            border-color: rgba(251,191,36,0.25);
+            color: rgb(251,191,36);
+        }
+        .folder-chip.selected-none {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.14);
+            color: #e4e4e7;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-white/20">
 
-    <!-- Ambient glow disabled on mobile for performance -->
     <div class="ambient-glow animate-pulse-slow hidden sm:block blur-[120px]"></div>
 
-    <!-- Sticky Command Bar -->
+    <!-- ══ Sticky Nav ══ -->
     <nav class="glass-nav sticky top-0 z-40 w-full animate-slide-down">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-0 min-h-[4.5rem] sm:min-h-[5.5rem] flex flex-col sm:flex-row sm:items-center justify-center gap-3 sm:gap-6">
-            
-            <!-- Top Row (Mobile) / Left (Desktop) -->
+
+            <!-- Left: Title / Breadcrumb -->
             <div class="flex items-center justify-between w-full sm:w-auto sm:mr-auto">
                 <div class="flex items-center gap-3 sm:gap-6 min-w-0">
-                    <div id="live-time" class="text-[10px] sm:text-xs font-mono text-zinc-500 tracking-wider hidden sm:block">00:00 AM</div>
+                    <div id="live-time" class="text-[10px] sm:text-xs font-mono text-zinc-500 tracking-wider hidden sm:block"></div>
                     <div class="h-6 w-px bg-white/[0.06] hidden sm:block"></div>
-                    <h1 id="main-title" 
-                        contenteditable="true" 
+
+                    <!-- Root title -->
+                    <h1 id="main-title"
+                        contenteditable="true"
                         spellcheck="false"
                         class="text-xl font-semibold text-zinc-100 truncate cursor-text tracking-tight"
                         onblur="saveHeaderData()"
                         onkeydown="handleTextKeydown(event)"
-                        onclick="selectAllOnFocus(this)">
-                        Saved links
-                    </h1>
+                        onclick="selectAllOnFocus(this)">Saved links</h1>
+
+                    <!-- Folder breadcrumb (hidden by default) -->
+                    <div id="folder-breadcrumb" class="hidden items-center gap-2 min-w-0">
+                        <button onclick="navigateBack()" class="flex items-center p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 transition-all group" title="Back">
+                            <i class="ph ph-arrow-left text-base group-hover:-translate-x-0.5 transition-transform duration-200"></i>
+                        </button>
+                        <span class="text-zinc-600 text-sm hidden sm:block" aria-hidden="true">/</span>
+                        <span id="root-crumb" class="text-zinc-500 text-sm hidden sm:block truncate max-w-[90px]"></span>
+                        <span class="text-zinc-600 text-sm" aria-hidden="true">/</span>
+                        <span id="folder-crumb-name" class="text-xl font-semibold text-zinc-100 truncate tracking-tight max-w-[160px] sm:max-w-[220px]"></span>
+                    </div>
                 </div>
 
-                <!-- Mobile Header Actions -->
+                <!-- Mobile header actions -->
                 <div class="flex items-center gap-1 sm:hidden text-zinc-400">
-                    <button onclick="triggerImport()" class="p-2 rounded-xl hover:bg-white/10 active:scale-95 transition-all">
+                    <button onclick="triggerImport()" class="p-2 rounded-xl hover:bg-white/10 active:scale-95 transition-all" title="Import">
                         <i class="ph ph-download-simple text-lg"></i>
                     </button>
-                    <button onclick="exportLinks()" class="p-2 rounded-xl hover:bg-white/10 active:scale-95 transition-all">
+                    <button onclick="exportLinks()" class="p-2 rounded-xl hover:bg-white/10 active:scale-95 transition-all" title="Export">
                         <i class="ph ph-upload-simple text-lg"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Search Bar -->
+            <!-- Search -->
             <div class="w-full sm:w-auto flex-1 sm:max-w-[260px] order-3 sm:order-2">
                 <div class="relative group cmd-input rounded-xl sm:rounded-2xl flex items-center px-4 py-3 sm:py-2.5 cursor-text" onclick="document.getElementById('search-input').focus()">
-                    <i class="ph ph-magnifying-glass text-lg sm:text-base text-zinc-500 group-focus-within:text-zinc-300"></i>
+                    <i class="ph ph-magnifying-glass text-lg sm:text-base text-zinc-500 group-focus-within:text-zinc-300 transition-colors"></i>
                     <input type="text" id="search-input" oninput="filterLinks()" placeholder="Search..." class="bg-transparent border-none outline-none text-[15px] sm:text-sm text-white placeholder-zinc-600 w-full ml-3">
                     <div class="hidden sm:flex items-center justify-center bg-white/5 rounded px-2 py-0.5 text-[10px] font-mono text-zinc-500 border border-white/5">/</div>
                 </div>
             </div>
 
-            <!-- Actions (Desktop Only) -->
+            <!-- Desktop Actions -->
             <div class="hidden sm:flex items-center gap-2 order-2 sm:order-3">
                 <button onclick="triggerImport()" class="p-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition-all" title="Import Data">
                     <i class="ph ph-download-simple text-xl"></i>
                 </button>
                 <input type="file" id="importFile" accept=".json" class="hidden" onchange="importLinks(event)">
-
                 <button onclick="exportLinks()" class="p-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/10 transition-all" title="Export Data">
                     <i class="ph ph-upload-simple text-xl"></i>
                 </button>
-
                 <div class="h-6 w-px bg-white/[0.06] mx-1"></div>
 
+                <!-- New Folder -->
+                <button id="new-folder-btn" onclick="openFolderModal()" class="px-4 py-2.5 text-zinc-400 hover:text-zinc-200 border border-white/[0.07] hover:border-white/[0.12] hover:bg-white/[0.03] rounded-2xl text-sm font-medium transition-all flex items-center gap-2">
+                    <i class="ph ph-folder-plus text-lg text-amber-500/70"></i>
+                    <span>New Folder</span>
+                </button>
+
+                <!-- Add Link -->
                 <button onclick="openModal()" class="ml-1 px-5 py-2.5 bg-white text-black text-sm font-bold rounded-2xl hover:bg-zinc-200 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
                     <i class="ph ph-plus text-xl"></i>
                     <span>Add Link</span>
                 </button>
             </div>
-            
         </div>
     </nav>
 
-<main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 z-10 flex flex-col items-center">
-    
-    <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 w-full">
+    <!-- ══ Main ══ -->
+    <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 z-10 flex flex-col items-center">
+        <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 w-full"></div>
+
+        <div id="bottom-hints" class="flex flex-col items-center justify-center gap-1.5 mt-6 mb-1 w-full max-w-md mx-auto">
+            <div class="text-zinc-500 text-[13px] font-medium">
+                <span>Click to open • Long press to drag and rearrange</span>
+            </div>
+            <div class="text-[12px] sm:text-[13px] text-indigo-500/90 bg-indigo-500/5 border border-indigo-500/15 px-4 py-2 rounded-xl text-center w-fit mx-auto">
+                <span>Data is saved in your browser. </span>
+                <button onclick="exportLinks()" class="inline-flex items-center gap-0.5 group">
+                    <span class="font-bold underline decoration-indigo-500/40 underline-offset-2 group-hover:text-indigo-400 transition-colors active:scale-95">Export</span>
+                    <span class="ml-0.5">it to keep it safe</span>
+                </button>
+            </div>
+        </div>
+
+        <footer class="w-full py-1 text-center">
+            <p class="text-zinc-500/80 text-[11px] font-semibold tracking-wide">
+                Made with <span class="text-rose-500/90 animate-[pulse_4s_ease-in-out_infinite]">♥️</span> by Tamim
+            </p>
+        </footer>
+    </main>
+
+    <!-- ══ Mobile FABs ══ -->
+    <div class="sm:hidden fixed bottom-6 right-5 flex flex-col items-end gap-3 z-40">
+        <button id="mobile-folder-fab" onclick="openFolderModal()" class="w-12 h-12 bg-[#111113] border border-white/10 text-amber-500/80 rounded-full flex items-center justify-center shadow-[0_8px_28px_rgba(0,0,0,0.6)] active:scale-90 transition-all">
+            <i class="ph ph-folder-plus text-xl"></i>
+        </button>
+        <button onclick="openModal()" class="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(255,255,255,0.3)] active:scale-90 transition-transform">
+            <i class="ph ph-plus text-2xl font-bold"></i>
+        </button>
     </div>
 
-    <div id="bottom-hints" class="flex flex-col items-center justify-center gap-1.5 mt-6 mb-1 w-full max-w-md mx-auto">
-        
-        <div class="text-zinc-500 text-[13px] font-medium">
-            <span>Click to open • Long press to drag and rearrange</span>
-        </div>
-        
-        <div class="text-[12px] sm:text-[13px] text-indigo-500/90 bg-indigo-500/5 border border-indigo-500/15 px-4 py-2 rounded-xl text-center w-fit mx-auto">
-            <span>Data is saved in your browser. </span>
-            <button onclick="exportLinks()" class="inline-flex items-center gap-0.5 group">
-                <span class="font-bold underline decoration-indigo-500/40 underline-offset-2 group-hover:text-indigo-400 transition-colors active:scale-95">Export</span>
-                <span class="ml-0.5">it to keep it safe</span>
-            </button>
-        </div>
-    </div>
+    <!-- ══ Shared Backdrop ══ -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/60 sm:bg-black/80 backdrop-blur-sm sm:backdrop-blur-md z-50 hidden opacity-0 transition-opacity duration-300" onclick="handleBackdropClick()"></div>
 
-    <footer class="w-full py-1 text-center">
-        <p class="text-zinc-500/80 text-[11px] font-semibold tracking-wide">
-            Made with <span class="text-rose-500/90 animate-[pulse_4s_ease-in-out_infinite]">♥️</span> by Tamim
-        </p>
-    </footer>
-</main>
-   
-   <!-- Mobile FAB -->
-    <button onclick="openModal()" class="sm:hidden fixed bottom-6 right-5 w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(255,255,255,0.3)] z-40 active:scale-90 transition-transform">
-        <i class="ph ph-plus text-2xl font-bold"></i>
-    </button>
-
-    <!-- Modals & Sheets -->
-    <div id="modal-backdrop" class="fixed inset-0 bg-black/60 sm:bg-black/80 backdrop-blur-sm sm:backdrop-blur-md z-50 hidden opacity-0 transition-opacity duration-300" onclick="closeModal()"></div>
-    
-    <!-- Link Edit Modal -->
+    <!-- ══ Link Modal ══ -->
     <div id="modal-content" class="fixed z-50 hidden opacity-0 w-full sm:max-w-md bg-[#09090b] sm:border border-white/5 rounded-t-[32px] sm:rounded-[28px] shadow-[0_-20px_60px_rgba(0,0,0,0.5)] sm:shadow-[0_40px_100px_rgba(0,0,0,1)] p-6 pb-10 sm:p-8 overflow-hidden">
-        
         <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6 sm:hidden"></div>
         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-white/[0.02] blur-3xl rounded-full pointer-events-none hidden sm:block"></div>
-
         <div class="relative z-10">
             <h2 id="modal-title" class="text-xl sm:text-2xl font-medium text-white mb-6 sm:mb-8 tracking-tight">New Link</h2>
-            
             <div class="space-y-4 sm:space-y-5">
                 <div>
                     <label class="block text-xs font-medium text-zinc-500 mb-2">URL</label>
@@ -331,7 +329,6 @@
                         <input type="url" id="input-url" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="https://...">
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-xs font-medium text-zinc-500 mb-2 flex justify-between">
                         <span>Title</span>
@@ -341,8 +338,12 @@
                         <input type="text" id="input-name" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. GitHub">
                     </div>
                 </div>
+                <!-- Folder selector (hidden when no folders exist) -->
+                <div id="folder-selector-wrap" class="hidden">
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">Folder</label>
+                    <div id="folder-chips" class="flex flex-wrap gap-2"></div>
+                </div>
             </div>
-
             <div class="flex gap-3 mt-8 sm:mt-10">
                 <button onclick="closeModal()" class="flex-1 px-5 py-4 sm:py-3.5 rounded-2xl text-zinc-400 hover:text-white hover:bg-white/5 active:bg-white/10 transition-colors text-[15px] sm:text-sm font-medium">Cancel</button>
                 <button onclick="saveLink()" class="flex-1 px-5 py-4 sm:py-3.5 rounded-2xl bg-white text-black font-semibold hover:bg-zinc-200 active:scale-95 transition-all text-[15px] sm:text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)]">Save Link</button>
@@ -350,30 +351,78 @@
         </div>
     </div>
 
-    <!-- Action Sheet (Mobile Options Menu) -->
-    <div id="action-sheet-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300" onclick="closeActionSheet()"></div>
-    <div id="action-sheet" class="fixed bottom-0 left-0 right-0 z-[60] bg-[#121214] sm:hidden rounded-t-[32px] p-6 pb-10 transform translate-y-full transition-transform duration-300 shadow-[0_-20px_60px_rgba(0,0,0,0.8)] border-t border-white/5">
-        <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6"></div>
-        <h3 id="action-sheet-title" class="text-white font-medium text-[17px] mb-5 truncate px-2 text-center">Link Options</h3>
-        <div class="space-y-2">
-            <button onclick="handleActionEdit()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
-                <i class="ph ph-pencil-simple text-xl text-zinc-400"></i>
-                <span>Edit Link</span>
-            </button>
-            <button onclick="handleActionDelete()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-rose-400 hover:bg-rose-500/10 active:bg-rose-500/20 transition-colors text-left font-medium text-[15px]">
-                <i class="ph ph-trash text-xl"></i>
-                <span>Delete Link</span>
-            </button>
-            <button onclick="closeActionSheet()" class="w-full flex items-center justify-center gap-4 mt-2 px-4 py-4 rounded-2xl text-zinc-400 active:bg-white/10 transition-colors font-medium text-[15px]">
-                Cancel
-            </button>
+    <!-- ══ Folder Modal ══ -->
+    <div id="folder-modal-content" class="fixed z-50 hidden opacity-0 w-full sm:max-w-sm bg-[#09090b] sm:border border-white/5 rounded-t-[32px] sm:rounded-[28px] shadow-[0_-20px_60px_rgba(0,0,0,0.5)] sm:shadow-[0_40px_100px_rgba(0,0,0,1)] p-6 pb-10 sm:p-8 overflow-hidden">
+        <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6 sm:hidden"></div>
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-amber-400/[0.03] blur-3xl rounded-full pointer-events-none hidden sm:block"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-6 sm:mb-8">
+                <div class="w-9 h-9 rounded-xl bg-amber-400/[0.08] border border-amber-400/[0.15] flex items-center justify-center shrink-0">
+                    <i class="ph ph-folder text-lg text-amber-400/90"></i>
+                </div>
+                <h2 id="folder-modal-title" class="text-xl sm:text-2xl font-medium text-white tracking-tight">New Folder</h2>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-500 mb-2">Folder Name</label>
+                <div class="cmd-input rounded-2xl p-1">
+                    <input type="text" id="input-folder-name" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. Work, Reading List…">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-8 sm:mt-10">
+                <button onclick="closeFolderModal()" class="flex-1 px-5 py-4 sm:py-3.5 rounded-2xl text-zinc-400 hover:text-white hover:bg-white/5 active:bg-white/10 transition-colors text-[15px] sm:text-sm font-medium">Cancel</button>
+                <button onclick="saveFolder()" class="flex-1 px-5 py-4 sm:py-3.5 rounded-2xl bg-white text-black font-semibold hover:bg-zinc-200 active:scale-95 transition-all text-[15px] sm:text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)]">Save</button>
+            </div>
         </div>
     </div>
 
-    <!-- Toast Notification Container -->
+    <!-- ══ Link Action Sheet (Mobile) ══ -->
+    <div id="action-sheet-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300" onclick="closeActionSheet()"></div>
+    <div id="action-sheet" class="fixed bottom-0 left-0 right-0 z-[60] bg-[#121214] sm:hidden rounded-t-[32px] p-6 pb-10 transform translate-y-full transition-transform duration-300 shadow-[0_-20px_60px_rgba(0,0,0,0.8)] border-t border-white/5">
+        <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6"></div>
+        <h3 id="action-sheet-title" class="text-white font-medium text-[17px] mb-5 truncate px-2 text-center"></h3>
+        <div class="space-y-2">
+            <button onclick="handleActionEdit()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
+                <i class="ph ph-pencil-simple text-xl text-zinc-400"></i><span>Edit Link</span>
+            </button>
+            <button onclick="handleActionMove()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
+                <i class="ph ph-folder-open text-xl text-amber-500/70"></i><span>Move to Folder</span>
+            </button>
+            <button onclick="handleActionDelete()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-rose-400 hover:bg-rose-500/10 active:bg-rose-500/20 transition-colors text-left font-medium text-[15px]">
+                <i class="ph ph-trash text-xl"></i><span>Delete Link</span>
+            </button>
+            <button onclick="closeActionSheet()" class="w-full flex items-center justify-center mt-2 px-4 py-4 rounded-2xl text-zinc-400 active:bg-white/10 transition-colors font-medium text-[15px]">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ══ Folder Action Sheet (Mobile) ══ -->
+    <div id="folder-action-sheet-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300" onclick="closeFolderActionSheet()"></div>
+    <div id="folder-action-sheet" class="fixed bottom-0 left-0 right-0 z-[60] bg-[#121214] sm:hidden rounded-t-[32px] p-6 pb-10 transform translate-y-full transition-transform duration-300 shadow-[0_-20px_60px_rgba(0,0,0,0.8)] border-t border-white/5">
+        <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6"></div>
+        <h3 id="folder-action-sheet-title" class="text-white font-medium text-[17px] mb-5 truncate px-2 text-center"></h3>
+        <div class="space-y-2">
+            <button onclick="handleFolderActionRename()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-white hover:bg-white/5 active:bg-white/10 transition-colors text-left font-medium text-[15px]">
+                <i class="ph ph-pencil-simple text-xl text-zinc-400"></i><span>Rename Folder</span>
+            </button>
+            <button onclick="handleFolderActionDelete()" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-rose-400 hover:bg-rose-500/10 active:bg-rose-500/20 transition-colors text-left font-medium text-[15px]">
+                <i class="ph ph-trash text-xl"></i><span>Delete Folder</span>
+            </button>
+            <button onclick="closeFolderActionSheet()" class="w-full flex items-center justify-center mt-2 px-4 py-4 rounded-2xl text-zinc-400 active:bg-white/10 transition-colors font-medium text-[15px]">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ══ Move-to-Folder Sheet (Mobile) ══ -->
+    <div id="move-sheet-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden opacity-0 transition-opacity duration-300" onclick="closeMoveSheet()"></div>
+    <div id="move-sheet" class="fixed bottom-0 left-0 right-0 z-[70] bg-[#121214] sm:hidden rounded-t-[32px] p-6 pb-10 transform translate-y-full transition-transform duration-300 shadow-[0_-20px_60px_rgba(0,0,0,0.8)] border-t border-white/5">
+        <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-white font-medium text-[17px] mb-5 px-2 text-center">Move to Folder</h3>
+        <div id="move-sheet-options" class="space-y-2 max-h-64 overflow-y-auto"></div>
+        <button onclick="closeMoveSheet()" class="w-full flex items-center justify-center mt-3 px-4 py-4 rounded-2xl text-zinc-400 active:bg-white/10 transition-colors font-medium text-[15px]">Cancel</button>
+    </div>
+
+    <!-- ══ Toast Container ══ -->
     <div id="toast-container" class="fixed bottom-24 sm:bottom-6 right-0 left-0 sm:left-auto sm:right-6 z-50 flex flex-col items-center sm:items-end gap-3 pointer-events-none px-4 sm:px-0"></div>
 
-    <!-- Templates -->
+    <!-- ══ Templates ══ -->
     <template id="empty-state">
         <div class="col-span-full flex flex-col items-center justify-center py-16 sm:py-20 lg:py-40 text-center opacity-0 animate-fade-in h-full flex-1">
             <div class="relative w-16 h-16 sm:w-24 sm:h-24 mb-6 sm:mb-8">
@@ -387,418 +436,706 @@
         </div>
     </template>
 
+    <template id="empty-folder-state">
+        <div class="col-span-full flex flex-col items-center justify-center py-16 sm:py-20 lg:py-32 text-center opacity-0 animate-fade-in h-full flex-1">
+            <div class="relative w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6">
+                <div class="absolute inset-0 bg-amber-400/[0.04] border border-amber-400/[0.12] rounded-full flex items-center justify-center z-10">
+                    <i class="ph ph-folder-open text-2xl sm:text-3xl text-amber-400/50"></i>
+                </div>
+            </div>
+            <h3 class="text-base sm:text-xl font-medium text-zinc-100 mb-2 tracking-tight">This folder is empty</h3>
+            <p class="text-zinc-500 text-[13px] sm:text-sm max-w-sm leading-relaxed px-4">Add a link and assign it to this folder, or move existing links here.</p>
+        </div>
+    </template>
+
     <template id="no-results-state">
         <div class="col-span-full flex flex-col items-center justify-center py-16 sm:py-20 lg:py-40 text-center opacity-0 animate-fade-in h-full flex-1">
             <div class="relative w-14 h-14 sm:w-20 sm:h-20 mb-5 sm:mb-6">
-                <div class="absolute inset-0 bg-white/[0.02] border border-white/[0.08] rounded-full flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] backdrop-blur-xl z-10">
+                <div class="absolute inset-0 bg-white/[0.02] border border-white/[0.08] rounded-full flex items-center justify-center z-10">
                     <i class="ph ph-magnifying-glass text-lg sm:text-2xl text-zinc-500"></i>
                 </div>
             </div>
             <h3 class="text-base sm:text-xl font-medium text-zinc-100 mb-2 tracking-tight">No links found</h3>
-            <p class="text-zinc-500 text-[13px] sm:text-sm max-w-sm mb-6 sm:mb-8 leading-relaxed px-4">We couldn't find anything matching "<span id="search-query-display" class="text-zinc-200 font-medium"></span>".</p>
+            <p class="text-zinc-500 text-[13px] sm:text-sm max-w-sm mb-6 sm:mb-8 leading-relaxed px-4">Nothing matched "<span id="search-query-display" class="text-zinc-200 font-medium"></span>".</p>
             <button onclick="clearSearch()" class="px-5 py-2.5 bg-white/[0.03] border border-white/[0.08] text-white text-sm font-medium rounded-xl sm:rounded-2xl hover:bg-white/[0.08] active:scale-95 transition-all flex items-center gap-2 mx-auto">
                 <i class="ph ph-x text-zinc-400"></i> Clear Search
             </button>
         </div>
     </template>
 
+    <!-- ══ Scripts ══ -->
     <script>
-        let links = JSON.parse(localStorage.getItem('premiumLinks')) || [];
-        let workspaceTitle = localStorage.getItem('p_workspaceTitle') || 'Saved links';
-        let editingId = null; 
-        let currentActionIndex = null;
+    // ─── State ────────────────────────────────────────────────────────────────
+    let links   = JSON.parse(localStorage.getItem('premiumLinks'))   || [];
+    let folders = JSON.parse(localStorage.getItem('premiumFolders')) || [];
+    let workspaceTitle    = localStorage.getItem('p_workspaceTitle') || 'Saved links';
+    let currentFolderId   = null;   // null = root view
+    let editingId         = null;   // link index being edited
+    let editingFolderId   = null;   // folder index being edited
+    let currentActionIndex       = null;
+    let currentFolderActionIndex = null;
+    let movingLinkIndex          = null;
+    let selectedFolderForLink    = undefined; // undefined=unset, null=no folder, string=folder id
 
-        const grid = document.getElementById('cards-grid');
-        const searchInput = document.getElementById('search-input');
-        const nameInput = document.getElementById('input-name');
-        const urlInput = document.getElementById('input-url');
-        const fetchIndicator = document.getElementById('fetch-indicator');
-        const bottomHints = document.getElementById('bottom-hints');
+    const grid           = document.getElementById('cards-grid');
+    const searchInput    = document.getElementById('search-input');
+    const nameInput      = document.getElementById('input-name');
+    const urlInput       = document.getElementById('input-url');
+    const fetchIndicator = document.getElementById('fetch-indicator');
+    const bottomHints    = document.getElementById('bottom-hints');
 
-        // Robust unique ID generation
-        const generateId = () => typeof crypto !== 'undefined' && crypto.randomUUID 
-            ? crypto.randomUUID() 
+    // ─── ID / Helpers ─────────────────────────────────────────────────────────
+    const generateId = () =>
+        typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
             : Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-            const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            const clockEl = document.getElementById('live-time');
-            if(clockEl) clockEl.innerText = `${timeStr} — ${dateStr}`;
+    function getDomain(url) {
+        try { return new URL(url).hostname.replace('www.', ''); } catch { return url; }
+    }
+
+    function getFavicon(url) {
+        try {
+            const v = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+            return `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(v)}&size=128`;
+        } catch {
+            return 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://google.com&size=128';
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+    }
 
-        function getDomain(url) {
-            try { return new URL(url).hostname.replace('www.', ''); } 
-            catch { return url; }
-        }
+    // ─── Persistence ──────────────────────────────────────────────────────────
+    function save() {
+        localStorage.setItem('premiumLinks',   JSON.stringify(links));
+        localStorage.setItem('premiumFolders', JSON.stringify(folders));
+    }
 
-        // Upgraded Favicon API that properly handles subdomains like keep.google.com
-        function getFavicon(url) {
-            try {
-                const validUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
-                // Using Google's newer faviconV2 API which correctly maps subdomains
-                return `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(validUrl)}&size=128`; 
-            } catch {
-                return 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://google.com&size=128';
-            }
-        }
+    // ─── Clock ────────────────────────────────────────────────────────────────
+    function updateClock() {
+        const now = new Date();
+        const el  = document.getElementById('live-time');
+        if (el) el.innerText =
+            now.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true })
+            + ' — '
+            + now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-        function showToast(message, actionText = null, actionCallback = null) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast-enter bg-[#18181b] border border-white/10 text-white px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl shadow-2xl flex items-center justify-between gap-4 sm:gap-6 text-xs sm:text-sm font-medium pointer-events-auto w-max max-w-[90vw]';
-            
-            let innerHTML = `<span class="flex items-center gap-2 truncate"><i class="ph ph-info text-zinc-400 shrink-0 text-lg"></i> <span class="truncate">${message}</span></span>`;
-            
-            if (actionText && actionCallback) {
-                innerHTML += `<button class="text-zinc-400 hover:text-white font-semibold transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs tracking-wide shrink-0 active:scale-95">${actionText}</button>`;
-            }
-            
-            toast.innerHTML = innerHTML;
-            if (actionCallback) {
-                toast.querySelector('button').addEventListener('click', () => {
-                    actionCallback();
-                    removeToast(toast);
-                });
-            }
-
-            container.appendChild(toast);
-            setTimeout(() => { if (toast.parentNode) removeToast(toast); }, 4000);
-        }
-
-        function removeToast(toast) {
-            toast.classList.replace('toast-enter', 'toast-leave');
-            setTimeout(() => toast.remove(), 400);
-        }
-
-        // Only attach mousemove effect for desktop devices to save mobile performance
-        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-            grid.addEventListener('mousemove', e => {
-                const cards = document.querySelectorAll('.premium-card');
-                for(const card of cards) {
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    card.style.setProperty('--mouse-x', `${x}px`);
-                    card.style.setProperty('--mouse-y', `${y}px`);
-                }
-            });
-        }
-
-        urlInput.addEventListener('blur', async () => {
-            let url = urlInput.value.trim();
-            if (!url || nameInput.value.trim() !== '') return; 
-            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-            
-            try {
-                fetchIndicator.classList.remove('hidden');
-                const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
-                const data = await response.json();
-                if (data.status === 'success' && data.data.title && nameInput.value.trim() === '') {
-                    nameInput.value = data.data.title;
-                } else { fallbackTitle(url); }
-            } catch (e) { fallbackTitle(url); } finally {
-                fetchIndicator.classList.add('hidden');
-            }
-        });
-
-        function fallbackTitle(url) {
-            if (nameInput.value.trim() === '') {
-                try {
-                    let domain = new URL(url).hostname.replace('www.', '');
-                    let brand = domain.split('.')[0]; 
-                    nameInput.value = brand.charAt(0).toUpperCase() + brand.slice(1);
-                } catch(e) {}
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === '/' && document.activeElement !== searchInput && !document.activeElement.isContentEditable && document.activeElement.tagName !== 'INPUT') {
-                e.preventDefault();
-                searchInput.focus();
-            }
-        });
-
-        function initHeader() {
-            document.getElementById('main-title').innerText = workspaceTitle;
-            document.getElementById('tab-title').innerText = workspaceTitle;
-        }
-
-        function saveHeaderData() {
-            workspaceTitle = document.getElementById('main-title').innerText.trim() || 'Saved links';
-            document.getElementById('main-title').innerText = workspaceTitle;
-            document.getElementById('tab-title').innerText = workspaceTitle;
-            localStorage.setItem('p_workspaceTitle', workspaceTitle);
-        }
-
-        function handleTextKeydown(e) {
-            if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
-        }
-
-        function selectAllOnFocus(element) {
-            setTimeout(() => {
-                const range = document.createRange();
-                range.selectNodeContents(element);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }, 10);
-        }
-
-        function render(filteredLinks = links) {
-            grid.innerHTML = '';
-            if (filteredLinks.length === 0) {
-                if (bottomHints) bottomHints.style.display = 'none';
-                if (searchInput.value.trim() !== '') {
-                    const template = document.getElementById('no-results-state').content.cloneNode(true);
-                    template.querySelector('#search-query-display').innerText = searchInput.value;
-                    grid.appendChild(template);
-                } else {
-                    grid.appendChild(document.getElementById('empty-state').content.cloneNode(true));
-                }
-                grid.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3');
-                grid.classList.add('flex', 'flex-col', 'items-center', 'justify-center', 'flex-1');
-                return;
-            } else {
-                if (bottomHints) {
-                    bottomHints.style.display = 'flex';
-                    setTimeout(() => bottomHints.classList.remove('opacity-0'), 100);
-                }
-                grid.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3');
-                grid.classList.remove('flex', 'flex-col', 'items-center', 'justify-center', 'flex-1');
-            }
-
-            filteredLinks.forEach((link, index) => {
-                const realIndex = links.findIndex(l => l.id === link.id);
-                const card = document.createElement('div');
-                card.className = `premium-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200`;
-                card.style.animationDelay = `${index * 40}ms`;
-                card.setAttribute('data-id', link.id);
-                
-                // Fallback to DuckDuckGo icon if Google FaviconV2 fails
-                const fallbackIconUrl = `https://icons.duckduckgo.com/ip3/${getDomain(link.url)}.ico`;
-
-                card.innerHTML = `
-                    <div class="premium-card-inner p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-start relative min-h-[76px] sm:min-h-[160px] transition-all duration-300">
-                        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] sm:rounded-2xl bg-white/[0.03] border border-white/[0.06] shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-[1.05] group-hover:bg-white/[0.05] transition-all duration-400 relative z-10 mr-4 sm:mr-0 pointer-events-none">
-                            <img src="${getFavicon(link.url)}" class="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-md" onerror="this.onerror=null; this.src='${fallbackIconUrl}'">
-                        </div>
-                        
-                        <div class="flex-1 min-w-0 relative z-10 pointer-events-none mt-0 sm:mt-6 pr-10 sm:pr-8">
-                            <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${link.name}</h3>
-                            <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${getDomain(link.url)}</p>
-                        </div>
-                        
-                        <!-- Desktop Hover Actions -->
-                        <div class="hidden sm:flex absolute right-5 top-5 items-center gap-1 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 z-20 shrink-0 pointer-events-auto">
-                            <button onclick="openModal(event, ${realIndex})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Edit">
-                                <i class="ph ph-pencil-simple text-lg"></i>
-                            </button>
-                            <button onclick="deleteLink(event, ${realIndex})" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all" title="Delete">
-                                <i class="ph ph-trash text-lg"></i>
-                            </button>
-                        </div>
-
-                        <!-- Mobile 3-Dots Menu -->
-                        <div class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 shrink-0 pointer-events-auto">
-                            <button onclick="openActionSheet(event, ${realIndex})" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all" aria-label="Options">
-                                <i class="ph ph-dots-three-vertical text-xl"></i>
-                            </button>
-                        </div>
-
-                        <!-- Desktop Arrow Indicator -->
-                        <div class="absolute bottom-5 right-6 text-zinc-600 opacity-0 -translate-x-3 translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:group-hover:translate-y-0 transition-all duration-400 pointer-events-none z-10 hidden sm:block">
-                            <i class="ph ph-arrow-up-right text-xl"></i>
-                        </div>
-                    </div>
-                `;
-
-                card.addEventListener('click', (e) => {
-                    if (e.target.closest('button')) return; 
-                    window.open(link.url, '_blank');
-                });
-                grid.appendChild(card);
-            });
-            localStorage.setItem('premiumLinks', JSON.stringify(links));
-        }
-
-        function filterLinks() {
-            const query = searchInput.value.toLowerCase();
-            render(links.filter(l => l.name.toLowerCase().includes(query) || l.url.toLowerCase().includes(query)));
-        }
-
-        function clearSearch() {
-            searchInput.value = '';
-            filterLinks();
-            searchInput.focus();
-        }
-
-        const modalBackdrop = document.getElementById('modal-backdrop');
-        const modalContent = document.getElementById('modal-content');
-
-        function openModal(e = null, index = null) {
-            if (e) e.stopPropagation();
-            modalBackdrop.classList.remove('hidden');
-            modalContent.classList.remove('hidden');
-            void modalContent.offsetWidth; 
-            modalBackdrop.classList.remove('opacity-0');
-            modalContent.classList.remove('opacity-0');
-            modalContent.classList.add('is-open');
-
-            if (index !== null) {
-                editingId = index;
-                document.getElementById('modal-title').innerText = "Edit Link";
-                nameInput.value = links[index].name;
-                urlInput.value = links[index].url;
-            } else {
-                editingId = null;
-                document.getElementById('modal-title').innerText = "New Link";
-                nameInput.value = '';
-                urlInput.value = '';
-            }
-            if(window.innerWidth > 640) setTimeout(() => urlInput.focus(), 150);
-        }
-
-        function closeModal() {
-            modalBackdrop.classList.add('opacity-0');
-            modalContent.classList.remove('is-open');
-            modalContent.classList.add('opacity-0');
-            setTimeout(() => {
-                modalBackdrop.classList.add('hidden');
-                modalContent.classList.add('hidden');
-            }, 300);
-        }
-
-        function saveLink() {
-            const name = nameInput.value.trim();
-            let url = urlInput.value.trim();
-            if (!name || !url) return showToast('Please enter both name and URL');
-            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-
-            const isEdit = editingId !== null;
-            if (isEdit) links[editingId] = { ...links[editingId], name, url };
-            else links.unshift({ id: generateId(), name, url });
-            
-            searchInput.value = ''; 
-            render();
-            closeModal();
-            showToast(isEdit ? 'Link updated' : 'Link added');
-        }
-
-        document.getElementById('modal-content').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') saveLink();
-            if (e.key === 'Escape') closeModal();
-        });
-
-        function deleteLink(event, index) {
-            if(event) event.stopPropagation();
-            const deletedLink = links[index]; 
-            links.splice(index, 1);
-            filterLinks(); 
-            showToast('Link removed', 'Undo', () => {
-                links.splice(index, 0, deletedLink);
-                filterLinks();
-            });
-        }
-
-        /* --- Action Sheet Logic (Mobile) --- */
-        const sheetBackdrop = document.getElementById('action-sheet-backdrop');
-        const actionSheet = document.getElementById('action-sheet');
-
-        function openActionSheet(e, index) {
-            e.stopPropagation();
-            currentActionIndex = index;
-            document.getElementById('action-sheet-title').innerText = links[index].name;
-            
-            sheetBackdrop.classList.remove('hidden');
-            actionSheet.classList.remove('hidden');
-            void sheetBackdrop.offsetWidth; 
-            
-            sheetBackdrop.classList.remove('opacity-0');
-            actionSheet.classList.remove('translate-y-full');
-        }
-
-        function closeActionSheet() {
-            sheetBackdrop.classList.add('opacity-0');
-            actionSheet.classList.add('translate-y-full');
-            setTimeout(() => {
-                sheetBackdrop.classList.add('hidden');
-            }, 300);
-        }
-
-        function handleActionEdit() {
-            closeActionSheet();
-            setTimeout(() => openModal(null, currentActionIndex), 300);
-        }
-
-        function handleActionDelete() {
-            closeActionSheet();
-            setTimeout(() => deleteLink(null, currentActionIndex), 300);
-        }
-
-        /* --- File Data Operations --- */
-        function exportLinks() {
-            const exportData = { title: workspaceTitle, links: links };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-            const a = document.createElement('a');
-            a.href = dataStr;
-            a.download = `links_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            a.remove();
-        }
-
-        function triggerImport() { document.getElementById('importFile').click(); }
-
-        function importLinks(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (imported.links) {
-                        links = imported.links.map(l => ({...l, id: l.id || generateId()}));
-                        if (imported.title) workspaceTitle = imported.title;
-                        initHeader();
-                        saveHeaderData();
-                    } else if (Array.isArray(imported)) {
-                        links = imported.map(l => ({...l, id: l.id || generateId()}));
-                    }
-                    render();
-                    showToast('Data imported successfully');
-                } catch { 
-                    showToast('Invalid file format', 'Error'); 
-                }
-                event.target.value = '';
-            };
-            reader.readAsText(file);
-        }
-
-        Sortable.create(grid, {
-            animation: 400,
-            easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-            ghostClass: 'sortable-ghost',
-            delay: 150,
-            delayOnTouchOnly: true,
-            fallbackTolerance: 3, 
-            onEnd: function() {
-                if(searchInput.value.trim() !== '') return; 
-                const newOrder = [];
-                grid.querySelectorAll('.premium-card').forEach(card => {
-                    const id = card.getAttribute('data-id');
-                    const link = links.find(l => l.id == id);
-                    if(link) newOrder.push(link);
-                });
-                links = newOrder;
-                localStorage.setItem('premiumLinks', JSON.stringify(links));
-            }
-        });
-
-        initHeader();
+    // ─── Navigation ───────────────────────────────────────────────────────────
+    function navigateToFolder(folderId) {
+        currentFolderId = folderId;
+        searchInput.value = '';
+        updateNavChrome();
         render();
+    }
+
+    function navigateBack() {
+        currentFolderId = null;
+        searchInput.value = '';
+        updateNavChrome();
+        render();
+    }
+
+    function updateNavChrome() {
+        const mainTitle      = document.getElementById('main-title');
+        const breadcrumb     = document.getElementById('folder-breadcrumb');
+        const folderCrumb    = document.getElementById('folder-crumb-name');
+        const rootCrumb      = document.getElementById('root-crumb');
+        const newFolderBtn   = document.getElementById('new-folder-btn');
+        const mobileFolderFab = document.getElementById('mobile-folder-fab');
+
+        if (currentFolderId !== null) {
+            const folder = folders.find(f => f.id === currentFolderId);
+            mainTitle.classList.add('hidden');
+            breadcrumb.classList.remove('hidden');
+            breadcrumb.classList.add('flex');
+            folderCrumb.innerText = folder ? folder.name : 'Folder';
+            rootCrumb.innerText   = workspaceTitle;
+            newFolderBtn.classList.add('hidden');
+            mobileFolderFab.classList.add('hidden');
+        } else {
+            mainTitle.classList.remove('hidden');
+            breadcrumb.classList.add('hidden');
+            breadcrumb.classList.remove('flex');
+            newFolderBtn.classList.remove('hidden');
+            mobileFolderFab.classList.remove('hidden');
+        }
+    }
+
+    // ─── Render ───────────────────────────────────────────────────────────────
+    function render(overrideLinks = null) {
+        grid.innerHTML = '';
+
+        const visibleFolders = currentFolderId === null ? folders : [];
+        const visibleLinks   = overrideLinks !== null
+            ? overrideLinks
+            : links.filter(l =>
+                currentFolderId === null
+                    ? !l.folderId
+                    : l.folderId === currentFolderId
+              );
+
+        const isEmpty = visibleFolders.length === 0 && visibleLinks.length === 0;
+
+        if (isEmpty) {
+            if (bottomHints) bottomHints.style.display = 'none';
+            let tpl;
+            if (searchInput.value.trim()) {
+                tpl = document.getElementById('no-results-state').content.cloneNode(true);
+                tpl.querySelector('#search-query-display').innerText = searchInput.value;
+            } else if (currentFolderId !== null) {
+                tpl = document.getElementById('empty-folder-state').content.cloneNode(true);
+            } else {
+                tpl = document.getElementById('empty-state').content.cloneNode(true);
+            }
+            grid.appendChild(tpl);
+            grid.classList.remove('grid','grid-cols-1','sm:grid-cols-2','lg:grid-cols-3');
+            grid.classList.add('flex','flex-col','items-center','justify-center','flex-1');
+            return;
+        }
+
+        if (bottomHints) {
+            bottomHints.style.display = 'flex';
+            setTimeout(() => bottomHints.classList.remove('opacity-0'), 100);
+        }
+        grid.classList.add('grid','grid-cols-1','sm:grid-cols-2','lg:grid-cols-3');
+        grid.classList.remove('flex','flex-col','items-center','justify-center','flex-1');
+
+        let cardIdx = 0;
+
+        // ── Folder cards ──────────────────────────────────────────────────────
+        visibleFolders.forEach(folder => {
+            const fi        = folders.findIndex(f => f.id === folder.id);
+            const linkCount = links.filter(l => l.folderId === folder.id).length;
+            const card      = document.createElement('div');
+            card.className  = `premium-card folder-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200`;
+            card.style.animationDelay = `${cardIdx * 40}ms`;
+            card.setAttribute('data-folder-id', folder.id);
+
+            card.innerHTML = `
+                <div class="premium-card-inner p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-start relative min-h-[76px] sm:min-h-[160px]">
+                    <!-- Icon -->
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] sm:rounded-2xl bg-amber-400/[0.06] border border-amber-400/[0.14] flex items-center justify-center shrink-0 group-hover:scale-[1.05] group-hover:bg-amber-400/[0.1] transition-all duration-400 relative z-10 mr-4 sm:mr-0 pointer-events-none">
+                        <i class="ph-fill ph-folder text-2xl sm:text-[28px] text-amber-400/75 group-hover:text-amber-400 transition-colors duration-300"></i>
+                    </div>
+                    <!-- Text -->
+                    <div class="flex-1 min-w-0 relative z-10 pointer-events-none mt-0 sm:mt-5 pr-10 sm:pr-8">
+                        <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${folder.name}</h3>
+                        <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${linkCount} ${linkCount === 1 ? 'link' : 'links'}</p>
+                    </div>
+                    <!-- Desktop actions -->
+                    <div class="hidden sm:flex absolute right-5 top-5 items-center gap-1 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 z-20 pointer-events-auto">
+                        <button onclick="openFolderModal(event,${fi})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Rename">
+                            <i class="ph ph-pencil-simple text-lg"></i>
+                        </button>
+                        <button onclick="deleteFolder(event,${fi})" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all" title="Delete">
+                            <i class="ph ph-trash text-lg"></i>
+                        </button>
+                    </div>
+                    <!-- Mobile 3-dots -->
+                    <div class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
+                        <button onclick="openFolderActionSheet(event,${fi})" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all">
+                            <i class="ph ph-dots-three-vertical text-xl"></i>
+                        </button>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="absolute bottom-5 right-6 text-zinc-600 opacity-0 -translate-x-3 translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:group-hover:translate-y-0 transition-all duration-400 pointer-events-none z-10 hidden sm:block">
+                        <i class="ph ph-arrow-right text-xl"></i>
+                    </div>
+                </div>
+            `;
+
+            card.addEventListener('click', e => { if (e.target.closest('button')) return; navigateToFolder(folder.id); });
+            grid.appendChild(card);
+            cardIdx++;
+        });
+
+        // ── Link cards ────────────────────────────────────────────────────────
+        visibleLinks.forEach(link => {
+            const ri          = links.findIndex(l => l.id === link.id);
+            const card        = document.createElement('div');
+            card.className    = `premium-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200`;
+            card.style.animationDelay = `${cardIdx * 40}ms`;
+            card.setAttribute('data-id', link.id);
+
+            const fbIcon = `https://icons.duckduckgo.com/ip3/${getDomain(link.url)}.ico`;
+
+            card.innerHTML = `
+                <div class="premium-card-inner p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-start relative min-h-[76px] sm:min-h-[160px] transition-all duration-300">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] sm:rounded-2xl bg-white/[0.03] border border-white/[0.06] shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-[1.05] group-hover:bg-white/[0.05] transition-all duration-400 relative z-10 mr-4 sm:mr-0 pointer-events-none">
+                        <img src="${getFavicon(link.url)}" class="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-md" onerror="this.onerror=null;this.src='${fbIcon}'">
+                    </div>
+                    <div class="flex-1 min-w-0 relative z-10 pointer-events-none mt-0 sm:mt-6 pr-10 sm:pr-8">
+                        <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${link.name}</h3>
+                        <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${getDomain(link.url)}</p>
+                    </div>
+                    <!-- Desktop actions -->
+                    <div class="hidden sm:flex absolute right-5 top-5 items-center gap-1 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 z-20 pointer-events-auto">
+                        <button onclick="openModal(event,${ri})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Edit">
+                            <i class="ph ph-pencil-simple text-lg"></i>
+                        </button>
+                        <button onclick="deleteLink(event,${ri})" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all" title="Delete">
+                            <i class="ph ph-trash text-lg"></i>
+                        </button>
+                    </div>
+                    <!-- Mobile 3-dots -->
+                    <div class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
+                        <button onclick="openActionSheet(event,${ri})" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all">
+                            <i class="ph ph-dots-three-vertical text-xl"></i>
+                        </button>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="absolute bottom-5 right-6 text-zinc-600 opacity-0 -translate-x-3 translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:group-hover:translate-y-0 transition-all duration-400 pointer-events-none z-10 hidden sm:block">
+                        <i class="ph ph-arrow-up-right text-xl"></i>
+                    </div>
+                </div>
+            `;
+
+            card.addEventListener('click', e => { if (e.target.closest('button')) return; window.open(link.url, '_blank'); });
+            grid.appendChild(card);
+            cardIdx++;
+        });
+
+        save();
+    }
+
+    // ─── Filter ───────────────────────────────────────────────────────────────
+    function filterLinks() {
+        const q = searchInput.value.toLowerCase();
+        if (!q) { render(); return; }
+        const pool = links.filter(l =>
+            currentFolderId === null ? !l.folderId : l.folderId === currentFolderId
+        );
+        render(pool.filter(l => l.name.toLowerCase().includes(q) || l.url.toLowerCase().includes(q)));
+    }
+
+    function clearSearch() {
+        searchInput.value = '';
+        filterLinks();
+        searchInput.focus();
+    }
+
+    // ─── Folder-chip selector (inside link modal) ─────────────────────────────
+    function buildFolderChips() {
+        const wrap  = document.getElementById('folder-selector-wrap');
+        const chips = document.getElementById('folder-chips');
+        chips.innerHTML = '';
+
+        if (folders.length === 0) { wrap.classList.add('hidden'); return; }
+        wrap.classList.remove('hidden');
+
+        // "None" chip
+        const none = document.createElement('button');
+        none.type  = 'button';
+        none.className = `folder-chip px-3 py-1.5 rounded-xl text-sm font-medium text-zinc-400 ${selectedFolderForLink === null ? 'selected-none' : ''}`;
+        none.innerText = 'None';
+        none.onclick   = () => { selectedFolderForLink = null; buildFolderChips(); };
+        chips.appendChild(none);
+
+        folders.forEach(f => {
+            const btn    = document.createElement('button');
+            btn.type     = 'button';
+            const sel    = selectedFolderForLink === f.id;
+            btn.className = `folder-chip px-3 py-1.5 rounded-xl text-sm font-medium flex items-center gap-1.5 ${sel ? 'selected' : 'text-zinc-400'}`;
+            btn.innerHTML = `<i class="ph-fill ph-folder text-sm ${sel ? 'text-amber-400' : 'text-zinc-600'}"></i>${f.name}`;
+            btn.onclick   = () => { selectedFolderForLink = f.id; buildFolderChips(); };
+            chips.appendChild(btn);
+        });
+    }
+
+    // ─── Shared Backdrop ──────────────────────────────────────────────────────
+    const modalBackdrop  = document.getElementById('modal-backdrop');
+    const modalContent   = document.getElementById('modal-content');
+    const folderModal    = document.getElementById('folder-modal-content');
+    let   backdropTarget = null;
+
+    function showBackdrop(closeFn) {
+        backdropTarget = closeFn;
+        modalBackdrop.classList.remove('hidden');
+        void modalBackdrop.offsetWidth;
+        modalBackdrop.classList.remove('opacity-0');
+    }
+    function hideBackdrop() {
+        modalBackdrop.classList.add('opacity-0');
+        setTimeout(() => modalBackdrop.classList.add('hidden'), 300);
+    }
+    function handleBackdropClick() { if (backdropTarget) backdropTarget(); }
+
+    // ─── Link Modal ───────────────────────────────────────────────────────────
+    function openModal(e = null, index = null) {
+        if (e) e.stopPropagation();
+
+        selectedFolderForLink = index !== null
+            ? (links[index].folderId || null)
+            : currentFolderId;
+
+        showBackdrop(closeModal);
+        modalContent.classList.remove('hidden');
+        void modalContent.offsetWidth;
+        modalContent.classList.remove('opacity-0');
+        modalContent.classList.add('is-open');
+
+        buildFolderChips();
+
+        if (index !== null) {
+            editingId = index;
+            document.getElementById('modal-title').innerText = 'Edit Link';
+            nameInput.value = links[index].name;
+            urlInput.value  = links[index].url;
+        } else {
+            editingId = null;
+            document.getElementById('modal-title').innerText = 'New Link';
+            nameInput.value = '';
+            urlInput.value  = '';
+        }
+        if (window.innerWidth > 640) setTimeout(() => urlInput.focus(), 150);
+    }
+
+    function closeModal() {
+        hideBackdrop();
+        modalContent.classList.remove('is-open');
+        modalContent.classList.add('opacity-0');
+        setTimeout(() => modalContent.classList.add('hidden'), 300);
+    }
+
+    function saveLink() {
+        const name = nameInput.value.trim();
+        let   url  = urlInput.value.trim();
+        if (!name || !url) return showToast('Please enter both name and URL');
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+        const folderId = selectedFolderForLink || undefined;
+
+        if (editingId !== null) {
+            links[editingId] = { ...links[editingId], name, url, folderId };
+        } else {
+            links.unshift({ id: generateId(), name, url, folderId });
+        }
+        searchInput.value = '';
+        render();
+        closeModal();
+        showToast(editingId !== null ? 'Link updated' : 'Link added');
+    }
+
+    modalContent.addEventListener('keydown', e => {
+        if (e.key === 'Enter')  saveLink();
+        if (e.key === 'Escape') closeModal();
+    });
+
+    function deleteLink(event, index) {
+        if (event) event.stopPropagation();
+        const deleted = links[index];
+        links.splice(index, 1);
+        filterLinks();
+        showToast('Link removed', 'Undo', () => {
+            links.splice(index, 0, deleted);
+            filterLinks();
+        });
+    }
+
+    // ─── Folder Modal ─────────────────────────────────────────────────────────
+    const folderNameInput = document.getElementById('input-folder-name');
+
+    function openFolderModal(e = null, index = null) {
+        if (e) e.stopPropagation();
+
+        showBackdrop(closeFolderModal);
+        folderModal.classList.remove('hidden');
+        void folderModal.offsetWidth;
+        folderModal.classList.remove('opacity-0');
+        folderModal.classList.add('is-open');
+
+        if (index !== null) {
+            editingFolderId = index;
+            document.getElementById('folder-modal-title').innerText = 'Rename Folder';
+            folderNameInput.value = folders[index].name;
+        } else {
+            editingFolderId = null;
+            document.getElementById('folder-modal-title').innerText = 'New Folder';
+            folderNameInput.value = '';
+        }
+        setTimeout(() => folderNameInput.focus(), 150);
+    }
+
+    function closeFolderModal() {
+        hideBackdrop();
+        folderModal.classList.remove('is-open');
+        folderModal.classList.add('opacity-0');
+        setTimeout(() => folderModal.classList.add('hidden'), 300);
+    }
+
+    function saveFolder() {
+        const name = folderNameInput.value.trim();
+        if (!name) return showToast('Please enter a folder name');
+
+        if (editingFolderId !== null) {
+            folders[editingFolderId] = { ...folders[editingFolderId], name };
+            // Update breadcrumb if we're inside this folder
+            if (currentFolderId === folders[editingFolderId].id) {
+                document.getElementById('folder-crumb-name').innerText = name;
+            }
+        } else {
+            folders.unshift({ id: generateId(), name });
+        }
+        render();
+        closeFolderModal();
+        showToast(editingFolderId !== null ? 'Folder renamed' : 'Folder created');
+    }
+
+    function deleteFolder(event, index) {
+        if (event) event.stopPropagation();
+        const deleted      = folders[index];
+        const affectedIds  = links.filter(l => l.folderId === deleted.id).map(l => l.id);
+
+        // Move contained links back to root
+        links   = links.map(l => l.folderId === deleted.id ? { ...l, folderId: undefined } : l);
+        folders.splice(index, 1);
+
+        if (currentFolderId === deleted.id) navigateBack();
+        else render();
+
+        showToast('Folder deleted', 'Undo', () => {
+            folders.splice(index, 0, deleted);
+            links = links.map(l => affectedIds.includes(l.id) ? { ...l, folderId: deleted.id } : l);
+            render();
+        });
+    }
+
+    folderModal.addEventListener('keydown', e => {
+        if (e.key === 'Enter')  saveFolder();
+        if (e.key === 'Escape') closeFolderModal();
+    });
+
+    // ─── Link Action Sheet (Mobile) ───────────────────────────────────────────
+    const sheetBackdrop = document.getElementById('action-sheet-backdrop');
+    const actionSheet   = document.getElementById('action-sheet');
+
+    function openActionSheet(e, index) {
+        e.stopPropagation();
+        currentActionIndex = index;
+        document.getElementById('action-sheet-title').innerText = links[index].name;
+        sheetBackdrop.classList.remove('hidden');
+        actionSheet.classList.remove('hidden');
+        void sheetBackdrop.offsetWidth;
+        sheetBackdrop.classList.remove('opacity-0');
+        actionSheet.classList.remove('translate-y-full');
+    }
+    function closeActionSheet() {
+        sheetBackdrop.classList.add('opacity-0');
+        actionSheet.classList.add('translate-y-full');
+        setTimeout(() => sheetBackdrop.classList.add('hidden'), 300);
+    }
+    function handleActionEdit()   { closeActionSheet(); setTimeout(() => openModal(null, currentActionIndex), 300); }
+    function handleActionMove()   { closeActionSheet(); setTimeout(() => openMoveSheet(currentActionIndex), 300); }
+    function handleActionDelete() { closeActionSheet(); setTimeout(() => deleteLink(null, currentActionIndex), 300); }
+
+    // ─── Folder Action Sheet (Mobile) ─────────────────────────────────────────
+    const folderSheetBackdrop = document.getElementById('folder-action-sheet-backdrop');
+    const folderActionSheet   = document.getElementById('folder-action-sheet');
+
+    function openFolderActionSheet(e, index) {
+        e.stopPropagation();
+        currentFolderActionIndex = index;
+        document.getElementById('folder-action-sheet-title').innerText = folders[index].name;
+        folderSheetBackdrop.classList.remove('hidden');
+        folderActionSheet.classList.remove('hidden');
+        void folderSheetBackdrop.offsetWidth;
+        folderSheetBackdrop.classList.remove('opacity-0');
+        folderActionSheet.classList.remove('translate-y-full');
+    }
+    function closeFolderActionSheet() {
+        folderSheetBackdrop.classList.add('opacity-0');
+        folderActionSheet.classList.add('translate-y-full');
+        setTimeout(() => folderSheetBackdrop.classList.add('hidden'), 300);
+    }
+    function handleFolderActionRename() { closeFolderActionSheet(); setTimeout(() => openFolderModal(null, currentFolderActionIndex), 300); }
+    function handleFolderActionDelete() { closeFolderActionSheet(); setTimeout(() => deleteFolder(null, currentFolderActionIndex), 300); }
+
+    // ─── Move-to-Folder Sheet (Mobile) ────────────────────────────────────────
+    const moveSheetBackdrop = document.getElementById('move-sheet-backdrop');
+    const moveSheet         = document.getElementById('move-sheet');
+
+    function openMoveSheet(index) {
+        movingLinkIndex = index;
+        const container = document.getElementById('move-sheet-options');
+        container.innerHTML = '';
+        const link = links[index];
+
+        const makeBtn = (label, icon, iconClass, selected, onClick) => {
+            const btn = document.createElement('button');
+            btn.className = `w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-colors text-left font-medium text-[15px] ${selected ? 'text-white bg-white/5' : 'text-zinc-300 hover:bg-white/5 active:bg-white/10'}`;
+            btn.innerHTML = `<i class="${icon} text-xl ${iconClass}"></i><span>${label}</span>${selected ? '<i class="ph ph-check ml-auto text-zinc-400"></i>' : ''}`;
+            btn.onclick = onClick;
+            return btn;
+        };
+
+        // No folder
+        const noneSelected = !link.folderId;
+        container.appendChild(makeBtn('No Folder', 'ph ph-prohibit', 'text-zinc-500', noneSelected, () => {
+            links[movingLinkIndex] = { ...links[movingLinkIndex], folderId: undefined };
+            save(); render(); closeMoveSheet(); showToast('Moved to root');
+        }));
+
+        folders.forEach(f => {
+            const sel = link.folderId === f.id;
+            container.appendChild(makeBtn(f.name, 'ph-fill ph-folder', sel ? 'text-amber-400' : 'text-zinc-500', sel, () => {
+                links[movingLinkIndex] = { ...links[movingLinkIndex], folderId: f.id };
+                save(); render(); closeMoveSheet(); showToast(`Moved to "${f.name}"`);
+            }));
+        });
+
+        if (folders.length === 0) {
+            container.innerHTML = `<p class="text-zinc-500 text-sm text-center py-4">No folders yet. Create one first.</p>`;
+        }
+
+        moveSheetBackdrop.classList.remove('hidden');
+        moveSheet.classList.remove('hidden');
+        void moveSheetBackdrop.offsetWidth;
+        moveSheetBackdrop.classList.remove('opacity-0');
+        moveSheet.classList.remove('translate-y-full');
+    }
+
+    function closeMoveSheet() {
+        moveSheetBackdrop.classList.add('opacity-0');
+        moveSheet.classList.add('translate-y-full');
+        setTimeout(() => moveSheetBackdrop.classList.add('hidden'), 300);
+    }
+
+    // ─── Header ───────────────────────────────────────────────────────────────
+    function initHeader() {
+        document.getElementById('main-title').innerText = workspaceTitle;
+        document.getElementById('tab-title').innerText  = workspaceTitle;
+    }
+    function saveHeaderData() {
+        workspaceTitle = document.getElementById('main-title').innerText.trim() || 'Saved links';
+        document.getElementById('main-title').innerText = workspaceTitle;
+        document.getElementById('tab-title').innerText  = workspaceTitle;
+        localStorage.setItem('p_workspaceTitle', workspaceTitle);
+    }
+    function handleTextKeydown(e) { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } }
+    function selectAllOnFocus(el) {
+        setTimeout(() => {
+            const r = document.createRange(); r.selectNodeContents(el);
+            const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        }, 10);
+    }
+
+    // ─── Toast ────────────────────────────────────────────────────────────────
+    function showToast(message, actionText = null, actionCallback = null) {
+        const container = document.getElementById('toast-container');
+        const toast     = document.createElement('div');
+        toast.className = 'toast-enter bg-[#18181b] border border-white/10 text-white px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl shadow-2xl flex items-center justify-between gap-4 sm:gap-6 text-xs sm:text-sm font-medium pointer-events-auto w-max max-w-[90vw]';
+        let html = `<span class="flex items-center gap-2 truncate"><i class="ph ph-info text-zinc-400 shrink-0 text-lg"></i><span class="truncate">${message}</span></span>`;
+        if (actionText && actionCallback)
+            html += `<button class="text-zinc-400 hover:text-white font-semibold transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs tracking-wide shrink-0 active:scale-95">${actionText}</button>`;
+        toast.innerHTML = html;
+        if (actionCallback)
+            toast.querySelector('button').addEventListener('click', () => { actionCallback(); removeToast(toast); });
+        container.appendChild(toast);
+        setTimeout(() => { if (toast.parentNode) removeToast(toast); }, 4000);
+    }
+    function removeToast(t) {
+        t.classList.replace('toast-enter', 'toast-leave');
+        setTimeout(() => t.remove(), 400);
+    }
+
+    // ─── Export / Import ──────────────────────────────────────────────────────
+    function exportLinks() {
+        const d = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ title: workspaceTitle, links, folders }, null, 2));
+        const a = document.createElement('a');
+        a.href = d; a.download = `links_${new Date().toISOString().split('T')[0]}.json`;
+        a.click(); a.remove();
+    }
+    function triggerImport() { document.getElementById('importFile').click(); }
+    function importLinks(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const imp = JSON.parse(e.target.result);
+                if (imp.links)   links   = imp.links.map(l => ({...l, id: l.id || generateId()}));
+                if (imp.folders) folders = imp.folders.map(f => ({...f, id: f.id || generateId()}));
+                else if (Array.isArray(imp)) links = imp.map(l => ({...l, id: l.id || generateId()}));
+                if (imp.title) workspaceTitle = imp.title;
+                initHeader(); saveHeaderData(); render();
+                showToast('Data imported successfully');
+            } catch { showToast('Invalid file format'); }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    // ─── Keyboard Shortcuts ───────────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+        if (e.key === '/' && document.activeElement !== document.getElementById('search-input') && !document.activeElement.isContentEditable && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            document.getElementById('search-input').focus();
+        }
+        if (e.key === 'Escape' && currentFolderId !== null && !modalContent.classList.contains('is-open') && !folderModal.classList.contains('is-open'))
+            navigateBack();
+    });
+
+    // ─── Mouse Hover Effect ───────────────────────────────────────────────────
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        grid.addEventListener('mousemove', e => {
+            document.querySelectorAll('.premium-card').forEach(card => {
+                const r = card.getBoundingClientRect();
+                card.style.setProperty('--mouse-x', `${e.clientX - r.left}px`);
+                card.style.setProperty('--mouse-y', `${e.clientY - r.top}px`);
+            });
+        });
+    }
+
+    // ─── URL Autofill ─────────────────────────────────────────────────────────
+    urlInput.addEventListener('blur', async () => {
+        let url = urlInput.value.trim();
+        if (!url || nameInput.value.trim()) return;
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+        try {
+            fetchIndicator.classList.remove('hidden');
+            const res  = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+            const data = await res.json();
+            if (data.status === 'success' && data.data.title && !nameInput.value.trim())
+                nameInput.value = data.data.title;
+            else fallbackTitle(url);
+        } catch { fallbackTitle(url); } finally { fetchIndicator.classList.add('hidden'); }
+    });
+    function fallbackTitle(url) {
+        if (!nameInput.value.trim()) {
+            try {
+                const brand = new URL(url).hostname.replace('www.', '').split('.')[0];
+                nameInput.value = brand.charAt(0).toUpperCase() + brand.slice(1);
+            } catch {}
+        }
+    }
+
+    // ─── Drag & Drop ──────────────────────────────────────────────────────────
+    Sortable.create(grid, {
+        animation: 400,
+        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        ghostClass: 'sortable-ghost',
+        delay: 150,
+        delayOnTouchOnly: true,
+        fallbackTolerance: 3,
+        onEnd() {
+            if (searchInput.value.trim()) return;
+            const newFolders = [], newLinks = [];
+            grid.querySelectorAll('.premium-card').forEach(card => {
+                const fid = card.getAttribute('data-folder-id');
+                const lid = card.getAttribute('data-id');
+                if (fid) { const f = folders.find(x => x.id === fid); if (f) newFolders.push(f); }
+                else if (lid) { const l = links.find(x => x.id === lid); if (l) newLinks.push(l); }
+            });
+            if (newFolders.length) folders = newFolders;
+            const others = links.filter(l => currentFolderId === null ? l.folderId : l.folderId !== currentFolderId);
+            links = [...newLinks, ...others];
+            save();
+        }
+    });
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+    initHeader();
+    render();
     </script>
 </body>
 </html>
