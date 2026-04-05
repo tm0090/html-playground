@@ -60,7 +60,7 @@
             border-radius: 20px;
             padding: 1px;
             overflow: hidden;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
         }
         @media (min-width: 640px) { .premium-card { border-radius: 24px; } }
         @media (hover: hover) {
@@ -112,9 +112,66 @@
             background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(251,191,36,0.04), transparent 40%);
         }
 
+        /* ── Folder Drop Target Glow ── */
+        .folder-drop-active {
+            transform: scale(1.03) translateY(-4px) !important;
+            box-shadow: 0 0 0 2px rgba(251,191,36,0.55), 0 0 40px rgba(251,191,36,0.2), 0 20px 60px rgba(0,0,0,0.6) !important;
+            z-index: 20 !important;
+        }
+        .folder-drop-active::before {
+            opacity: 1 !important;
+            background: radial-gradient(300px circle at 50% 50%, rgba(251,191,36,0.55), transparent 60%) !important;
+        }
+        .folder-drop-active .premium-card-inner {
+            background: #111108 !important;
+        }
+        .folder-drop-active .premium-card-inner::before {
+            opacity: 1 !important;
+            background: radial-gradient(300px circle at 50% 50%, rgba(251,191,36,0.07), transparent 60%) !important;
+        }
+
         /* ── Sortable ── */
         .sortable-ghost { opacity: 0.05; transform: scale(0.95); }
         .sortable-drag { cursor: grabbing !important; box-shadow: 0 40px 80px rgba(0,0,0,0.9); }
+
+        /* ── Remove from folder zone ── */
+        #folder-remove-zone {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            padding: 1.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+            background: linear-gradient(to top, rgba(0,0,0,0.97) 70%, transparent);
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+            pointer-events: none;
+        }
+        #folder-remove-zone.visible {
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        #folder-remove-zone-inner {
+            border: 1.5px dashed rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 1.1rem 1.5rem;
+            text-align: center;
+            color: rgba(255,255,255,0.35);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+            background: rgba(0,0,0,0.4);
+        }
+        #folder-remove-zone.active #folder-remove-zone-inner {
+            border-color: rgba(239,68,68,0.65);
+            background: rgba(239,68,68,0.08);
+            color: rgba(239,68,68,0.95);
+            box-shadow: 0 0 20px rgba(239,68,68,0.1);
+        }
 
         /* ── Nav ── */
         .glass-nav {
@@ -122,6 +179,12 @@
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
             border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @media (max-width: 639px) {
+            .glass-nav.nav-hidden {
+                transform: translateY(-100%);
+            }
         }
 
         /* ── Inputs ── */
@@ -196,6 +259,42 @@
             border-color: rgba(255,255,255,0.14);
             color: #e4e4e7;
         }
+
+        /* ── Icon preview box ── */
+        .icon-preview-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .icon-preview-box.folder-preview {
+            background: rgba(251,191,36,0.06);
+            border-color: rgba(251,191,36,0.15);
+        }
+        .icon-preview-box .custom-icon-glyph {
+            font-size: 1.75rem;
+            line-height: 1;
+            user-select: none;
+        }
+
+        /* ── Custom icon display in cards ── */
+        .card-custom-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+        @media (min-width: 640px) {
+            .card-custom-icon { font-size: 1.75rem; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-white/20">
@@ -223,7 +322,7 @@
 
                     <!-- Folder breadcrumb (hidden by default) -->
                     <div id="folder-breadcrumb" class="hidden items-center gap-2 min-w-0">
-                        <button onclick="navigateBack()" class="flex items-center p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 transition-all group" title="Back">
+                        <button onclick="history.back()" class="flex items-center p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 transition-all group" title="Back">
                             <i class="ph ph-arrow-left text-base group-hover:-translate-x-0.5 transition-transform duration-200"></i>
                         </button>
                         <span class="text-zinc-600 text-sm hidden sm:block" aria-hidden="true">/</span>
@@ -313,6 +412,14 @@
         </button>
     </div>
 
+    <!-- ══ Remove-from-Folder Drop Zone (shows inside folder view during drag) ══ -->
+    <div id="folder-remove-zone">
+        <div id="folder-remove-zone-inner">
+            <i class="ph ph-folder-minus text-lg shrink-0"></i>
+            <span>Drop here to remove from this folder</span>
+        </div>
+    </div>
+
     <!-- ══ Shared Backdrop ══ -->
     <div id="modal-backdrop" class="fixed inset-0 bg-black/60 sm:bg-black/80 backdrop-blur-sm sm:backdrop-blur-md z-50 hidden opacity-0 transition-opacity duration-300" onclick="handleBackdropClick()"></div>
 
@@ -338,6 +445,24 @@
                         <input type="text" id="input-name" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. GitHub">
                     </div>
                 </div>
+                <!-- Custom Icon -->
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">
+                        Icon <span class="text-zinc-700 font-normal">(optional — emoji or any character)</span>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <div class="cmd-input rounded-2xl p-1 flex-1">
+                            <input type="text" id="input-link-icon"
+                                   class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base"
+                                   placeholder="e.g. 🔗 ★ ✦"
+                                   oninput="updateLinkIconPreview()">
+                        </div>
+                        <div id="link-icon-preview" class="icon-preview-box" title="Icon preview">
+                            <i class="ph ph-smiley text-xl text-zinc-600"></i>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-zinc-700 mt-1.5 pl-1">Leave blank to use the website's favicon</p>
+                </div>
                 <!-- Folder selector (hidden when no folders exist) -->
                 <div id="folder-selector-wrap" class="hidden">
                     <label class="block text-xs font-medium text-zinc-500 mb-2">Folder</label>
@@ -362,10 +487,30 @@
                 </div>
                 <h2 id="folder-modal-title" class="text-xl sm:text-2xl font-medium text-white tracking-tight">New Folder</h2>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-zinc-500 mb-2">Folder Name</label>
-                <div class="cmd-input rounded-2xl p-1">
-                    <input type="text" id="input-folder-name" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. Work, Reading List…">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">Folder Name</label>
+                    <div class="cmd-input rounded-2xl p-1">
+                        <input type="text" id="input-folder-name" class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base" placeholder="e.g. Work, Reading List…">
+                    </div>
+                </div>
+                <!-- Custom Folder Icon -->
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">
+                        Icon <span class="text-zinc-700 font-normal">(optional — emoji or any character)</span>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <div class="cmd-input rounded-2xl p-1 flex-1">
+                            <input type="text" id="input-folder-icon"
+                                   class="w-full bg-transparent px-4 py-3.5 sm:py-3 text-white placeholder-zinc-700 outline-none text-base"
+                                   placeholder="e.g. 📁 ⭐ 🏠"
+                                   oninput="updateFolderIconPreview()">
+                        </div>
+                        <div id="folder-icon-preview" class="icon-preview-box folder-preview" title="Icon preview">
+                            <i class="ph ph-folder text-xl text-amber-400/50"></i>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-zinc-700 mt-1.5 pl-1">Leave blank to use the default folder icon</p>
                 </div>
             </div>
             <div class="flex gap-3 mt-8 sm:mt-10">
@@ -420,7 +565,7 @@
     </div>
 
     <!-- ══ Toast Container ══ -->
-    <div id="toast-container" class="fixed bottom-24 sm:bottom-6 right-0 left-0 sm:left-auto sm:right-6 z-50 flex flex-col items-center sm:items-end gap-3 pointer-events-none px-4 sm:px-0"></div>
+    <div id="toast-container" class="fixed bottom-24 sm:bottom-6 right-0 left-0 sm:left-auto sm:right-6 z-[300] flex flex-col items-center sm:items-end gap-3 pointer-events-none px-4 sm:px-0"></div>
 
     <!-- ══ Templates ══ -->
     <template id="empty-state">
@@ -471,11 +616,15 @@
     let workspaceTitle    = localStorage.getItem('p_workspaceTitle') || 'Saved links';
     let currentFolderId   = null;   // null = root view
     let editingId         = null;   // link index being edited
-    let editingFolderId   = null;   // folder index being edited
-    let currentActionIndex       = null;
-    let currentFolderActionIndex = null;
-    let movingLinkIndex          = null;
+    let editingFolderId   = null;   // folder id being edited
+    let currentActionLinkId      = null;  // ID (not index) of link in action sheet
+    let currentFolderActionId    = null;  // ID (not index) of folder in action sheet
+    let movingLinkId             = null;  // ID of link being moved via move sheet
     let selectedFolderForLink    = undefined; // undefined=unset, null=no folder, string=folder id
+
+    // ─── Drag state ───────────────────────────────────────────────────────────
+    let draggingLinkId   = null;
+    let folderDropTarget = null;
 
     const grid           = document.getElementById('cards-grid');
     const searchInput    = document.getElementById('search-input');
@@ -483,6 +632,7 @@
     const urlInput       = document.getElementById('input-url');
     const fetchIndicator = document.getElementById('fetch-indicator');
     const bottomHints    = document.getElementById('bottom-hints');
+    const removeZoneEl   = document.getElementById('folder-remove-zone');
 
     // ─── ID / Helpers ─────────────────────────────────────────────────────────
     const generateId = () =>
@@ -501,6 +651,14 @@
         } catch {
             return 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://google.com&size=128';
         }
+    }
+
+    function escHtml(s) {
+        return String(s)
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;');
     }
 
     // ─── Persistence ──────────────────────────────────────────────────────────
@@ -523,6 +681,7 @@
 
     // ─── Navigation ───────────────────────────────────────────────────────────
     function navigateToFolder(folderId) {
+        history.pushState({ layer: 'folder' }, '');
         currentFolderId = folderId;
         searchInput.value = '';
         updateNavChrome();
@@ -562,11 +721,31 @@
         }
     }
 
+    // ─── ID-based helpers (fix rearrangement bug) ─────────────────────────────
+    function openModalByLinkId(e, id) {
+        openModal(e, links.findIndex(l => l.id === id));
+    }
+    function deleteLinkById(e, id) {
+        deleteLink(e, links.findIndex(l => l.id === id));
+    }
+    function openActionSheetByLinkId(e, id) {
+        openActionSheet(e, id);
+    }
+    function openFolderModalById(e, id) {
+        openFolderModal(e, folders.findIndex(f => f.id === id));
+    }
+    function deleteFolderById(e, id) {
+        deleteFolder(e, folders.findIndex(f => f.id === id));
+    }
+    function openFolderActionSheetById(e, id) {
+        openFolderActionSheet(e, id);
+    }
+
     // ─── Render ───────────────────────────────────────────────────────────────
     function render(overrideLinks = null) {
         grid.innerHTML = '';
 
-        const visibleFolders = currentFolderId === null ? folders : [];
+        const visibleFolders = (currentFolderId === null && overrideLinks === null) ? folders : [];
         const visibleLinks   = overrideLinks !== null
             ? overrideLinks
             : links.filter(l =>
@@ -605,36 +784,39 @@
 
         // ── Folder cards ──────────────────────────────────────────────────────
         visibleFolders.forEach(folder => {
-            const fi        = folders.findIndex(f => f.id === folder.id);
             const linkCount = links.filter(l => l.folderId === folder.id).length;
             const card      = document.createElement('div');
             card.className  = `premium-card folder-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200`;
             card.style.animationDelay = `${cardIdx * 40}ms`;
             card.setAttribute('data-folder-id', folder.id);
 
+            const folderIconHtml = folder.icon
+                ? `<span class="card-custom-icon pointer-events-none">${escHtml(folder.icon)}</span>`
+                : `<i class="ph-fill ph-folder text-2xl sm:text-[28px] text-amber-400/75 group-hover:text-amber-400 transition-colors duration-300 pointer-events-none"></i>`;
+
             card.innerHTML = `
                 <div class="premium-card-inner p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-start relative min-h-[76px] sm:min-h-[160px]">
                     <!-- Icon -->
                     <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] sm:rounded-2xl bg-amber-400/[0.06] border border-amber-400/[0.14] flex items-center justify-center shrink-0 group-hover:scale-[1.05] group-hover:bg-amber-400/[0.1] transition-all duration-400 relative z-10 mr-4 sm:mr-0 pointer-events-none">
-                        <i class="ph-fill ph-folder text-2xl sm:text-[28px] text-amber-400/75 group-hover:text-amber-400 transition-colors duration-300"></i>
+                        ${folderIconHtml}
                     </div>
                     <!-- Text -->
                     <div class="flex-1 min-w-0 relative z-10 pointer-events-none mt-0 sm:mt-5 pr-10 sm:pr-8">
-                        <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${folder.name}</h3>
+                        <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${escHtml(folder.name)}</h3>
                         <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${linkCount} ${linkCount === 1 ? 'link' : 'links'}</p>
                     </div>
                     <!-- Desktop actions -->
                     <div class="hidden sm:flex absolute right-5 top-5 items-center gap-1 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 z-20 pointer-events-auto">
-                        <button onclick="openFolderModal(event,${fi})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Rename">
+                        <button onclick="openFolderModalById(event,'${folder.id}')" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Rename">
                             <i class="ph ph-pencil-simple text-lg"></i>
                         </button>
-                        <button onclick="deleteFolder(event,${fi})" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all" title="Delete">
+                        <button onclick="deleteFolderById(event,'${folder.id}')" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all" title="Delete">
                             <i class="ph ph-trash text-lg"></i>
                         </button>
                     </div>
                     <!-- Mobile 3-dots -->
                     <div class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
-                        <button onclick="openFolderActionSheet(event,${fi})" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all">
+                        <button onclick="openFolderActionSheetById(event,'${folder.id}')" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all">
                             <i class="ph ph-dots-three-vertical text-xl"></i>
                         </button>
                     </div>
@@ -646,41 +828,65 @@
             `;
 
             card.addEventListener('click', e => { if (e.target.closest('button')) return; navigateToFolder(folder.id); });
+
+            // ── Native drag events for desktop folder drop targeting ──
+            card.addEventListener('dragover', e => {
+                if (draggingLinkId) {
+                    e.preventDefault();
+                    if (folderDropTarget !== card) {
+                        clearFolderHighlights();
+                        folderDropTarget = card;
+                        card.classList.add('folder-drop-active');
+                    }
+                }
+            });
+            card.addEventListener('dragleave', e => {
+                if (!card.contains(e.relatedTarget)) {
+                    card.classList.remove('folder-drop-active');
+                    if (folderDropTarget === card) folderDropTarget = null;
+                }
+            });
+            card.addEventListener('drop', e => {
+                if (draggingLinkId) { e.preventDefault(); e.stopPropagation(); }
+            });
+
             grid.appendChild(card);
             cardIdx++;
         });
 
         // ── Link cards ────────────────────────────────────────────────────────
         visibleLinks.forEach(link => {
-            const ri          = links.findIndex(l => l.id === link.id);
             const card        = document.createElement('div');
             card.className    = `premium-card opacity-0 animate-stagger-up group cursor-pointer active:scale-[0.98] sm:active:scale-100 transition-transform duration-200`;
             card.style.animationDelay = `${cardIdx * 40}ms`;
             card.setAttribute('data-id', link.id);
 
             const fbIcon = `https://icons.duckduckgo.com/ip3/${getDomain(link.url)}.ico`;
+            const iconHtml = link.icon
+                ? `<span class="card-custom-icon pointer-events-none">${escHtml(link.icon)}</span>`
+                : `<img src="${getFavicon(link.url)}" class="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-md pointer-events-none" onerror="this.onerror=null;this.src='${fbIcon}'">`;
 
             card.innerHTML = `
                 <div class="premium-card-inner p-4 sm:p-6 flex flex-row sm:flex-col items-center sm:items-start relative min-h-[76px] sm:min-h-[160px] transition-all duration-300">
-                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] sm:rounded-2xl bg-white/[0.03] border border-white/[0.06] shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-[1.05] group-hover:bg-white/[0.05] transition-all duration-400 relative z-10 mr-4 sm:mr-0 pointer-events-none">
-                        <img src="${getFavicon(link.url)}" class="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-md" onerror="this.onerror=null;this.src='${fbIcon}'">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] sm:rounded-2xl bg-white/[0.03] border border-white/[0.06] shadow-[inset_0_2px_4px_rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-[1.05] group-hover:bg-white/[0.05] transition-all duration-400 relative z-10 mr-4 sm:mr-0">
+                        ${iconHtml}
                     </div>
                     <div class="flex-1 min-w-0 relative z-10 pointer-events-none mt-0 sm:mt-6 pr-10 sm:pr-8">
-                        <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${link.name}</h3>
-                        <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${getDomain(link.url)}</p>
+                        <h3 class="text-[15px] sm:text-lg font-semibold text-zinc-100 truncate tracking-tight">${escHtml(link.name)}</h3>
+                        <p class="text-[13px] sm:text-sm font-medium text-zinc-500 truncate mt-0.5 sm:mt-1 group-hover:text-zinc-400 transition-colors">${escHtml(getDomain(link.url))}</p>
                     </div>
                     <!-- Desktop actions -->
                     <div class="hidden sm:flex absolute right-5 top-5 items-center gap-1 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 z-20 pointer-events-auto">
-                        <button onclick="openModal(event,${ri})" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Edit">
+                        <button onclick="openModalByLinkId(event,'${link.id}')" class="p-2 text-zinc-500 hover:text-white rounded-xl hover:bg-white/10 transition-all" title="Edit">
                             <i class="ph ph-pencil-simple text-lg"></i>
                         </button>
-                        <button onclick="deleteLink(event,${ri})" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all" title="Delete">
+                        <button onclick="deleteLinkById(event,'${link.id}')" class="p-2 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-400/10 transition-all" title="Delete">
                             <i class="ph ph-trash text-lg"></i>
                         </button>
                     </div>
                     <!-- Mobile 3-dots -->
                     <div class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
-                        <button onclick="openActionSheet(event,${ri})" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all">
+                        <button onclick="openActionSheetByLinkId(event,'${link.id}')" class="p-3 text-zinc-400 active:text-white active:bg-white/10 rounded-xl transition-all">
                             <i class="ph ph-dots-three-vertical text-xl"></i>
                         </button>
                     </div>
@@ -703,9 +909,9 @@
     function filterLinks() {
         const q = searchInput.value.toLowerCase();
         if (!q) { render(); return; }
-        const pool = links.filter(l =>
-            currentFolderId === null ? !l.folderId : l.folderId === currentFolderId
-        );
+        const pool = currentFolderId === null
+            ? links
+            : links.filter(l => l.folderId === currentFolderId);
         render(pool.filter(l => l.name.toLowerCase().includes(q) || l.url.toLowerCase().includes(q)));
     }
 
@@ -737,7 +943,7 @@
             btn.type     = 'button';
             const sel    = selectedFolderForLink === f.id;
             btn.className = `folder-chip px-3 py-1.5 rounded-xl text-sm font-medium flex items-center gap-1.5 ${sel ? 'selected' : 'text-zinc-400'}`;
-            btn.innerHTML = `<i class="ph-fill ph-folder text-sm ${sel ? 'text-amber-400' : 'text-zinc-600'}"></i>${f.name}`;
+            btn.innerHTML = `<i class="ph-fill ph-folder text-sm ${sel ? 'text-amber-400' : 'text-zinc-600'}"></i>${escHtml(f.name)}`;
             btn.onclick   = () => { selectedFolderForLink = f.id; buildFolderChips(); };
             chips.appendChild(btn);
         });
@@ -770,6 +976,7 @@
             : currentFolderId;
 
         showBackdrop(closeModal);
+        if (_isMobile()) _pushOverlayHistory();
         modalContent.classList.remove('hidden');
         void modalContent.offsetWidth;
         modalContent.classList.remove('opacity-0');
@@ -782,12 +989,15 @@
             document.getElementById('modal-title').innerText = 'Edit Link';
             nameInput.value = links[index].name;
             urlInput.value  = links[index].url;
+            document.getElementById('input-link-icon').value = links[index].icon || '';
         } else {
             editingId = null;
             document.getElementById('modal-title').innerText = 'New Link';
             nameInput.value = '';
             urlInput.value  = '';
+            document.getElementById('input-link-icon').value = '';
         }
+        updateLinkIconPreview();
         if (window.innerWidth > 640) setTimeout(() => urlInput.focus(), 150);
     }
 
@@ -796,6 +1006,7 @@
         modalContent.classList.remove('is-open');
         modalContent.classList.add('opacity-0');
         setTimeout(() => modalContent.classList.add('hidden'), 300);
+        _popOverlayHistory();
     }
 
     function saveLink() {
@@ -805,11 +1016,12 @@
         if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
         const folderId = selectedFolderForLink || undefined;
+        const icon     = document.getElementById('input-link-icon').value.trim() || undefined;
 
         if (editingId !== null) {
-            links[editingId] = { ...links[editingId], name, url, folderId };
+            links[editingId] = { ...links[editingId], name, url, folderId, icon };
         } else {
-            links.unshift({ id: generateId(), name, url, folderId });
+            links.unshift({ id: generateId(), name, url, folderId, icon });
         }
         searchInput.value = '';
         render();
@@ -824,6 +1036,7 @@
 
     function deleteLink(event, index) {
         if (event) event.stopPropagation();
+        if (index < 0 || index >= links.length) return;
         const deleted = links[index];
         links.splice(index, 1);
         filterLinks();
@@ -835,25 +1048,30 @@
 
     // ─── Folder Modal ─────────────────────────────────────────────────────────
     const folderNameInput = document.getElementById('input-folder-name');
+    const folderIconInput = document.getElementById('input-folder-icon');
 
     function openFolderModal(e = null, index = null) {
         if (e) e.stopPropagation();
 
         showBackdrop(closeFolderModal);
+        if (_isMobile()) _pushOverlayHistory();
         folderModal.classList.remove('hidden');
         void folderModal.offsetWidth;
         folderModal.classList.remove('opacity-0');
         folderModal.classList.add('is-open');
 
-        if (index !== null) {
+        if (index !== null && index >= 0) {
             editingFolderId = index;
-            document.getElementById('folder-modal-title').innerText = 'Rename Folder';
+            document.getElementById('folder-modal-title').innerText = 'Edit Folder';
             folderNameInput.value = folders[index].name;
+            folderIconInput.value = folders[index].icon || '';
         } else {
             editingFolderId = null;
             document.getElementById('folder-modal-title').innerText = 'New Folder';
             folderNameInput.value = '';
+            folderIconInput.value = '';
         }
+        updateFolderIconPreview();
         setTimeout(() => folderNameInput.focus(), 150);
     }
 
@@ -862,32 +1080,33 @@
         folderModal.classList.remove('is-open');
         folderModal.classList.add('opacity-0');
         setTimeout(() => folderModal.classList.add('hidden'), 300);
+        _popOverlayHistory();
     }
 
     function saveFolder() {
         const name = folderNameInput.value.trim();
         if (!name) return showToast('Please enter a folder name');
+        const icon = folderIconInput.value.trim() || undefined;
 
         if (editingFolderId !== null) {
-            folders[editingFolderId] = { ...folders[editingFolderId], name };
-            // Update breadcrumb if we're inside this folder
+            folders[editingFolderId] = { ...folders[editingFolderId], name, icon };
             if (currentFolderId === folders[editingFolderId].id) {
                 document.getElementById('folder-crumb-name').innerText = name;
             }
         } else {
-            folders.unshift({ id: generateId(), name });
+            folders.unshift({ id: generateId(), name, icon });
         }
         render();
         closeFolderModal();
-        showToast(editingFolderId !== null ? 'Folder renamed' : 'Folder created');
+        showToast(editingFolderId !== null ? 'Folder updated' : 'Folder created');
     }
 
     function deleteFolder(event, index) {
         if (event) event.stopPropagation();
+        if (index < 0 || index >= folders.length) return;
         const deleted      = folders[index];
         const affectedIds  = links.filter(l => l.folderId === deleted.id).map(l => l.id);
 
-        // Move contained links back to root
         links   = links.map(l => l.folderId === deleted.id ? { ...l, folderId: undefined } : l);
         folders.splice(index, 1);
 
@@ -906,14 +1125,37 @@
         if (e.key === 'Escape') closeFolderModal();
     });
 
+    // ─── Icon Preview Functions ────────────────────────────────────────────────
+    function updateLinkIconPreview() {
+        const val     = document.getElementById('input-link-icon').value.trim();
+        const preview = document.getElementById('link-icon-preview');
+        if (val) {
+            preview.innerHTML = `<span class="custom-icon-glyph">${escHtml(val)}</span>`;
+        } else {
+            preview.innerHTML = `<i class="ph ph-smiley text-xl text-zinc-600"></i>`;
+        }
+    }
+
+    function updateFolderIconPreview() {
+        const val     = document.getElementById('input-folder-icon').value.trim();
+        const preview = document.getElementById('folder-icon-preview');
+        if (val) {
+            preview.innerHTML = `<span class="custom-icon-glyph">${escHtml(val)}</span>`;
+        } else {
+            preview.innerHTML = `<i class="ph ph-folder text-xl text-amber-400/50"></i>`;
+        }
+    }
+
     // ─── Link Action Sheet (Mobile) ───────────────────────────────────────────
     const sheetBackdrop = document.getElementById('action-sheet-backdrop');
     const actionSheet   = document.getElementById('action-sheet');
 
-    function openActionSheet(e, index) {
+    function openActionSheet(e, linkId) {
         e.stopPropagation();
-        currentActionIndex = index;
-        document.getElementById('action-sheet-title').innerText = links[index].name;
+        _pushOverlayHistory();
+        currentActionLinkId = linkId;
+        const link = links.find(l => l.id === linkId);
+        document.getElementById('action-sheet-title').innerText = link ? link.name : '';
         sheetBackdrop.classList.remove('hidden');
         actionSheet.classList.remove('hidden');
         void sheetBackdrop.offsetWidth;
@@ -924,19 +1166,31 @@
         sheetBackdrop.classList.add('opacity-0');
         actionSheet.classList.add('translate-y-full');
         setTimeout(() => sheetBackdrop.classList.add('hidden'), 300);
+        _popOverlayHistory();
     }
-    function handleActionEdit()   { closeActionSheet(); setTimeout(() => openModal(null, currentActionIndex), 300); }
-    function handleActionMove()   { closeActionSheet(); setTimeout(() => openMoveSheet(currentActionIndex), 300); }
-    function handleActionDelete() { closeActionSheet(); setTimeout(() => deleteLink(null, currentActionIndex), 300); }
+    function handleActionEdit()   {
+        closeActionSheet();
+        setTimeout(() => openModalByLinkId(null, currentActionLinkId), 300);
+    }
+    function handleActionMove()   {
+        closeActionSheet();
+        setTimeout(() => openMoveSheet(currentActionLinkId), 300);
+    }
+    function handleActionDelete() {
+        closeActionSheet();
+        setTimeout(() => deleteLinkById(null, currentActionLinkId), 300);
+    }
 
     // ─── Folder Action Sheet (Mobile) ─────────────────────────────────────────
     const folderSheetBackdrop = document.getElementById('folder-action-sheet-backdrop');
     const folderActionSheet   = document.getElementById('folder-action-sheet');
 
-    function openFolderActionSheet(e, index) {
+    function openFolderActionSheet(e, folderId) {
         e.stopPropagation();
-        currentFolderActionIndex = index;
-        document.getElementById('folder-action-sheet-title').innerText = folders[index].name;
+        _pushOverlayHistory();
+        currentFolderActionId = folderId;
+        const folder = folders.find(f => f.id === folderId);
+        document.getElementById('folder-action-sheet-title').innerText = folder ? folder.name : '';
         folderSheetBackdrop.classList.remove('hidden');
         folderActionSheet.classList.remove('hidden');
         void folderSheetBackdrop.offsetWidth;
@@ -947,45 +1201,69 @@
         folderSheetBackdrop.classList.add('opacity-0');
         folderActionSheet.classList.add('translate-y-full');
         setTimeout(() => folderSheetBackdrop.classList.add('hidden'), 300);
+        _popOverlayHistory();
     }
-    function handleFolderActionRename() { closeFolderActionSheet(); setTimeout(() => openFolderModal(null, currentFolderActionIndex), 300); }
-    function handleFolderActionDelete() { closeFolderActionSheet(); setTimeout(() => deleteFolder(null, currentFolderActionIndex), 300); }
+    function handleFolderActionRename() {
+        closeFolderActionSheet();
+        setTimeout(() => openFolderModalById(null, currentFolderActionId), 300);
+    }
+    function handleFolderActionDelete() {
+        closeFolderActionSheet();
+        setTimeout(() => deleteFolderById(null, currentFolderActionId), 300);
+    }
 
     // ─── Move-to-Folder Sheet (Mobile) ────────────────────────────────────────
     const moveSheetBackdrop = document.getElementById('move-sheet-backdrop');
     const moveSheet         = document.getElementById('move-sheet');
 
-    function openMoveSheet(index) {
-        movingLinkIndex = index;
+    function openMoveSheet(linkId) {
+        movingLinkId = linkId;
+        _pushOverlayHistory();
         const container = document.getElementById('move-sheet-options');
         container.innerHTML = '';
-        const link = links[index];
+        const link = links.find(l => l.id === linkId);
+        if (!link) return;
 
         const makeBtn = (label, icon, iconClass, selected, onClick) => {
             const btn = document.createElement('button');
             btn.className = `w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-colors text-left font-medium text-[15px] ${selected ? 'text-white bg-white/5' : 'text-zinc-300 hover:bg-white/5 active:bg-white/10'}`;
-            btn.innerHTML = `<i class="${icon} text-xl ${iconClass}"></i><span>${label}</span>${selected ? '<i class="ph ph-check ml-auto text-zinc-400"></i>' : ''}`;
+            btn.innerHTML = `<i class="${icon} text-xl ${iconClass}"></i><span>${escHtml(label)}</span>${selected ? '<i class="ph ph-check ml-auto text-zinc-400"></i>' : ''}`;
             btn.onclick = onClick;
             return btn;
         };
 
-        // No folder
         const noneSelected = !link.folderId;
         container.appendChild(makeBtn('No Folder', 'ph ph-prohibit', 'text-zinc-500', noneSelected, () => {
-            links[movingLinkIndex] = { ...links[movingLinkIndex], folderId: undefined };
-            save(); render(); closeMoveSheet(); showToast('Moved to root');
+            const li = links.findIndex(l => l.id === linkId);
+            if (li !== -1) {
+                const prevFolderId = links[li].folderId;
+                links[li] = { ...links[li], folderId: undefined };
+                save(); render(); closeMoveSheet();
+                showToast('Moved to root', 'Undo', () => {
+                    const ci = links.findIndex(l => l.id === linkId);
+                    if (ci !== -1) { links[ci] = {...links[ci], folderId: prevFolderId}; save(); render(); }
+                });
+            }
         }));
-
-        folders.forEach(f => {
-            const sel = link.folderId === f.id;
-            container.appendChild(makeBtn(f.name, 'ph-fill ph-folder', sel ? 'text-amber-400' : 'text-zinc-500', sel, () => {
-                links[movingLinkIndex] = { ...links[movingLinkIndex], folderId: f.id };
-                save(); render(); closeMoveSheet(); showToast(`Moved to "${f.name}"`);
-            }));
-        });
 
         if (folders.length === 0) {
             container.innerHTML = `<p class="text-zinc-500 text-sm text-center py-4">No folders yet. Create one first.</p>`;
+        } else {
+            folders.forEach(f => {
+                const sel = link.folderId === f.id;
+                container.appendChild(makeBtn(f.name, 'ph-fill ph-folder', sel ? 'text-amber-400' : 'text-zinc-500', sel, () => {
+                    const li = links.findIndex(l => l.id === linkId);
+                    if (li !== -1) {
+                        const prevFolderId = links[li].folderId;
+                        links[li] = { ...links[li], folderId: f.id };
+                        save(); render(); closeMoveSheet();
+                        showToast(`Moved to "${f.name}"`, 'Undo', () => {
+                            const ci = links.findIndex(l => l.id === linkId);
+                            if (ci !== -1) { links[ci] = {...links[ci], folderId: prevFolderId}; save(); render(); }
+                        });
+                    }
+                }));
+            });
         }
 
         moveSheetBackdrop.classList.remove('hidden');
@@ -999,6 +1277,7 @@
         moveSheetBackdrop.classList.add('opacity-0');
         moveSheet.classList.add('translate-y-full');
         setTimeout(() => moveSheetBackdrop.classList.add('hidden'), 300);
+        _popOverlayHistory();
     }
 
     // ─── Header ───────────────────────────────────────────────────────────────
@@ -1025,9 +1304,9 @@
         const container = document.getElementById('toast-container');
         const toast     = document.createElement('div');
         toast.className = 'toast-enter bg-[#18181b] border border-white/10 text-white px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl shadow-2xl flex items-center justify-between gap-4 sm:gap-6 text-xs sm:text-sm font-medium pointer-events-auto w-max max-w-[90vw]';
-        let html = `<span class="flex items-center gap-2 truncate"><i class="ph ph-info text-zinc-400 shrink-0 text-lg"></i><span class="truncate">${message}</span></span>`;
+        let html = `<span class="flex items-center gap-2 truncate"><i class="ph ph-info text-zinc-400 shrink-0 text-lg"></i><span class="truncate">${escHtml(message)}</span></span>`;
         if (actionText && actionCallback)
-            html += `<button class="text-zinc-400 hover:text-white font-semibold transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs tracking-wide shrink-0 active:scale-95">${actionText}</button>`;
+            html += `<button class="text-zinc-400 hover:text-white font-semibold transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs tracking-wide shrink-0 active:scale-95">${escHtml(actionText)}</button>`;
         toast.innerHTML = html;
         if (actionCallback)
             toast.querySelector('button').addEventListener('click', () => { actionCallback(); removeToast(toast); });
@@ -1109,15 +1388,161 @@
         }
     }
 
-    // ─── Drag & Drop ──────────────────────────────────────────────────────────
+    // ─── Drag & Drop helpers ──────────────────────────────────────────────────
+    function clearFolderHighlights() {
+        document.querySelectorAll('.folder-drop-active').forEach(el => {
+            el.classList.remove('folder-drop-active');
+        });
+    }
+
+    function showRemoveZone() {
+        removeZoneEl.classList.add('visible');
+    }
+
+    function hideRemoveZone() {
+        removeZoneEl.classList.remove('visible', 'active');
+    }
+
+    // Native drag events on the remove zone (desktop)
+    removeZoneEl.addEventListener('dragover', e => {
+        if (draggingLinkId && currentFolderId !== null) {
+            e.preventDefault();
+            removeZoneEl.classList.add('active');
+        }
+    });
+    removeZoneEl.addEventListener('dragleave', e => {
+        if (!removeZoneEl.contains(e.relatedTarget)) {
+            removeZoneEl.classList.remove('active');
+        }
+    });
+    removeZoneEl.addEventListener('drop', e => {
+        if (draggingLinkId) { e.preventDefault(); e.stopPropagation(); }
+    });
+
+    // ─── Touch-move tracker for remove zone (mobile) ─────────────────────────
+    function handleDragTouchMove(e) {
+        if (!draggingLinkId || currentFolderId === null) return;
+        const touch = e.touches[0];
+        if (!touch) return;
+        const rzRect = removeZoneEl.getBoundingClientRect();
+        if (touch.clientY > rzRect.top + 8) {
+            removeZoneEl.classList.add('active');
+        } else {
+            removeZoneEl.classList.remove('active');
+        }
+    }
+
+    // ─── Drag & Drop (Sortable + folder drop + remove zone) ───────────────────
     Sortable.create(grid, {
         animation: 400,
         easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
         ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
         delay: 150,
         delayOnTouchOnly: true,
         fallbackTolerance: 3,
-        onEnd() {
+
+        onStart(evt) {
+            const linkId = evt.item.getAttribute('data-id');
+            if (linkId) {
+                draggingLinkId = linkId;
+                // Show remove zone when inside a folder
+                if (currentFolderId !== null) {
+                    showRemoveZone();
+                    document.addEventListener('touchmove', handleDragTouchMove, { passive: true });
+                }
+            }
+        },
+
+        onMove(evt) {
+            if (!draggingLinkId) return;
+
+            const related = evt.related;
+
+            // ── Folder glow detection ──
+            if (related && related.hasAttribute('data-folder-id') && !related.hasAttribute('data-id')) {
+                // Hovering over a folder card
+                if (folderDropTarget !== related) {
+                    clearFolderHighlights();
+                    folderDropTarget = related;
+                    related.classList.add('folder-drop-active');
+                }
+                return false; // Prevent sortable from inserting here
+            } else {
+                // Not over a folder card — clear glow
+                clearFolderHighlights();
+                if (folderDropTarget && folderDropTarget !== related) {
+                    folderDropTarget = null;
+                }
+            }
+
+            // ── Remove zone detection (mobile / pointer events) ──
+            if (currentFolderId !== null) {
+                const clientY =
+                    evt.originalEvent?.clientY ??
+                    evt.originalEvent?.touches?.[0]?.clientY ??
+                    evt.originalEvent?.changedTouches?.[0]?.clientY;
+
+                if (clientY !== undefined) {
+                    const rzRect = removeZoneEl.getBoundingClientRect();
+                    if (clientY > rzRect.top + 8) {
+                        removeZoneEl.classList.add('active');
+                    } else {
+                        removeZoneEl.classList.remove('active');
+                    }
+                }
+            }
+        },
+
+        onEnd(evt) {
+            const savedDraggingLinkId   = draggingLinkId;
+            const savedFolderDropTarget = folderDropTarget;
+            const wasRemoveZoneActive   = removeZoneEl.classList.contains('active');
+
+            // Reset drag state
+            draggingLinkId   = null;
+            folderDropTarget = null;
+            clearFolderHighlights();
+            hideRemoveZone();
+            document.removeEventListener('touchmove', handleDragTouchMove);
+
+            // ── Case 1: Dropped on a folder ───────────────────────────────
+            if (savedDraggingLinkId && savedFolderDropTarget) {
+                const targetFolderId = savedFolderDropTarget.getAttribute('data-folder-id');
+                const li = links.findIndex(l => l.id === savedDraggingLinkId);
+                if (li !== -1) {
+                    const prevFolderId = links[li].folderId;
+                    const linkName     = links[li].name;
+                    const folder       = folders.find(f => f.id === targetFolderId);
+                    // Don't move if already in this folder
+                    if (prevFolderId === targetFolderId) { render(); return; }
+                    links[li] = { ...links[li], folderId: targetFolderId };
+                    save(); render();
+                    showToast(`"${linkName}" → "${folder?.name}"`, 'Undo', () => {
+                        const ci = links.findIndex(l => l.id === savedDraggingLinkId);
+                        if (ci !== -1) { links[ci] = {...links[ci], folderId: prevFolderId}; save(); render(); }
+                    });
+                }
+                return;
+            }
+
+            // ── Case 2: Dropped on remove zone (remove from folder) ───────
+            if (savedDraggingLinkId && currentFolderId !== null && wasRemoveZoneActive) {
+                const li = links.findIndex(l => l.id === savedDraggingLinkId);
+                if (li !== -1) {
+                    const prevFolderId = links[li].folderId;
+                    const linkName     = links[li].name;
+                    links[li] = { ...links[li], folderId: undefined };
+                    save(); render();
+                    showToast(`"${linkName}" removed from folder`, 'Undo', () => {
+                        const ci = links.findIndex(l => l.id === savedDraggingLinkId);
+                        if (ci !== -1) { links[ci] = {...links[ci], folderId: prevFolderId}; save(); render(); }
+                    });
+                }
+                return;
+            }
+
+            // ── Case 3: Normal sort ───────────────────────────────────────
             if (searchInput.value.trim()) return;
             const newFolders = [], newLinks = [];
             grid.querySelectorAll('.premium-card').forEach(card => {
@@ -1132,6 +1557,89 @@
             save();
         }
     });
+
+    // ─── History / Back-button support ───────────────────────────────────────
+    // Seed a base state so the very first back press never exits the page
+    history.replaceState({ layer: 'root' }, '');
+
+    let _closingViaPopstate    = false;
+    let _suppressPopstateCount = 0;
+
+    function _isMobile() { return window.innerWidth <= 640; }
+
+    function _pushOverlayHistory() {
+        history.pushState({ layer: 'overlay' }, '');
+    }
+
+    // Pop the history entry we pushed, but only when the user (not popstate) triggers a close.
+    // Using a counter instead of a boolean so rapid open/closes stay in sync.
+    function _popOverlayHistory() {
+        if (_closingViaPopstate) return; // already being handled by popstate, skip
+        _suppressPopstateCount++;
+        history.back();
+        setTimeout(() => { if (_suppressPopstateCount > 0) _suppressPopstateCount--; }, 100);
+    }
+
+    window.addEventListener('popstate', () => {
+        if (_suppressPopstateCount > 0) { _suppressPopstateCount--; return; }
+
+        _closingViaPopstate = true;
+        try {
+            // Close layers in reverse order of priority
+            if (!moveSheet.classList.contains('translate-y-full') && !moveSheet.classList.contains('hidden')) {
+                closeMoveSheet();
+            } else if (!actionSheet.classList.contains('translate-y-full') && !actionSheet.classList.contains('hidden')) {
+                closeActionSheet();
+            } else if (!folderActionSheet.classList.contains('translate-y-full') && !folderActionSheet.classList.contains('hidden')) {
+                closeFolderActionSheet();
+            } else if (!modalContent.classList.contains('hidden')) {
+                closeModal();
+            } else if (!folderModal.classList.contains('hidden')) {
+                closeFolderModal();
+            } else if (currentFolderId !== null) {
+                navigateBack();
+            }
+        } finally {
+            _closingViaPopstate = false;
+        }
+    });
+
+    // ─── Hide nav on scroll (mobile only) ────────────────────────────────────
+    (function () {
+        const nav = document.querySelector('nav.glass-nav');
+
+        // The entry animation uses `forwards` fill-mode, which permanently locks
+        // transform:translateY(0) and silently overrides our scroll-hide transform.
+        // Strip the class once the animation finishes so our CSS can take over.
+        nav.addEventListener('animationend', () => {
+            nav.classList.remove('animate-slide-down');
+        }, { once: true });
+
+        let lastY = window.scrollY;
+        let ticking = false;
+
+        window.addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                // Desktop: always show nav
+                if (window.innerWidth >= 640) {
+                    nav.classList.remove('nav-hidden');
+                    ticking = false;
+                    return;
+                }
+                const y = window.scrollY;
+                // Scrolling down past 60px → hide; scrolling up → show
+                if (y > lastY && y > 60) {
+                    nav.classList.add('nav-hidden');
+                } else {
+                    nav.classList.remove('nav-hidden');
+                }
+                lastY = y;
+                ticking = false;
+            });
+        }, { passive: true });
+    })();
 
     // ─── Init ─────────────────────────────────────────────────────────────────
     initHeader();
