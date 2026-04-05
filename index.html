@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="color-scheme: dark;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta name="theme-color" content="#000000">
+    <!-- Tells Firefox (and Dark Reader on Firefox) this page is dark-only.
+         This is what makes date/time input icons render light in Firefox,
+         since Firefox ignores ::-webkit-calendar-picker-indicator entirely. -->
+    <meta name="color-scheme" content="dark">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Deadlines">
@@ -55,7 +59,12 @@
         :root {
             --site-title-font: 'Inter';
             --heading-font: 'Inter';
-            --countdown-font: 'Inter'; 
+            --countdown-font: 'Inter';
+            /* Declare dark color-scheme at root so browsers AND extensions like
+               Dark Reader know this page is intentionally dark. This prevents
+               Dark Reader from inverting already-dark-themed elements (incl.
+               date/time picker icons). */
+            color-scheme: dark;
         }
 
         /* ── BACKGROUND SYSTEM ── */
@@ -247,10 +256,15 @@
         
         input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            opacity: 0.6;
+            /* color-scheme: dark on .glass-input already renders this icon white.
+               Do NOT also use filter:invert(1) — that would re-invert the already-
+               white icon to black (invisible), and stacks badly with Dark Reader. */
+            opacity: 0.55;
             cursor: pointer;
             padding: 5px; /* Larger touch target */
+            /* Explicit bright tint as a fallback for browsers/extensions that
+               strip color-scheme hints (e.g. Dark Reader in "Filter" mode). */
+            filter: brightness(10);
         }
 
         /* Color Picker Reset */
