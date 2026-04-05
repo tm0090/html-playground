@@ -1006,7 +1006,7 @@
         modalContent.classList.remove('is-open');
         modalContent.classList.add('opacity-0');
         setTimeout(() => modalContent.classList.add('hidden'), 300);
-        _popOverlayHistory();
+        if (_isMobile()) _popOverlayHistory();
     }
 
     function saveLink() {
@@ -1080,7 +1080,7 @@
         folderModal.classList.remove('is-open');
         folderModal.classList.add('opacity-0');
         setTimeout(() => folderModal.classList.add('hidden'), 300);
-        _popOverlayHistory();
+        if (_isMobile()) _popOverlayHistory();
     }
 
     function saveFolder() {
