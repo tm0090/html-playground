@@ -19,11 +19,11 @@
   --border-2: rgba(255, 255, 255, 0.12);
   --border-3: rgba(255, 255, 255, 0.20);
   
-  /* Refined Accent Colors */
-  --accent: #f59e0b; /* Amber 500 */
-  --accent-hover: #fbbf24;
-  --accent-dim: rgba(245, 158, 11, 0.12);
-  --accent-glow: rgba(245, 158, 11, 0.25);
+  /* Refined Accent Colors - Professional Blue Theme */
+  --accent: #3b82f6; /* Blue 500 */
+  --accent-hover: #2563eb; /* Blue 600 */
+  --accent-dim: rgba(59, 130, 246, 0.12);
+  --accent-glow: rgba(59, 130, 246, 0.25);
   
   /* Semantic Colors */
   --green: #10b981; 
@@ -100,9 +100,32 @@ header {
   transition: all 0.2s; flex-shrink: 0; font-size: 14px;
 }
 .sidebar-toggle-btn:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
-.hstats { display: flex; flex: 1; justify-content: center; gap: 32px; }
-.hstat { font-size: 12px; color: var(--text-2); text-align: center; position: relative; }
-.hstat strong { display: block; font-family: var(--mono); font-size: 16px; font-weight: 500; color: var(--text); line-height: 1.2; letter-spacing: -0.02em; }
+
+/* Redesigned Header Stats */
+.hstats { display: flex; flex: 1; justify-content: center; gap: 10px; }
+.hstat {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  padding: 8px 18px 8px 12px; border-radius: 14px;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 6px rgba(0,0,0,0.15);
+}
+.hstat:hover { background: var(--surface-3); border-color: var(--border-2); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.hstat-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.hstat-icon svg { width: 15px; height: 15px; }
+.hstat-icon.week { background: rgba(59,130,246,0.15); color: var(--accent); border: 1px solid rgba(59,130,246,0.2); }
+.hstat-icon.streak { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.18); }
+.hstat-icon.today { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.hstat-text { display: flex; flex-direction: column; gap: 1px; }
+.hstat .lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); line-height: 1; }
+.hstat .val { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--text); display: flex; align-items: baseline; gap: 4px; line-height: 1.3; }
+.hstat-prog-bar { height: 3px; width: 100%; background: rgba(0,0,0,0.35); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.hstat-prog-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+.hstat-prog-fill.hit { box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+
 .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .btn-icon {
   display: flex; align-items: center; justify-content: center;
@@ -115,7 +138,7 @@ header {
 .btn-add {
   display: flex; align-items: center; gap: 6px;
   padding: 8px 20px; background: var(--accent);
-  color: #000; border: none; border-radius: var(--rsm);
+  color: #fff; border: none; border-radius: var(--rsm);
   font-family: var(--sans); font-size: 14px; font-weight: 700;
   cursor: pointer; white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -130,8 +153,8 @@ header {
 .nudge {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 28px;
-  background: linear-gradient(90deg, rgba(245,158,11,0.1) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(245,158,11,0.15);
+  background: linear-gradient(90deg, rgba(59,130,246,0.1) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(59,130,246,0.15);
   font-size: 13px; font-weight: 600; color: var(--accent);
   flex-shrink: 0; cursor: pointer; transition: opacity 0.2s;
 }
@@ -298,10 +321,10 @@ header {
 .cal-val { font-family: var(--mono); font-size: 15px; font-weight: 500; color: var(--text); margin-top: auto; text-align: right; }
 .cal-dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-bottom: 8px; }
 .cal-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 4px currentColor; }
-.cal-cell.l1 { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.15); }
-.cal-cell.l2 { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.25); }
-.cal-cell.l3 { background: rgba(245, 158, 11, 0.25); border-color: rgba(245, 158, 11, 0.4); }
-.cal-cell.l4 { background: rgba(245, 158, 11, 0.4); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-dim); }
+.cal-cell.l1 { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.15); }
+.cal-cell.l2 { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.25); }
+.cal-cell.l3 { background: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.4); }
+.cal-cell.l4 { background: rgba(59, 130, 246, 0.4); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-dim); }
 
 /* ── Heatmap ── */
 .heatmap-card {
@@ -329,9 +352,9 @@ header {
 }
 .hcell:hover { transform: scale(1.4); z-index: 5; position: relative; box-shadow: 0 0 8px currentColor; border-color: transparent; }
 .hcell.faded { opacity: 0.1; }
-.hcell.l1 { background: rgba(245, 158, 11, 0.3); border-color: transparent; }
-.hcell.l2 { background: rgba(245, 158, 11, 0.55); border-color: transparent; }
-.hcell.l3 { background: rgba(245, 158, 11, 0.8); border-color: transparent; }
+.hcell.l1 { background: rgba(59, 130, 246, 0.3); border-color: transparent; }
+.hcell.l2 { background: rgba(59, 130, 246, 0.55); border-color: transparent; }
+.hcell.l3 { background: rgba(59, 130, 246, 0.8); border-color: transparent; }
 .hcell.l4 { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); border-color: transparent; }
 .hmap-foot {
   display: flex; align-items: center; justify-content: space-between;
@@ -363,32 +386,34 @@ header {
   gap: 16px; margin-bottom: 32px;
 }
 
+/* Redesigned All Time Cards */
 .at-card {
-  background: linear-gradient(160deg, var(--surface-2) 0%, var(--surface) 100%);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--r); padding: 20px;
-  transition: all 0.3s; position: relative; overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 4px 12px rgba(0,0,0,0.1);
 }
-.at-card::after {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: var(--border-2); transition: background 0.3s;
-}
-.at-card:hover { border-color: var(--border-3); transform: translateY(-3px); box-shadow: var(--shadow); }
-.at-card.gold::after { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
-.at-card.green::after { background: var(--green); box-shadow: 0 0 12px var(--green-dim); }
-.at-card.blue::after { background: var(--blue); }
-.at-card.purple::after { background: var(--purple); }
+.at-card:hover { border-color: var(--border-3); transform: translateY(-3px); box-shadow: var(--shadow); background: var(--surface-2); }
 
-.at-card-icon { margin-bottom: 12px; opacity: 0.55; display: flex; align-items: center; }
-.at-card-icon svg { display: block; }
+.at-card-icon {
+  margin-bottom: 16px; width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-3); color: var(--text-2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: all 0.3s ease;
+}
+.at-card-icon svg { width: 18px; height: 18px; }
+
+/* Themed Icons */
+.at-card.primary .at-card-icon { background: rgba(59, 130, 246, 0.15); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.15); }
+.at-card.green .at-card-icon { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.15); }
+.at-card.blue .at-card-icon { background: rgba(59, 130, 246, 0.15); color: var(--blue); border: 1px solid rgba(59, 130, 246, 0.15); }
+.at-card.purple .at-card-icon { background: rgba(139, 92, 246, 0.15); color: var(--purple); border: 1px solid rgba(139, 92, 246, 0.15); }
+
 .at-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
 .at-card-val { font-family: var(--mono); font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; letter-spacing: -0.02em; }
-.at-card.gold .at-card-val { color: var(--accent); }
-.at-card.green .at-card-val { color: var(--green); }
-.at-card.blue .at-card-val { color: var(--blue); }
-.at-card.purple .at-card-val { color: var(--purple); }
-.at-card-sub { font-size: 12px; font-weight: 600; color: var(--text-2); margin-top: 8px; }
+.at-card-sub { font-size: 12px; font-weight: 600; color: var(--text-2); margin-top: 8px; line-height: 1.4; }
 
 .at-section { margin-bottom: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; box-shadow: var(--shadow-sm); }
 .at-section-title {
@@ -428,9 +453,9 @@ header {
   display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;
   min-width: 4px;
 }
-.yc-bar-fill.best { background: linear-gradient(90deg, rgba(245,158,11,0.6) 0%, var(--accent) 100%); box-shadow: 0 0 12px var(--accent-glow); }
+.yc-bar-fill.best { background: linear-gradient(90deg, rgba(59,130,246,0.6) 0%, var(--accent) 100%); box-shadow: 0 0 12px var(--accent-glow); }
 .yc-val { font-family: var(--mono); font-size: 13px; color: var(--text-2); width: 70px; text-align: right; flex-shrink: 0; }
-.yc-badge { font-size: 10px; background: var(--accent); color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.05em; }
+.yc-badge { font-size: 10px; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.05em; }
 
 /* Day-of-week chart */
 .dow-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; margin-top: 10px; }
@@ -532,7 +557,7 @@ header {
 .ddate { font-size: 16px; font-weight: 700; color: var(--text); }
 .ddate .dow { color: var(--text-3); font-weight: 600; margin-right: 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
 .dtoday {
-  font-size: 10px; color: #000; font-weight: 800; letter-spacing: 0.1em;
+  font-size: 10px; color: #fff; font-weight: 800; letter-spacing: 0.1em;
   margin-left: 8px; vertical-align: middle;
   background: var(--accent); padding: 2px 6px; border-radius: 4px;
 }
@@ -646,7 +671,7 @@ header {
 .modal-btns { display: flex; gap: 12px; margin-top: 24px; }
 .btn-p {
   flex: 1; padding: 12px; background: var(--accent);
-  color: #000; border: none; border-radius: var(--rsm);
+  color: #fff; border: none; border-radius: var(--rsm);
   font-family: var(--sans); font-size: 14px; font-weight: 700;
   cursor: pointer; transition: all 0.2s;
 }
@@ -692,10 +717,45 @@ header {
 
 /* ── Streak warning ── */
 .streak-warn {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
   font-size: 10px; color: var(--red); font-weight: 700;
-  vertical-align: middle; margin-left: 8px; opacity: 0.9;
+  vertical-align: middle; margin-left: 6px;
   background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.2);
+}
+
+/* ── Toast Notification ── */
+.toast-container {
+  position: fixed; bottom: 32px; right: 32px;
+  display: flex; flex-direction: column; gap: 10px;
+  z-index: 1000; pointer-events: none;
+}
+.toast {
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: var(--rsm); padding: 12px 16px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow-lg); pointer-events: auto;
+  color: var(--text); font-size: 14px; font-weight: 500;
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s ease;
+}
+.toast.hide { opacity: 0; transform: translateY(20px) scale(0.95); }
+.toast-btn {
+  background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); 
+  color: var(--accent); font-weight: 600; cursor: pointer; font-size: 13px; 
+  font-family: var(--sans); padding: 6px 12px; border-radius: 6px; 
+  transition: all 0.2s;
+}
+.toast-btn:hover { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.3); transform: translateY(-1px); }
+.toast-btn:active { transform: translateY(0); }
+.toast-close {
+  color: var(--text-3); background: transparent; border: none;
+  cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 4px; transition: all 0.2s;
+}
+.toast-close:hover { color: var(--text); background: var(--surface-3); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 </style>
 </head>
@@ -710,8 +770,6 @@ header {
     </div>
     <div class="hstats" id="hstats"></div>
     <div class="header-right">
-      <button class="btn-icon" title="Export backup" onclick="exportData()">↑</button>
-      <button class="btn-icon" title="Import backup" onclick="importData()">↓</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
       <button class="btn-add" onclick="openModal()">+ Log Session</button>
     </div>
@@ -786,6 +844,17 @@ header {
             </div>
             <button class="vbtn" style="width:100%; justify-content:center; background:var(--surface-3); color:var(--text); padding:8px" onclick="applyCustomFonts()">Apply Fonts</button>
           </div>
+          <div class="slabel" style="margin-top:16px">Data</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="settings-btn" onclick="exportData()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Export Backup
+            </button>
+            <button class="settings-btn" onclick="importData()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Import Backup
+            </button>
+          </div>
         </div>
       </div>
     </aside>
@@ -842,6 +911,7 @@ header {
   </div>
 </div>
 
+<div id="toast-container" class="toast-container"></div>
 <div id="tip"></div>
 
 <script>
@@ -855,8 +925,12 @@ let sidebarCollapsed = JSON.parse(localStorage.getItem('sl-sidebar-collapsed') |
 let currentCalMonth = new Date().getMonth();
 let currentCalYear = new Date().getFullYear();
 
-// Modernized color palette for subjects
-const COLORS = ['#f59e0b','#10b981','#3b82f6','#ec4899','#8b5cf6','#f97316','#14b8a6','#f43f5e','#84cc16','#eab308'];
+// Undo System Variables
+let undoTimeout = null;
+let deletedSessionObj = null;
+
+// Modernized color palette for subjects (Professional variants)
+const COLORS = ['#3b82f6','#10b981','#8b5cf6','#ec4899','#f97316','#14b8a6','#f43f5e','#84cc16','#eab308','#6366f1'];
 const cmap = {}; let ci = 0;
 function sc(s) { const k = (s||'general').toLowerCase().trim(); if (!cmap[k]) cmap[k] = COLORS[ci++ % COLORS.length]; return cmap[k]; }
 sessions.forEach(s => sc(s.subject));
@@ -1033,7 +1107,47 @@ function acInput() {
 function acPick(s) { document.getElementById('f-subj').value = s; document.getElementById('ac-drop').classList.remove('show'); }
 function acBlur() { setTimeout(() => document.getElementById('ac-drop').classList.remove('show'), 150); }
 
-// ── Modal ─────────────────────────────────────────────────────────────────
+// ── Undo Notification ─────────────────────────────────────────────────────
+function showToast(msg, onUndo) {
+  const container = document.getElementById('toast-container');
+  container.innerHTML = ''; // clear previous
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <span style="flex:1">${msg}</span>
+    <button class="toast-btn" id="toast-undo">Undo</button>
+    <button class="toast-close" id="toast-close">×</button>
+  `;
+  container.appendChild(toast);
+
+  if (undoTimeout) clearTimeout(undoTimeout);
+
+  const hide = () => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  };
+
+  toast.querySelector('#toast-undo').onclick = () => {
+    if (onUndo) onUndo();
+    hide();
+  };
+  toast.querySelector('#toast-close').onclick = hide;
+
+  undoTimeout = setTimeout(hide, 6000); // 6 seconds before it goes away
+}
+
+function undoDelete() {
+  if (deletedSessionObj) {
+    sessions.push(deletedSessionObj);
+    sessions.sort((a, b) => b.date.localeCompare(a.date));
+    persist();
+    render();
+    deletedSessionObj = null;
+  }
+}
+
+// ── Modal & Delete ────────────────────────────────────────────────────────
 function openModal(id, overrideDate) {
   editingId = (typeof id === 'number') ? id : null;
   const sess = editingId ? sessions.find(s => s.id === editingId) : null;
@@ -1091,9 +1205,19 @@ function saveSession() {
 }
 
 function deleteSession(id) {
-  if (!confirm('Delete this session?')) return;
-  sessions = sessions.filter(s => s.id !== id);
-  persist(); render();
+  const idx = sessions.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  
+  // Store for potential undo
+  deletedSessionObj = sessions[idx];
+  
+  // Remove from arrays and persist immediately
+  sessions.splice(idx, 1);
+  persist(); 
+  render();
+  
+  // Show Toast
+  showToast(`Session deleted.`, undoDelete);
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────
@@ -1105,7 +1229,7 @@ function calcStats() {
   const today = sessions.filter(s => s.date === t).reduce((a, s) => a + s.mins, 0);
   const month = sessions.filter(s => s.date.startsWith(t.slice(0,7))).reduce((a, s) => a + s.mins, 0);
   const byDay = {}; sessions.forEach(s => { byDay[s.date] = (byDay[s.date]||0) + s.mins; });
-  const best = Math.max(0, ...Object.values(byDay));
+  const best = Object.keys(byDay).length > 0 ? Math.max(...Object.values(byDay)) : 0;
   
   // Robust Streak Calculation
   let streak = 0;
@@ -1182,17 +1306,45 @@ function render() {
 }
 
 function renderHeader() {
-  const { total, week, month, streak } = calcStats();
+  const { week, streak, today: todayMins } = calcStats();
   
   // If today isn't logged, but yesterday had a streak, it's at risk
   const ds = new Set(sessions.map(s => s.date));
   const atRisk = !ds.has(todayStr()) && streak > 0;
-  
+  const todayPct  = Math.min(100, goalMins > 0 ? Math.round(todayMins / goalMins * 100) : 0);
+  const goalHit   = todayMins >= goalMins;
+  const goalLabel = (() => { const h = Math.floor(goalMins/60), m = goalMins%60; if (h && m) return h+'h '+m+'m'; if (h) return h+'h'; return m+'m'; })();
+
   document.getElementById('hstats').innerHTML = `
-    <div class="hstat"><strong>${fmt(total)}</strong>all time</div>
-    <div class="hstat"><strong>${fmt(month)}</strong>this month</div>
-    <div class="hstat"><strong>${fmt(week)}</strong>this week</div>
-    <div class="hstat"><strong>${streak}<span style="font-size:12px;font-family:var(--sans);font-weight:400;color:var(--text-2)"> day${streak!==1?'s':''}</span>${atRisk?'<span class="streak-warn">⚠ at risk</span>':''}</strong>streak</div>`;
+    <div class="hstat">
+      <div class="hstat-icon today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="hstat-text">
+        <div class="lbl">Today</div>
+        <div class="val" style="${goalHit?'color:var(--green)':''}">${fmt(todayMins)} <span style="font-size:12px;color:var(--text-3);font-family:var(--sans);font-weight:600">/ ${goalLabel}</span></div>
+        <div class="hstat-prog-bar"><div class="hstat-prog-fill ${goalHit?'hit':''}" style="width:${todayPct}%"></div></div>
+      </div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-icon week">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div class="hstat-text">
+        <div class="lbl">This Week</div>
+        <div class="val">${fmt(week)}</div>
+      </div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-icon streak">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg>
+      </div>
+      <div class="hstat-text">
+        <div class="lbl">Streak</div>
+        <div class="val">${streak}<span style="font-size:11px;color:var(--text-3);font-family:var(--sans);font-weight:600;margin-left:2px">day${streak!==1?'s':''}</span>${atRisk?'<span class="streak-warn" title="Streak at risk!">⚠</span>':''}</div>
+      </div>
+    </div>
+  `;
 }
 
 function renderNudge() {
@@ -1425,7 +1577,7 @@ function renderHeatmap() {
         </div>
         <div class="hmap-legend">
           <span style="opacity:0.7">Less</span>
-          ${['var(--surface-3)','rgba(245, 158, 11, 0.3)','rgba(245, 158, 11, 0.55)','rgba(245, 158, 11, 0.8)','var(--accent)'].map(c=>`<div style="width:14px;height:14px;border-radius:3px;background:${c};border:1px solid rgba(255,255,255,0.02)"></div>`).join('')}
+          ${['var(--surface-3)','rgba(59, 130, 246, 0.3)','rgba(59, 130, 246, 0.55)','rgba(59, 130, 246, 0.8)','var(--accent)'].map(c=>`<div style="width:14px;height:14px;border-radius:3px;background:${c};border:1px solid rgba(255,255,255,0.02)"></div>`).join('')}
           <span style="opacity:0.7">More</span>
         </div>
       </div>
@@ -1464,19 +1616,19 @@ function renderAllTime() {
     return `${d.toLocaleDateString('en',{month:'short',day:'numeric'})} – ${end.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}`;
   }
 
-  const iconClock = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
-  const iconFlame = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg>`;
-  const iconCal   = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
-  const iconCalOk = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>`;
-  const iconBars  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>`;
-  const iconStar  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-  const iconTarget= `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`;
-  const iconBook  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+  const iconClock = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const iconFlame = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg>`;
+  const iconCal   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+  const iconCalOk = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>`;
+  const iconBars  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>`;
+  const iconStar  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  const iconTarget= `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`;
+  const iconBook  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
   const consistencyPct = at.daySpan > 0 ? Math.round(at.daysStudied / at.daySpan * 100) : 0;
   
   const heroCards = `
     <div class="at-hero">
-      <div class="at-card gold">
+      <div class="at-card primary">
         <div class="at-card-icon">${iconClock}</div>
         <div class="at-card-label">Total Hours</div>
         <div class="at-card-val">${fmt(at.total)}</div>
@@ -1723,20 +1875,57 @@ function hideTip() { document.getElementById('tip').style.display = 'none'; }
 
 // ── Export / Import ───────────────────────────────────────────────────────
 function exportData() {
-  const d = JSON.stringify({sessions, goal: goalMins, version: 4}, null, 2);
-  const a = document.createElement('a'); a.href = 'data:application/json,'+encodeURIComponent(d);
-  a.download = 'studylog-backup-'+todayStr()+'.json'; a.click();
+  const fonts = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
+  const view = localStorage.getItem('sl-v4-view') || 'timeline';
+  
+  const d = JSON.stringify({
+    sessions, 
+    goal: goalMins, 
+    fonts: fonts,
+    view: view,
+    sidebarCollapsed: sidebarCollapsed,
+    version: 5
+  }, null, 2);
+  
+  const a = document.createElement('a'); 
+  a.href = 'data:application/json,'+encodeURIComponent(d);
+  a.download = 'studylog-backup-'+todayStr()+'.json'; 
+  a.click();
 }
+
 function importData() { document.getElementById('import-file').click(); }
+
 function handleImport(e) {
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
   r.onload = ev => {
     try {
       const d = JSON.parse(ev.target.result);
+      
+      // Import sessions & goals
       if (Array.isArray(d.sessions)) { sessions = d.sessions; persist(); }
       if (d.goal) { goalMins = d.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
-      sessions.forEach(s => sc(s.subject)); render();
+      
+      // Import Settings
+      if (d.fonts) {
+        localStorage.setItem('sl-v4-fonts', JSON.stringify(d.fonts));
+        document.getElementById('font-sans').value = d.fonts.sans || '';
+        document.getElementById('font-serif').value = d.fonts.serif || '';
+        document.getElementById('font-mono').value = d.fonts.mono || '';
+        loadFonts(d.fonts);
+      }
+      if (d.view) {
+        viewMode = d.view;
+        localStorage.setItem('sl-v4-view', d.view);
+      }
+      if (d.sidebarCollapsed !== undefined) {
+        sidebarCollapsed = d.sidebarCollapsed;
+        localStorage.setItem('sl-sidebar-collapsed', JSON.stringify(sidebarCollapsed));
+        applySidebarState();
+      }
+
+      sessions.forEach(s => sc(s.subject)); 
+      render();
     } catch(err) { alert("Could not read file — make sure it's a StudyLog JSON export."); }
   };
   r.readAsText(f); e.target.value = '';
