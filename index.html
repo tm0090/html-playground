@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StudyLog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Default Fonts (will be overridden if user applies custom fonts) -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" id="default-google-fonts">
+<style>
+:root {
+  /* Modern Zinc/Obsidian Dark Theme */
+  --bg: #09090b; 
+  --surface: #18181b; 
+  --surface-2: #27272a; 
+  --surface-3: #3f3f46; 
+  --border: rgba(255, 255, 255, 0.08);
+  --border-2: rgba(255, 255, 255, 0.12);
+  --border-3: rgba(255, 255, 255, 0.20);
+  
+  /* Refined Accent Colors */
+  --accent: #f59e0b; /* Amber 500 */
+  --accent-hover: #fbbf24;
+  --accent-dim: rgba(245, 158, 11, 0.12);
+  --accent-glow: rgba(245, 158, 11, 0.25);
+  
+  /* Semantic Colors */
+  --green: #10b981; 
+  --green-dim: rgba(16, 185, 129, 0.15);
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+  
+  /* Typography Colors */
+  --text: #fafafa;
+  --text-2: #a1a1aa;
+  --text-3: #71717a;
+  
+  /* Radii & Shadows */
+  --r: 16px;
+  --rsm: 10px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  --shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  
+  /* Typography */
+  --mono: 'JetBrains Mono', monospace;
+  --serif: 'Lora', Georgia, serif;
+  --sans: 'Nunito', system-ui, sans-serif;
+  
+  /* Layout */
+  --sidebar-w: 260px;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; height: 100%; }
+body { 
+  font-family: var(--sans); 
+  background: var(--bg); 
+  color: var(--text); 
+  height: 100%; 
+  overflow: hidden; 
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+
+/* ── Layout ── */
+.app { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
+
+/* ── Header ── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px; 
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0; gap: 16px;
+  background: rgba(9, 9, 11, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative; z-index: 10;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.logo { font-family: var(--serif); font-size: 24px; letter-spacing: -0.02em; white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; gap: 12px; }
+.logo em { color: var(--accent); font-style: normal; font-weight: 600; }
+.sidebar-toggle-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-2); cursor: pointer;
+  transition: all 0.2s; flex-shrink: 0; font-size: 14px;
+}
+.sidebar-toggle-btn:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
+.hstats { display: flex; flex: 1; justify-content: center; gap: 32px; }
+.hstat { font-size: 12px; color: var(--text-2); text-align: center; position: relative; }
+.hstat strong { display: block; font-family: var(--mono); font-size: 16px; font-weight: 500; color: var(--text); line-height: 1.2; letter-spacing: -0.02em; }
+.header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.btn-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--rsm);
+  color: var(--text-2); cursor: pointer;
+  transition: all 0.2s; font-size: 16px; font-family: var(--mono);
+}
+.btn-icon:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); transform: translateY(-1px); }
+.btn-add {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 20px; background: var(--accent);
+  color: #000; border: none; border-radius: var(--rsm);
+  font-family: var(--sans); font-size: 14px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 0 0 var(--accent-glow);
+}
+.btn-add:hover { background: var(--accent-hover); box-shadow: 0 4px 20px var(--accent-glow); transform: translateY(-1px); }
+.btn-add:active { transform: translateY(1px); }
+
+.body { display: flex; flex: 1; overflow: hidden; }
+
+/* ── Today nudge ── */
+.nudge {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 28px;
+  background: linear-gradient(90deg, rgba(245,158,11,0.1) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(245,158,11,0.15);
+  font-size: 13px; font-weight: 600; color: var(--accent);
+  flex-shrink: 0; cursor: pointer; transition: opacity 0.2s;
+}
+.nudge:hover { opacity: 0.8; }
+.nudge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  box-shadow: 0 0 8px var(--accent);
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  overflow-y: auto; overflow-x: hidden;
+  padding: 24px 20px;
+  display: flex; flex-direction: column; gap: 28px;
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1), padding 0.3s cubic-bezier(0.4,0,0.2,1);
+  background: var(--surface);
+  z-index: 5;
+}
+.sidebar.collapsed { width: 0; padding: 0 0; border-right-color: transparent; }
+.sidebar.collapsed > * { opacity: 0; pointer-events: none; }
+.slabel {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 12px;
+  white-space: nowrap;
+}
+.sblock {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--rsm);
+  padding: 12px 14px; margin-bottom: 8px;
+  transition: all 0.2s;
+}
+.sblock:hover { border-color: var(--border-2); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.sblock .lbl { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 2px; white-space: nowrap; }
+.sblock .val { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); line-height: 1.2; letter-spacing: -0.02em; }
+.sblock .val.acc { color: var(--accent); text-shadow: 0 0 12px var(--accent-dim); }
+.subj-list { display: flex; flex-direction: column; gap: 6px; }
+.subj-item {
+  display: flex; flex-direction: column;
+  padding: 10px 12px; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--rsm);
+  cursor: pointer; transition: all 0.2s;
+  font-size: 13px; gap: 8px; white-space: nowrap;
+}
+.subj-item:hover { border-color: var(--border-2); background: var(--surface-3); }
+.subj-item.on { border-color: var(--accent); background: var(--accent-dim); box-shadow: inset 0 0 0 1px var(--accent); }
+.subj-top { display: flex; align-items: center; justify-content: space-between; }
+.subj-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.subj-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.subj-hrs { font-family: var(--mono); font-size: 12px; color: var(--text-2); flex-shrink: 0; }
+.subj-bar-wrap { height: 3px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden; }
+.subj-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+
+/* Sidebar Inputs */
+.settings-inp {
+  width: 100%; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border-2);
+  border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 13px; 
+  outline: none; transition: all 0.2s; font-weight: 500;
+}
+.settings-inp:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.settings-inp::placeholder { color: var(--text-3); font-weight: 400; }
+
+/* ── Goal card ── */
+.goal-card {
+  background: linear-gradient(145deg, var(--surface-2) 0%, var(--surface) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--rsm); padding: 18px 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+}
+.goal-display {
+  font-family: var(--mono); font-size: 28px; font-weight: 600;
+  color: var(--accent); text-align: center; line-height: 1;
+  margin-bottom: 16px; letter-spacing: -0.03em;
+  text-shadow: 0 2px 16px var(--accent-glow);
+}
+.goal-display .unit { font-size: 13px; color: var(--text-2); font-weight: 600; margin-left: 2px; letter-spacing: 0; text-shadow: none; font-family: var(--sans); }
+.goal-steppers { display: flex; gap: 8px; align-items: center; justify-content: center; }
+.goal-unit-wrap {
+  display: flex; align-items: center;
+  background: var(--bg); border: 1px solid var(--border-2);
+  border-radius: var(--rsm); overflow: hidden;
+  transition: all 0.2s;
+}
+.goal-unit-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.goal-unit-wrap:hover { border-color: var(--border-3); }
+.gstep {
+  width: 26px; height: 32px; background: transparent; border: none;
+  color: var(--text-3); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0; user-select: none;
+}
+.gstep:hover { color: var(--text); background: var(--surface-3); }
+.gstep:active { background: var(--surface-2); }
+.goal-inp {
+  width: 34px; padding: 0; height: 32px; background: transparent; border: none;
+  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 14px; font-weight: 500;
+  outline: none; text-align: center; cursor: ns-resize;
+}
+.goal-inp:focus { color: var(--accent); }
+.goal-sep { font-size: 12px; font-weight: 600; color: var(--text-2); font-family: var(--sans); }
+.goal-hint { font-size: 10px; color: var(--text-3); text-align: center; margin-top: 12px; letter-spacing: 0.02em; }
+.goal-saved { font-size: 11px; font-weight: 600; color: var(--green); text-align: center; margin-top: 6px; height: 16px; transition: opacity 0.3s; opacity: 0; }
+.goal-saved.show { opacity: 1; }
+
+/* ── Content ── */
+.content { flex: 1; overflow-y: auto; padding: 32px 40px; position: relative; }
+.year-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+.ypill {
+  padding: 6px 16px; border-radius: 24px;
+  font-size: 14px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-2); cursor: pointer; transition: all 0.2s;
+  font-family: var(--sans);
+}
+.ypill:hover { border-color: var(--border-2); color: var(--text); background: var(--surface-2); transform: translateY(-1px); }
+.ypill.on { background: var(--text); border-color: var(--text); color: var(--bg); box-shadow: 0 4px 12px rgba(255,255,255,0.1); }
+.vtoggle {
+  margin-left: auto; display: flex;
+  border: 1px solid var(--border); border-radius: var(--rsm);
+  overflow: hidden; flex-shrink: 0;
+  background: var(--surface);
+  padding: 2px; gap: 2px;
+}
+.vbtn {
+  padding: 6px 16px; background: transparent; border: none; border-radius: 8px;
+  color: var(--text-2); font-family: var(--sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.vbtn.on { background: var(--surface-3); color: var(--text); box-shadow: var(--shadow-sm); }
+.vbtn:hover:not(.on) { color: var(--text); background: var(--surface-2); }
+
+/* ── Calendar View ── */
+.cal-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px 28px; margin-bottom: 32px; box-shadow: var(--shadow-sm); animation: fadeIn 0.3s ease; }
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.cal-title { font-family: var(--serif); font-size: 24px; font-style: italic; color: var(--text); }
+.cal-nav { display: flex; gap: 8px; }
+.cal-btn { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--rsm); padding: 6px 14px; color: var(--text-2); font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.cal-btn:hover { background: var(--surface-3); color: var(--text); border-color: var(--border-2); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.cal-dow { text-align: center; font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 8px; }
+.cal-cell { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--rsm); min-height: 90px; padding: 10px; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s; position: relative; }
+.cal-cell:hover:not(.faded) { border-color: var(--border-2); background: var(--surface-3); transform: translateY(-2px); box-shadow: var(--shadow-sm); z-index: 2; }
+.cal-cell.faded { opacity: 0.3; cursor: default; background: transparent; }
+.cal-cell.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-dim); }
+.cal-date { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+.cal-cell.today .cal-date { color: var(--accent); font-weight: 600; }
+.cal-val { font-family: var(--mono); font-size: 15px; font-weight: 500; color: var(--text); margin-top: auto; text-align: right; }
+.cal-dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-bottom: 8px; }
+.cal-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 4px currentColor; }
+.cal-cell.l1 { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.15); }
+.cal-cell.l2 { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.25); }
+.cal-cell.l3 { background: rgba(245, 158, 11, 0.25); border-color: rgba(245, 158, 11, 0.4); }
+.cal-cell.l4 { background: rgba(245, 158, 11, 0.4); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-dim); }
+
+/* ── Heatmap ── */
+.heatmap-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 24px 28px; margin-bottom: 32px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s;
+  animation: fadeIn 0.3s ease;
+}
+.heatmap-card:hover { border-color: var(--border-2); box-shadow: var(--shadow); }
+.hmap-title { font-family: var(--serif); font-size: 22px; margin-bottom: 20px; font-style: italic; color: var(--text); letter-spacing: -0.01em; }
+.hmap-outer { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; }
+.hmap-weekdays { display: flex; flex-direction: column; justify-content: space-between; padding-top: 22px; padding-bottom: 2px; }
+.wdlbl { font-size: 11px; color: var(--text-3); height: 14px; display: flex; align-items: center; font-weight: 700; }
+.hmap-main { display: flex; flex-direction: column; }
+.hmap-months { display: flex; gap: 4px; margin-bottom: 6px; height: 16px; position: relative; }
+.mlbl { font-size: 11px; color: var(--text-2); position: absolute; white-space: nowrap; font-weight: 600; }
+.hmap-grid { display: flex; gap: 4px; }
+.hmap-col { display: flex; flex-direction: column; gap: 4px; }
+.hcell {
+  width: 14px; height: 14px; border-radius: 3px;
+  background: var(--surface-3); cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.02);
+}
+.hcell:hover { transform: scale(1.4); z-index: 5; position: relative; box-shadow: 0 0 8px currentColor; border-color: transparent; }
+.hcell.faded { opacity: 0.1; }
+.hcell.l1 { background: rgba(245, 158, 11, 0.3); border-color: transparent; }
+.hcell.l2 { background: rgba(245, 158, 11, 0.55); border-color: transparent; }
+.hcell.l3 { background: rgba(245, 158, 11, 0.8); border-color: transparent; }
+.hcell.l4 { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); border-color: transparent; }
+.hmap-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);
+  flex-wrap: wrap; gap: 16px;
+}
+.hmap-ystats { display: flex; gap: 24px; flex-wrap: wrap; }
+.ystat { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.ystat strong { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); display: block; margin-bottom: 2px; }
+.hmap-legend { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-2); font-weight: 600; }
+
+/* Heatmap subject breakdown */
+.hmap-subj-section { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px; }
+.hmap-subj-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 14px; }
+.hmap-subj-breakdown { display: flex; flex-direction: column; gap: 8px; }
+.hmap-subj-row { display: flex; align-items: center; gap: 10px; }
+.hmap-subj-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px currentColor; }
+.hmap-subj-name { font-size: 13px; font-weight: 600; min-width: 110px; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hmap-subj-bar-wrap { flex: 1; height: 5px; background: rgba(0,0,0,0.3); border-radius: 5px; overflow: hidden; }
+.hmap-subj-bar-fill { height: 100%; border-radius: 5px; transition: width 0.7s cubic-bezier(0.16,1,0.3,1); }
+.hmap-subj-val { font-family: var(--mono); font-size: 12px; color: var(--text-2); width: 60px; text-align: right; flex-shrink: 0; }
+
+/* ── All Time View ── */
+.alltime-wrap { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+.at-hero {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px; margin-bottom: 32px;
+}
+
+.at-card {
+  background: linear-gradient(160deg, var(--surface-2) 0%, var(--surface) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--r); padding: 20px;
+  transition: all 0.3s; position: relative; overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+}
+.at-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--border-2); transition: background 0.3s;
+}
+.at-card:hover { border-color: var(--border-3); transform: translateY(-3px); box-shadow: var(--shadow); }
+.at-card.gold::after { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+.at-card.green::after { background: var(--green); box-shadow: 0 0 12px var(--green-dim); }
+.at-card.blue::after { background: var(--blue); }
+.at-card.purple::after { background: var(--purple); }
+
+.at-card-icon { margin-bottom: 12px; opacity: 0.55; display: flex; align-items: center; }
+.at-card-icon svg { display: block; }
+.at-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+.at-card-val { font-family: var(--mono); font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; letter-spacing: -0.02em; }
+.at-card.gold .at-card-val { color: var(--accent); }
+.at-card.green .at-card-val { color: var(--green); }
+.at-card.blue .at-card-val { color: var(--blue); }
+.at-card.purple .at-card-val { color: var(--purple); }
+.at-card-sub { font-size: 12px; font-weight: 600; color: var(--text-2); margin-top: 8px; }
+
+.at-section { margin-bottom: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; box-shadow: var(--shadow-sm); }
+.at-section-title {
+  font-family: var(--serif); font-size: 20px; font-style: italic;
+  margin-bottom: 20px; color: var(--text);
+  display: flex; align-items: center; gap: 12px;
+}
+.at-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* Subject leaderboard */
+.subj-board { display: flex; flex-direction: column; gap: 10px; }
+.subj-rank {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 16px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--rsm); transition: all 0.2s;
+}
+.subj-rank:hover { border-color: var(--border-2); background: var(--surface-3); transform: translateX(4px); box-shadow: var(--shadow-sm); }
+.subj-rank-num { font-family: var(--mono); font-size: 13px; color: var(--text-3); width: 20px; text-align: right; flex-shrink: 0; }
+.subj-rank-num.top3 { color: var(--accent); font-weight: 600; font-size: 15px; }
+.subj-rank-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
+.subj-rank-name { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.subj-rank-bar-wrap { flex: 2; height: 6px; background: rgba(0,0,0,0.4); border-radius: 6px; overflow: hidden; }
+.subj-rank-bar-fill { height: 100%; border-radius: 6px; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+.subj-rank-val { font-family: var(--mono); font-size: 13px; color: var(--text-2); flex-shrink: 0; width: 70px; text-align: right; font-weight: 500; }
+.subj-rank-pct { font-size: 12px; color: var(--text-3); flex-shrink: 0; width: 36px; text-align: right; font-weight: 700; }
+
+/* Yearly comparison */
+.year-compare { display: flex; flex-direction: column; gap: 12px; }
+.yc-row { display: flex; align-items: center; gap: 16px; }
+.yc-label { font-family: var(--mono); font-size: 13px; color: var(--text-2); width: 42px; flex-shrink: 0; font-weight: 500; }
+.yc-bar-wrap { flex: 1; height: 24px; background: rgba(0,0,0,0.3); border-radius: 6px; overflow: hidden; position: relative; }
+.yc-bar-fill {
+  height: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, var(--surface-3) 0%, var(--border-3) 100%);
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;
+  min-width: 4px;
+}
+.yc-bar-fill.best { background: linear-gradient(90deg, rgba(245,158,11,0.6) 0%, var(--accent) 100%); box-shadow: 0 0 12px var(--accent-glow); }
+.yc-val { font-family: var(--mono); font-size: 13px; color: var(--text-2); width: 70px; text-align: right; flex-shrink: 0; }
+.yc-badge { font-size: 10px; background: var(--accent); color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.05em; }
+
+/* Day-of-week chart */
+.dow-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; margin-top: 10px; }
+.dow-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
+.dow-bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 6px 6px 0 0; }
+.dow-bar {
+  width: 100%; border-radius: 6px 6px 0 0;
+  background: var(--surface-3);
+  transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s;
+  position: relative; min-height: 4px;
+}
+.dow-bar.peak { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+.dow-bar:hover { background: var(--text-3); }
+.dow-bar.peak:hover { background: var(--accent-hover); }
+.dow-label { font-size: 11px; color: var(--text-3); white-space: nowrap; font-weight: 600; }
+.dow-label.peak { color: var(--accent); font-weight: 700; }
+
+/* Historical Monthly Chart */
+.hist-chart-wrap {
+  overflow-x: auto; padding-bottom: 12px; margin-top: 10px;
+}
+.hist-chart-wrap::-webkit-scrollbar { height: 6px; }
+.hist-chart-wrap::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 6px; }
+.hist-chart {
+  display: flex; align-items: flex-end; gap: 14px; height: 140px; 
+  min-width: max-content; padding: 0 4px;
+}
+.mt-col { flex: 0 0 44px; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
+.mt-val { font-family: var(--mono); font-size: 11px; color: var(--text-2); height: 14px; font-weight: 500; }
+.mt-bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 6px 6px 0 0; position: relative; }
+.mt-bar { width: 100%; border-radius: 6px 6px 0 0; background: var(--surface-3); transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1); min-height: 4px; }
+.mt-bar.peak { background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+.mt-label { font-size: 11px; color: var(--text-3); font-weight: 600; text-align: center; line-height: 1.2; white-space: nowrap; }
+.mt-label.peak { color: var(--accent); font-weight: 700; }
+
+/* ── Timeline Revamp ── */
+.mgroup { margin-bottom: 36px; animation: fadeIn 0.3s ease; }
+.mhead {
+  display: flex; align-items: baseline; gap: 12px;
+  padding-bottom: 12px; margin-bottom: 16px;
+}
+.mtitle { font-family: var(--serif); font-size: 28px; font-style: italic; color: var(--text); }
+.mtotal { font-family: var(--mono); font-size: 14px; color: var(--text-2); background: var(--surface-2); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); }
+
+/* The Timeline UI */
+.timeline-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding-bottom: 20px;
+}
+.timeline-container::before {
+  content: ''; position: absolute;
+  top: 20px; bottom: 0; left: 18px; /* Base vertical line */
+  width: 2px; background: var(--border-2);
+  z-index: 1;
+}
+.day-wrapper {
+  position: relative;
+  padding-left: 48px;
+}
+.day-node {
+  position: absolute;
+  left: 13px; /* Centers 12px node on 18px line */
+  top: 24px;
+  width: 12px; height: 12px;
+  background: var(--surface-2);
+  border: 2px solid var(--border-3);
+  border-radius: 50%;
+  z-index: 2;
+  transition: all 0.3s;
+}
+.day-node.hit {
+  background: var(--green); border-color: var(--green);
+  box-shadow: 0 0 10px rgba(16,185,129,0.4);
+}
+.day-wrapper::before {
+  /* The branch connector */
+  content: ''; position: absolute;
+  left: 24px; top: 29px;
+  width: 24px; height: 2px;
+  background: var(--border-2); z-index: 1;
+}
+.day-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 22px; 
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  position: relative;
+}
+.day-card:hover {
+  border-color: var(--border-2);
+  box-shadow: var(--shadow);
+  transform: translateX(4px);
+  background: var(--surface-2);
+}
+.dhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.ddate { font-size: 16px; font-weight: 700; color: var(--text); }
+.ddate .dow { color: var(--text-3); font-weight: 600; margin-right: 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+.dtoday {
+  font-size: 10px; color: #000; font-weight: 800; letter-spacing: 0.1em;
+  margin-left: 8px; vertical-align: middle;
+  background: var(--accent); padding: 2px 6px; border-radius: 4px;
+}
+.dtime { font-family: var(--mono); font-size: 14px; color: var(--text-2); font-weight: 500; }
+.dtime.hit { color: var(--green); }
+.prog { height: 4px; border-radius: 4px; background: rgba(0,0,0,0.4); margin-bottom: 12px; overflow: hidden; }
+.pfill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+.pfill.hit { background: var(--green); box-shadow: 0 0 8px var(--green-dim); }
+
+/* Improved Session Rows */
+.srow {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 12px 0; border-top: 1px solid var(--border);
+  font-size: 14px; gap: 12px;
+}
+.srow:last-child { padding-bottom: 0; }
+.srow-l { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
+.srow-dot { margin-top: 6px; flex-shrink: 0; }
+.srow-info { flex: 1; min-width: 0; }
+.srow-subj { line-height: 1.4; font-weight: 600; font-size: 15px; }
+.srow-note {
+  font-size: 13px; color: var(--text-2); margin-top: 8px; line-height: 1.5; word-break: break-word;
+  padding: 6px 10px; background: rgba(255,255,255,0.02);
+  border-left: 2px solid var(--border-3);
+  border-radius: 0 6px 6px 0;
+}
+.srow-r { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.smins { font-family: var(--mono); font-size: 13px; color: var(--text-2); font-weight: 500; margin-right: 8px; }
+.sdel, .sedit {
+  background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; font-size: 12px;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; line-height: 1; transition: all 0.2s; color: var(--text-2);
+}
+.sedit:hover { color: var(--text); background: var(--surface-3); border-color: var(--border-3); }
+.sdel:hover { color: var(--red); background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); }
+
+/* ── Empty ── */
+.empty { text-align: center; padding: 80px 24px; background: var(--surface); border: 1px dashed var(--border-2); border-radius: var(--r); }
+.empty-icon { font-family: var(--serif); font-size: 46px; color: var(--text-3); font-style: italic; margin-bottom: 12px; }
+.empty p { font-size: 14px; color: var(--text-3); margin-top: 8px; font-weight: 500; }
+
+/* ── Modal ── */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 200;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.overlay.show { display: flex; animation: fadeIn 0.2s ease; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 24px; padding: 32px;
+  width: 440px; max-width: 92vw;
+  animation: modalUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-lg);
+  position: relative; overflow: hidden;
+}
+.modal::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+@keyframes modalUp { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.modal-ttl { font-family: var(--serif); font-size: 26px; margin-bottom: 24px; font-style: italic; color: var(--text); }
+.field { margin-bottom: 16px; }
+.field label {
+  display: block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-2); margin-bottom: 8px;
+}
+.field input[type=text], .field input[type=date], .field textarea {
+  width: 100%; padding: 12px 14px;
+  background: var(--bg); border: 1px solid var(--border-2);
+  border-radius: var(--rsm); color: var(--text);
+  font-family: var(--sans); font-size: 14px; outline: none; font-weight: 500;
+  transition: all 0.2s;
+}
+.field input[type=text]:focus, .field input[type=date]:focus, .field textarea:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim);
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--text-3); }
+.field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+.field-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.num-field {
+  display: flex; align-items: center;
+  background: var(--bg); border: 1px solid var(--border-2);
+  border-radius: var(--rsm); overflow: hidden;
+  transition: all 0.2s;
+}
+.num-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.num-field:hover { border-color: var(--border-3); }
+.nf-btn {
+  width: 36px; height: 44px; background: transparent; border: none;
+  color: var(--text-2); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0; user-select: none;
+}
+.nf-btn:hover { color: var(--text); background: var(--surface-3); }
+.nf-btn:active { background: var(--surface-2); }
+.nf-inp {
+  flex: 1; min-width: 0; padding: 0; height: 44px;
+  background: transparent; border: none;
+  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono);
+  font-size: 18px; font-weight: 500; outline: none;
+  text-align: center; cursor: ns-resize;
+}
+.nf-inp:focus { color: var(--accent); }
+
+.modal-btns { display: flex; gap: 12px; margin-top: 24px; }
+.btn-p {
+  flex: 1; padding: 12px; background: var(--accent);
+  color: #000; border: none; border-radius: var(--rsm);
+  font-family: var(--sans); font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-p:hover { background: var(--accent-hover); box-shadow: 0 4px 16px var(--accent-glow); transform: translateY(-1px); }
+.btn-c {
+  padding: 12px 20px; background: var(--surface-3); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--rsm);
+  font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-c:hover { background: var(--surface-2); border-color: var(--border-2); }
+
+/* ── Autocomplete ── */
+.ac-wrap { position: relative; }
+.ac-drop {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: var(--rsm); z-index: 300; overflow: hidden;
+  display: none; box-shadow: var(--shadow-lg);
+}
+.ac-drop.show { display: block; animation: fadeIn 0.2s ease; }
+.ac-item {
+  padding: 10px 14px; font-size: 14px; cursor: pointer; font-weight: 500;
+  transition: background 0.15s; display: flex; align-items: center; gap: 10px;
+}
+.ac-item:hover { background: var(--surface-3); }
+.ac-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px currentColor; }
+
+/* ── Tooltip ── */
+#tip {
+  position: fixed; background: rgba(24, 24, 27, 0.95);
+  border: 1px solid var(--border-2); border-radius: 8px;
+  padding: 8px 12px; font-size: 12px; font-family: var(--sans); font-weight: 600;
+  pointer-events: none; z-index: 500; white-space: nowrap;
+  display: none; color: var(--text);
+  box-shadow: var(--shadow); backdrop-filter: blur(4px);
+  transform: translate(-50%, -100%); margin-top: -8px;
+}
+#tip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px;
+  border-width: 5px; border-style: solid; border-color: var(--border-2) transparent transparent transparent;
+}
+
+/* ── Streak warning ── */
+.streak-warn {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--red); font-weight: 700;
+  vertical-align: middle; margin-left: 8px; opacity: 0.9;
+  background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.2);
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+      Study<em>Log</em>
+    </div>
+    <div class="hstats" id="hstats"></div>
+    <div class="header-right">
+      <button class="btn-icon" title="Export backup" onclick="exportData()">↑</button>
+      <button class="btn-icon" title="Import backup" onclick="importData()">↓</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+      <button class="btn-add" onclick="openModal()">+ Log Session</button>
+    </div>
+  </header>
+
+  <!-- Nudge -->
+  <div class="nudge" id="nudge" style="display:none" onclick="openModal()">
+    <div class="nudge-dot"></div>
+    <span>You haven't studied yet today — click to log a session.</span>
+  </div>
+
+  <div class="body">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div>
+        <div class="slabel">Settings</div>
+        <div class="sblock" style="padding:14px">
+          <div style="font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:12px">Custom Fonts</div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px; font-weight:700; color:var(--text-3); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em">Main Text</div>
+            <input type="text" id="font-sans" placeholder="e.g. Nunito" class="settings-inp" title="Main Font (Sans)">
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px; font-weight:700; color:var(--text-3); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em">Headings</div>
+            <input type="text" id="font-serif" placeholder="e.g. Lora" class="settings-inp" title="Heading Font (Serif)">
+          </div>
+          <div style="margin-bottom:14px">
+            <div style="font-size:10px; font-weight:700; color:var(--text-3); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em">Numbers</div>
+            <input type="text" id="font-mono" placeholder="e.g. JetBrains Mono" class="settings-inp" title="Number Font (Mono)">
+          </div>
+          <button class="vbtn" style="width:100%; justify-content:center; background:var(--surface-3); color:var(--text); padding:8px" onclick="applyCustomFonts()">Apply Fonts</button>
+        </div>
+      </div>
+      <div>
+        <div class="slabel">Subjects</div>
+        <div class="subj-list" id="sb-subjects"></div>
+        <div style="margin-top:10px">
+          <button id="clear-filter" style="display:none;width:100%;padding:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--rsm);color:var(--text-2);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s" onclick="clearFilter()">✕ Clear filter</button>
+        </div>
+      </div>
+      <div>
+        <div class="slabel">Daily Goal</div>
+        <div class="goal-card">
+          <div class="goal-display" id="goal-display">—</div>
+          <div class="goal-steppers">
+            <div class="goal-unit-wrap">
+              <button class="gstep" onmousedown="stepGoal('h',-1)">−</button>
+              <input class="goal-inp" id="goal-h" type="number" min="0" max="23" placeholder="0" oninput="onGoalInput()">
+              <button class="gstep" onmousedown="stepGoal('h', 1)">+</button>
+            </div>
+            <span class="goal-sep">hr</span>
+            <div class="goal-unit-wrap">
+              <button class="gstep" onmousedown="stepGoal('m',-5)">−</button>
+              <input class="goal-inp" id="goal-m" type="number" min="0" max="59" placeholder="0" oninput="onGoalInput()">
+              <button class="gstep" onmousedown="stepGoal('m', 5)">+</button>
+            </div>
+            <span class="goal-sep">min</span>
+          </div>
+          <div class="goal-hint">scroll ↕ over fields to adjust</div>
+          <div class="goal-saved" id="goal-saved">✓ Goal saved</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="content">
+      <div class="year-bar" id="year-bar"></div>
+      <div id="calendar-area"></div>
+      <div id="heatmap-area"></div>
+      <div id="alltime-area"></div>
+      <div id="timeline"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-ttl" id="modal-title">Log a Study Session</div>
+    <div class="field"><label>Date</label><input type="date" id="f-date"></div>
+    <div class="field">
+      <label>Subject</label>
+      <div class="ac-wrap">
+        <input type="text" id="f-subj" placeholder="e.g. Mathematics, Biology…" autocomplete="off" oninput="acInput()" onfocus="acInput()" onblur="acBlur()">
+        <div class="ac-drop" id="ac-drop"></div>
+      </div>
+    </div>
+    <div class="field-2">
+      <div class="field">
+        <label>Hours</label>
+        <div class="num-field">
+          <button class="nf-btn" onmousedown="stepNF('f-h',-1,0,23)">−</button>
+          <input class="nf-inp" type="number" id="f-h" min="0" max="23" placeholder="0">
+          <button class="nf-btn" onmousedown="stepNF('f-h', 1,0,23)">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Minutes</label>
+        <div class="num-field">
+          <button class="nf-btn" onmousedown="stepNF('f-m',-5,0,59)">−</button>
+          <input class="nf-inp" type="number" id="f-m" min="0" max="59" placeholder="0">
+          <button class="nf-btn" onmousedown="stepNF('f-m', 5,0,59)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:11px">(optional)</span></label>
+      <textarea id="f-note" placeholder="Chapter 5 done, solved 20 problems…"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-c" onclick="closeModal()">Cancel</button>
+      <button class="btn-p" id="modal-save-btn" onclick="saveSession()">Add Session</button>
+    </div>
+  </div>
+</div>
+
+<div id="tip"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let sessions = JSON.parse(localStorage.getItem('sl-v4-sessions') || '[]');
+if (!sessions.length) { const v3 = localStorage.getItem('sl-v3-sessions'); if (v3) { sessions = JSON.parse(v3); persist(); } }
+let goalMins = parseInt(localStorage.getItem('sl-v4-goal') || localStorage.getItem('sl-v3-goal') || '120');
+let filterSubj = null, viewYear = new Date().getFullYear(), viewMode = localStorage.getItem('sl-v4-view') || 'timeline', editingId = null;
+let sidebarCollapsed = JSON.parse(localStorage.getItem('sl-sidebar-collapsed') || 'false');
+
+let currentCalMonth = new Date().getMonth();
+let currentCalYear = new Date().getFullYear();
+
+// Modernized color palette for subjects
+const COLORS = ['#f59e0b','#10b981','#3b82f6','#ec4899','#8b5cf6','#f97316','#14b8a6','#f43f5e','#84cc16','#eab308'];
+const cmap = {}; let ci = 0;
+function sc(s) { const k = (s||'general').toLowerCase().trim(); if (!cmap[k]) cmap[k] = COLORS[ci++ % COLORS.length]; return cmap[k]; }
+sessions.forEach(s => sc(s.subject));
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function fmt(m) { const h = Math.floor(m/60), r = m%60; if (h===0) return r+'m'; if (r===0) return h+'h'; return h+'h '+r+'m'; }
+function localDate(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function todayStr() { return localDate(new Date()); }
+function getSubjects() { return [...new Set(sessions.map(s => s.subject))].sort(); }
+
+// ── Custom Fonts ──────────────────────────────────────────────────────────
+function initFonts() {
+  const saved = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
+  if (saved) {
+    document.getElementById('font-sans').value = saved.sans || '';
+    document.getElementById('font-serif').value = saved.serif || '';
+    document.getElementById('font-mono').value = saved.mono || '';
+    loadFonts(saved);
+  }
+}
+
+function applyCustomFonts() {
+  const sans = document.getElementById('font-sans').value.trim();
+  const serif = document.getElementById('font-serif').value.trim();
+  const mono = document.getElementById('font-mono').value.trim();
+  
+  const fonts = { sans, serif, mono };
+  localStorage.setItem('sl-v4-fonts', JSON.stringify(fonts));
+  loadFonts(fonts);
+  
+  // Quick visual feedback on the button
+  const btn = document.querySelector('.sblock .vbtn');
+  const oldText = btn.textContent;
+  btn.textContent = '✓ Applied!';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => { btn.textContent = oldText; btn.style.color = ''; }, 1500);
+}
+
+function loadFonts(fonts) {
+  const families = [fonts.sans, fonts.serif, fonts.mono]
+    .filter(f => f) // Remove empty
+    .map(f => f.replace(/ /g, '+'));
+
+  if (families.length > 0) {
+    const oldLink = document.getElementById('custom-google-fonts');
+    if (oldLink) oldLink.remove();
+    const link = document.createElement('link');
+    link.id = 'custom-google-fonts';
+    link.rel = 'stylesheet';
+    // Using simple Google Fonts API v1 structure for max arbitrary font compatability
+    link.href = `https://fonts.googleapis.com/css?family=${families.join('|')}&display=swap`;
+    document.head.appendChild(link);
+  }
+
+  if (fonts.sans) document.documentElement.style.setProperty('--sans', `'${fonts.sans}', system-ui, sans-serif`);
+  if (fonts.serif) document.documentElement.style.setProperty('--serif', `'${fonts.serif}', Georgia, serif`);
+  if (fonts.mono) document.documentElement.style.setProperty('--mono', `'${fonts.mono}', monospace`);
+}
+
+// ── Persist ───────────────────────────────────────────────────────────────
+function persist() { localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions)); }
+
+// ── Sidebar collapse ──────────────────────────────────────────────────────
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  localStorage.setItem('sl-sidebar-collapsed', JSON.stringify(sidebarCollapsed));
+  applySidebarState();
+}
+function applySidebarState() {
+  const sidebar = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebar-toggle');
+  if (sidebarCollapsed) {
+    sidebar.classList.add('collapsed');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
+    btn.title = 'Expand sidebar';
+  } else {
+    sidebar.classList.remove('collapsed');
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+    btn.title = 'Collapse sidebar';
+  }
+}
+
+// ── Goal controls ─────────────────────────────────────────────────────────
+let goalRenderTimer = null, goalSavedTimer = null;
+
+function stepGoal(field, delta) {
+  const el = document.getElementById('goal-' + field);
+  const max = field === 'h' ? 23 : 59;
+  let v = (parseInt(el.value) || 0) + delta;
+  el.value = Math.max(0, Math.min(max, v));
+  onGoalInput();
+}
+
+function onGoalInput() {
+  const h = Math.max(0, Math.min(23, parseInt(document.getElementById('goal-h').value) || 0));
+  const m = Math.max(0, Math.min(59, parseInt(document.getElementById('goal-m').value) || 0));
+  const nm = h * 60 + m;
+  if (nm > 0) {
+    goalMins = nm;
+    localStorage.setItem('sl-v4-goal', String(goalMins));
+    updateGoalDisplay();
+    const saved = document.getElementById('goal-saved');
+    saved.classList.add('show');
+    clearTimeout(goalSavedTimer);
+    goalSavedTimer = setTimeout(() => saved.classList.remove('show'), 1600);
+    clearTimeout(goalRenderTimer);
+    goalRenderTimer = setTimeout(() => render(), 350);
+  }
+}
+
+function updateGoalDisplay() {
+  const h = Math.floor(goalMins / 60), m = goalMins % 60;
+  let html = '';
+  if (h > 0) html += h + '<span class="unit">hr</span>';
+  if (h > 0 && m > 0) html += ' ';
+  if (m > 0 || h === 0) html += m + '<span class="unit">min</span>';
+  document.getElementById('goal-display').innerHTML = html;
+}
+
+// ── Scroll-wheel on number inputs ────────────────────────────────────────
+function wireWheel(id, min, max, step) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('wheel', e => {
+    e.preventDefault();
+    const dir = e.deltaY < 0 ? 1 : -1;
+    let v = (parseInt(el.value) || 0) + dir * step;
+    el.value = Math.max(min, Math.min(max, v));
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }, { passive: false });
+}
+
+wireWheel('f-h',    0, 23, 1);
+wireWheel('f-m',    0, 59, 5);
+wireWheel('goal-h', 0, 23, 1);
+wireWheel('goal-m', 0, 59, 5);
+
+document.getElementById('goal-h').addEventListener('input', onGoalInput);
+document.getElementById('goal-m').addEventListener('input', onGoalInput);
+
+// ── Modal number field step buttons ──────────────────────────────────────
+function stepNF(id, delta, min, max) {
+  const el = document.getElementById(id);
+  let v = (parseInt(el.value) || 0) + delta;
+  el.value = Math.max(min, Math.min(max, v));
+}
+
+// ── Autocomplete ──────────────────────────────────────────────────────────
+function acInput() {
+  const val = document.getElementById('f-subj').value.trim().toLowerCase();
+  const matches = val ? getSubjects().filter(s => s.toLowerCase().includes(val)) : getSubjects();
+  const drop = document.getElementById('ac-drop');
+  if (!matches.length) { drop.classList.remove('show'); return; }
+  drop.innerHTML = matches.map(s => `<div class="ac-item" onmousedown="acPick('${s.replace(/'/g,"\\'")}')"><div class="ac-dot" style="background:${sc(s)}; color:${sc(s)}"></div>${s}</div>`).join('');
+  drop.classList.add('show');
+}
+function acPick(s) { document.getElementById('f-subj').value = s; document.getElementById('ac-drop').classList.remove('show'); }
+function acBlur() { setTimeout(() => document.getElementById('ac-drop').classList.remove('show'), 150); }
+
+// ── Modal ─────────────────────────────────────────────────────────────────
+function openModal(id, overrideDate) {
+  editingId = (typeof id === 'number') ? id : null;
+  const sess = editingId ? sessions.find(s => s.id === editingId) : null;
+  
+  document.getElementById('modal-title').textContent = sess ? 'Edit Session' : 'Log a Study Session';
+  document.getElementById('modal-save-btn').textContent = sess ? 'Save Changes' : 'Add Session';
+  document.getElementById('f-date').value = sess ? sess.date : (overrideDate || todayStr());
+  document.getElementById('f-subj').value = sess ? sess.subject : '';
+  document.getElementById('f-h').value = sess ? Math.floor(sess.mins / 60) : '';
+  document.getElementById('f-m').value = sess ? sess.mins % 60 : '';
+  document.getElementById('f-note').value = sess ? (sess.note || '') : '';
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(() => document.getElementById('f-subj').focus(), 120);
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('overlay'))
+    document.getElementById('overlay').classList.remove('show');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('overlay').classList.remove('show'); });
+
+function saveSession() {
+  const date  = document.getElementById('f-date').value || todayStr();
+  const subj  = document.getElementById('f-subj').value.trim() || 'General';
+  const h     = parseInt(document.getElementById('f-h').value) || 0;
+  const m     = parseInt(document.getElementById('f-m').value) || 0;
+  const mins  = h * 60 + m;
+  const note  = document.getElementById('f-note').value.trim();
+  if (!mins) {
+    const wrap = document.getElementById('f-h').closest('.num-field');
+    wrap.style.borderColor = 'var(--red)';
+    wrap.style.boxShadow = '0 0 0 2px rgba(239,68,68,0.2)';
+    setTimeout(() => { wrap.style.borderColor = ''; wrap.style.boxShadow = ''; }, 900);
+    return;
+  }
+  sc(subj);
+  if (editingId) {
+    const idx = sessions.findIndex(s => s.id === editingId);
+    if (idx > -1) sessions[idx] = { ...sessions[idx], date, subject: subj, mins, note };
+  } else {
+    sessions.push({ id: Date.now(), date, subject: subj, mins, note });
+  }
+  sessions.sort((a, b) => b.date.localeCompare(a.date));
+  persist();
+  document.getElementById('overlay').classList.remove('show');
+  
+  // Make sure we switch view to where the date was added
+  const newDate = new Date(date + 'T12:00:00');
+  viewYear = newDate.getFullYear();
+  if (viewMode === 'calendar') {
+    currentCalYear = newDate.getFullYear();
+    currentCalMonth = newDate.getMonth();
+  }
+  render();
+}
+
+function deleteSession(id) {
+  if (!confirm('Delete this session?')) return;
+  sessions = sessions.filter(s => s.id !== id);
+  persist(); render();
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────
+function calcStats() {
+  const total = sessions.reduce((a, s) => a + s.mins, 0);
+  const t = todayStr();
+  const w7 = localDate(new Date(Date.now() - 6 * 86400000));
+  const week  = sessions.filter(s => s.date >= w7).reduce((a, s) => a + s.mins, 0);
+  const today = sessions.filter(s => s.date === t).reduce((a, s) => a + s.mins, 0);
+  const month = sessions.filter(s => s.date.startsWith(t.slice(0,7))).reduce((a, s) => a + s.mins, 0);
+  const byDay = {}; sessions.forEach(s => { byDay[s.date] = (byDay[s.date]||0) + s.mins; });
+  const best = Math.max(0, ...Object.values(byDay));
+  
+  // Robust Streak Calculation
+  let streak = 0;
+  const ds = new Set(sessions.map(s => s.date));
+  const dd = new Date();
+  dd.setDate(dd.getDate() - 1);
+  const yest = localDate(dd);
+
+  let dObj = new Date(); // Start counting backward from today
+  if (ds.has(t)) {
+    while (ds.has(localDate(dObj))) { streak++; dObj.setDate(dObj.getDate() - 1); }
+  } else if (ds.has(yest)) {
+    dObj.setDate(dObj.getDate() - 1); // Start counting from yesterday
+    while (ds.has(localDate(dObj))) { streak++; dObj.setDate(dObj.getDate() - 1); }
+  }
+
+  const subjMap = {}; sessions.forEach(s => { subjMap[s.subject] = (subjMap[s.subject]||0) + s.mins; });
+  return { total, week, today, month, streak, best, subjMap };
+}
+
+// ── All-Time Stats ────────────────────────────────────────────────────────
+function calcAllTimeStats() {
+  if (!sessions.length) return null;
+  const byDay = {}, byWeek = {}, byMonth = {};
+  sessions.forEach(s => {
+    byDay[s.date] = (byDay[s.date]||0) + s.mins;
+    const d = new Date(s.date+'T12:00:00');
+    const startOfWeek = new Date(d); startOfWeek.setDate(d.getDate() - d.getDay());
+    const wk = localDate(startOfWeek);
+    byWeek[wk] = (byWeek[wk]||0) + s.mins;
+    const mk = s.date.slice(0,7);
+    byMonth[mk] = (byMonth[mk]||0) + s.mins;
+  });
+  const total = sessions.reduce((a,s)=>a+s.mins,0);
+  const daysStudied = Object.keys(byDay).length;
+  const avgPerDay = daysStudied ? Math.round(total/daysStudied) : 0;
+
+  const bestDayEntry = Object.entries(byDay).reduce((a,[d,m])=>m>a[1]?[d,m]:a, ['',0]);
+  const bestWeekEntry = Object.entries(byWeek).reduce((a,[d,m])=>m>a[1]?[d,m]:a, ['',0]);
+  const bestMonthEntry = Object.entries(byMonth).reduce((a,[d,m])=>m>a[1]?[d,m]:a, ['',0]);
+
+  const allDays = Object.keys(byDay).sort();
+  let maxStreak = 0, curStreak = 0, prevDate = null;
+  allDays.forEach(d => {
+    if (prevDate) {
+      const diff = Math.round((new Date(d+'T12:00:00') - new Date(prevDate+'T12:00:00')) / 86400000);
+      curStreak = diff === 1 ? curStreak + 1 : 1;
+    } else { curStreak = 1; }
+    maxStreak = Math.max(maxStreak, curStreak);
+    prevDate = d;
+  });
+
+  const subjMap = {}; sessions.forEach(s => { subjMap[s.subject] = (subjMap[s.subject]||0) + s.mins; });
+  const yearMap = {}; sessions.forEach(s => { const y = s.date.slice(0,4); yearMap[y] = (yearMap[y]||0) + s.mins; });
+  const dowMap = [0,0,0,0,0,0,0]; sessions.forEach(s => { const d = new Date(s.date+'T12:00:00'); dowMap[d.getDay()] += s.mins; });
+
+  // Day span: distance between first and today for consistency calc
+  const sortedDates = Object.keys(byDay).sort();
+  const firstDate = sortedDates[0], lastDate = todayStr();
+  const daySpan = firstDate ? Math.max(1, Math.round((new Date(lastDate+'T12:00:00') - new Date(firstDate+'T12:00:00')) / 86400000) + 1) : 1;
+
+  // Monthly breakdown across all years (avg by calendar month)
+  const monthBuckets = Array(12).fill(0), monthCounts = Array(12).fill(0);
+  Object.entries(byMonth).forEach(([mk, m]) => { const mo = parseInt(mk.split('-')[1]) - 1; monthBuckets[mo] += m; monthCounts[mo]++; });
+  const monthlyAvgByMo = monthBuckets.map((t, i) => monthCounts[i] ? Math.round(t / monthCounts[i]) : 0);
+
+  return { total, daysStudied, avgPerDay, bestDayEntry, bestWeekEntry, bestMonthEntry, maxStreak, subjMap, yearMap, dowMap, daySpan, monthlyAvgByMo };
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render() {
+  renderHeader(); renderNudge(); renderSidebar();
+  renderYearBar(); renderCalendar(); renderHeatmap(); renderAllTime(); renderTimeline();
+}
+
+function renderHeader() {
+  const { total, week, month, streak } = calcStats();
+  
+  // If today isn't logged, but yesterday had a streak, it's at risk
+  const ds = new Set(sessions.map(s => s.date));
+  const atRisk = !ds.has(todayStr()) && streak > 0;
+  
+  document.getElementById('hstats').innerHTML = `
+    <div class="hstat"><strong>${fmt(total)}</strong>all time</div>
+    <div class="hstat"><strong>${fmt(month)}</strong>this month</div>
+    <div class="hstat"><strong>${fmt(week)}</strong>this week</div>
+    <div class="hstat"><strong>${streak}<span style="font-size:12px;font-family:var(--sans);font-weight:400;color:var(--text-2)"> day${streak!==1?'s':''}</span>${atRisk?'<span class="streak-warn">⚠ at risk</span>':''}</strong>streak</div>`;
+}
+
+function renderNudge() {
+  const today = sessions.filter(s => s.date === todayStr()).reduce((a, s) => a + s.mins, 0);
+  document.getElementById('nudge').style.display = today === 0 ? 'flex' : 'none';
+}
+
+function renderSidebar() {
+  const { subjMap } = calcStats();
+
+  const sorted = Object.entries(subjMap).sort((a, b) => b[1] - a[1]);
+  const maxM = sorted.length ? sorted[0][1] : 1;
+  document.getElementById('sb-subjects').innerHTML = sorted.length
+    ? sorted.map(([s, m]) => `
+      <div class="subj-item ${filterSubj===s?'on':''}" onclick="toggleFilter('${s.replace(/'/g,"\\'")}')">
+        <div class="subj-top">
+          <div class="subj-left"><div class="dot" style="background:${sc(s)}; color:${sc(s)}"></div><span class="subj-name">${s}</span></div>
+          <div class="subj-hrs">${fmt(m)}</div>
+        </div>
+        <div class="subj-bar-wrap"><div class="subj-bar-fill" style="width:${Math.round(m/maxM*100)}%;background:${sc(s)}"></div></div>
+      </div>`).join('')
+    : '<div style="font-size:13px;color:var(--text-3);font-style:italic">No subjects yet</div>';
+
+  document.getElementById('goal-h').value = Math.floor(goalMins / 60);
+  document.getElementById('goal-m').value = goalMins % 60;
+  updateGoalDisplay();
+}
+
+function renderYearBar() {
+  const years = [...new Set(sessions.map(s => s.date.slice(0,4)))].sort((a,b) => b-a);
+  if (!years.includes(String(new Date().getFullYear()))) years.unshift(String(new Date().getFullYear()));
+  const yearPills = years.map(y => `<button class="ypill ${y==viewYear&&viewMode!=='alltime'?'on':''}" onclick="setYear(${y})">${y}</button>`).join('');
+  document.getElementById('year-bar').innerHTML =
+    yearPills +
+    `<div class="vtoggle">
+      <button class="vbtn ${viewMode==='timeline'?'on':''}" onclick="setView('timeline')">Timeline</button>
+      <button class="vbtn ${viewMode==='calendar'?'on':''}" onclick="setView('calendar')">Calendar</button>
+      <button class="vbtn ${viewMode==='heatmap'?'on':''}" onclick="setView('heatmap')">Heatmap</button>
+      <button class="vbtn ${viewMode==='alltime'?'on':''}" onclick="setView('alltime')">★ All Time</button>
+    </div>`;
+}
+
+function setYear(y) { 
+  viewYear = y; 
+  if (viewMode === 'alltime') viewMode = 'timeline';
+  if (viewMode === 'calendar') {
+    currentCalYear = y;
+    currentCalMonth = 0; // jump to Jan of selected year
+  }
+  render(); 
+}
+
+function setView(v) { 
+  viewMode = v; 
+  localStorage.setItem('sl-v4-view', v);
+  if (v === 'calendar') {
+    // default to today's month if jumping to calendar
+    currentCalYear = new Date().getFullYear();
+    currentCalMonth = new Date().getMonth();
+  }
+  render(); 
+}
+
+// ── Calendar View ─────────────────────────────────────────────────────────
+function renderCalendar() {
+  if (viewMode !== 'calendar') { document.getElementById('calendar-area').innerHTML = ''; return; }
+
+  const y = currentCalYear;
+  const m = currentCalMonth;
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const daysInPrevMonth = new Date(y, m, 0).getDate();
+
+  const minsMap = {};
+  const subjsMap = {};
+  sessions.forEach(s => {
+    minsMap[s.date] = (minsMap[s.date] || 0) + s.mins;
+    if(!subjsMap[s.date]) subjsMap[s.date] = new Set();
+    subjsMap[s.date].add(s.subject);
+  });
+
+  let cells = [];
+  for (let i = 0; i < firstDay; i++) {
+    cells.push({ day: daysInPrevMonth - firstDay + i + 1, faded: true });
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+    cells.push({ day: i, faded: false, date: dStr });
+  }
+  let rem = cells.length % 7;
+  if (rem !== 0) {
+    let extra = 7 - rem;
+    for (let i = 1; i <= extra; i++) cells.push({ day: i, faded: true });
+  }
+
+  const MN_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const monthName = MN_FULL[m];
+
+  // Find max mins for the current month to scale colors
+  const monthMins = cells.filter(c => !c.faded).map(c => minsMap[c.date] || 0);
+  const maxM = Math.max(...monthMins, goalMins || 120); 
+
+  const gridHtml = cells.map(c => {
+    if (c.faded) return `<div class="cal-cell faded"><div class="cal-date">${c.day}</div></div>`;
+    const mins = minsMap[c.date] || 0;
+    const isToday = c.date === todayStr();
+    const p = mins / maxM;
+    let lv = '';
+    if (mins > 0) {
+      lv = p < 0.25 ? 'l1' : p < 0.5 ? 'l2' : p < 0.75 ? 'l3' : 'l4';
+    }
+    const dots = subjsMap[c.date] ? [...subjsMap[c.date]].map(s => `<div class="cal-dot" style="background:${sc(s)};color:${sc(s)}" title="${s}"></div>`).join('') : '';
+
+    return `
+      <div class="cal-cell ${lv} ${isToday ? 'today' : ''}" onclick="openModal(null, '${c.date}')" title="${mins ? fmt(mins) + ' logged' : 'Click to log a session'}">
+        <div class="cal-date">${c.day} ${isToday ? '<span style="font-size:9px;color:var(--accent);margin-left:4px;vertical-align:top">TODAY</span>' : ''}</div>
+        <div class="cal-dots">${dots}</div>
+        <div class="cal-val">${mins > 0 ? fmt(mins) : ''}</div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('calendar-area').innerHTML = `
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <div class="cal-title">${monthName} ${y}</div>
+        <div class="cal-nav">
+          <button class="cal-btn" onclick="chgCal(-1)">← Prev</button>
+          <button class="cal-btn" onclick="chgCal(0)">Today</button>
+          <button class="cal-btn" onclick="chgCal(1)">Next →</button>
+        </div>
+      </div>
+      <div class="cal-grid">
+        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
+        ${gridHtml}
+      </div>
+    </div>
+  `;
+}
+
+function chgCal(dir) {
+  if (dir === 0) {
+    const now = new Date();
+    currentCalMonth = now.getMonth();
+    currentCalYear = now.getFullYear();
+    viewYear = currentCalYear; // sync year bar
+  } else {
+    currentCalMonth += dir;
+    if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; viewYear = currentCalYear; }
+    else if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; viewYear = currentCalYear; }
+  }
+  render();
+}
+
+// ── Heatmap ───────────────────────────────────────────────────────────────
+function renderHeatmap() {
+  if (viewMode !== 'heatmap') { document.getElementById('heatmap-area').innerHTML = ''; return; }
+  const year = viewYear;
+  const minsMap = {};
+  sessions.filter(s => s.date.startsWith(year)).forEach(s => { minsMap[s.date] = (minsMap[s.date]||0) + s.mins; });
+  const vals = Object.values(minsMap).filter(v => v > 0);
+  const maxM = vals.length ? Math.max(...vals) : 240;
+  const jan1 = new Date(year, 0, 1), dec31 = new Date(year, 11, 31);
+  const startSun = new Date(jan1); startSun.setDate(startSun.getDate() - startSun.getDay());
+  const endSat = new Date(dec31); endSat.setDate(endSat.getDate() + (6 - endSat.getDay()));
+  const weeks = []; const d = new Date(startSun);
+  while (d <= endSat) {
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      const ds = localDate(d), m = minsMap[ds]||0, inYear = d.getFullYear() === year;
+      let lv = ''; if (m > 0 && inYear) { const p = m/maxM; lv = p<.25?'l1':p<.5?'l2':p<.75?'l3':'l4'; }
+      week.push({ date: ds, mins: m, inYear, lv }); d.setDate(d.getDate()+1);
+    }
+    weeks.push(week);
+  }
+  
+  // Calculate month labels correctly aligned to columns
+  let monthLabelsHtml = '';
+  let currentMonth = -1;
+  weeks.forEach((w, i) => {
+    const dObj = new Date(w[0].date + 'T12:00:00');
+    if (w[0].inYear && dObj.getMonth() !== currentMonth) {
+      currentMonth = dObj.getMonth();
+      const mName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][currentMonth];
+      monthLabelsHtml += `<div class="mlbl" style="left: calc(${i} * 18px)">${mName}</div>`;
+    }
+  });
+
+  const gridHtml = weeks.map(w => `<div class="hmap-col">${w.map(c => `<div class="hcell ${c.lv} ${c.inYear?'':'faded'}" onmouseenter="showTip(event,'${c.date}',${c.mins})" onmouseleave="hideTip()"></div>`).join('')}</div>`).join('');
+  
+  const ySess = sessions.filter(s => s.date.startsWith(year));
+  const yTotal = ySess.reduce((a,s)=>a+s.mins,0), yDays = new Set(ySess.map(s=>s.date)).size;
+  const yAvg = yDays ? Math.round(yTotal/yDays) : 0, yBest = Object.entries(minsMap).reduce((a,[,m])=>m>a?m:a,0);
+
+  const ySubjMap = {}; ySess.forEach(s => { ySubjMap[s.subject] = (ySubjMap[s.subject]||0) + s.mins; });
+  const topYSubj = Object.entries(ySubjMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxYSubjM = topYSubj.length ? topYSubj[0][1] : 1;
+  const subjBreakdownHtml = topYSubj.length ? `
+    <div class="hmap-subj-breakdown">
+      ${topYSubj.map(([s,m]) => `
+        <div class="hmap-subj-row">
+          <div class="hmap-subj-dot" style="background:${sc(s)}"></div>
+          <div class="hmap-subj-name">${s}</div>
+          <div class="hmap-subj-bar-wrap"><div class="hmap-subj-bar-fill" style="width:${Math.round(m/maxYSubjM*100)}%;background:${sc(s)}"></div></div>
+          <div class="hmap-subj-val">${fmt(m)}</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  const goalHitDays = Object.values(minsMap).filter(m => m >= goalMins).length;
+  const goalHitRate = yDays ? Math.round(goalHitDays / yDays * 100) : 0;
+  
+  document.getElementById('heatmap-area').innerHTML = `
+    <div class="heatmap-card">
+      <div class="hmap-title">${year} Overview</div>
+      <div class="hmap-outer">
+        <div class="hmap-weekdays">${['','M','','W','','F',''].map(l=>`<div class="wdlbl">${l}</div>`).join('')}</div>
+        <div class="hmap-main">
+          <div class="hmap-months">${monthLabelsHtml}</div>
+          <div class="hmap-grid">${gridHtml}</div>
+        </div>
+      </div>
+      <div class="hmap-foot">
+        <div class="hmap-ystats">
+          <div class="ystat"><strong>${fmt(yTotal)}</strong>total logged</div>
+          <div class="ystat"><strong>${yDays}</strong>days active</div>
+          <div class="ystat"><strong>${ySess.length}</strong>sessions</div>
+          <div class="ystat"><strong>${fmt(yAvg)}</strong>avg / active day</div>
+          <div class="ystat"><strong>${fmt(yBest)}</strong>best day</div>
+          <div class="ystat"><strong>${goalHitRate}<span style="font-size:12px;font-family:var(--sans);font-weight:400"> %</span></strong>goal hit rate</div>
+        </div>
+        <div class="hmap-legend">
+          <span style="opacity:0.7">Less</span>
+          ${['var(--surface-3)','rgba(245, 158, 11, 0.3)','rgba(245, 158, 11, 0.55)','rgba(245, 158, 11, 0.8)','var(--accent)'].map(c=>`<div style="width:14px;height:14px;border-radius:3px;background:${c};border:1px solid rgba(255,255,255,0.02)"></div>`).join('')}
+          <span style="opacity:0.7">More</span>
+        </div>
+      </div>
+      ${topYSubj.length ? `<div class="hmap-subj-section"><div class="hmap-subj-title">Top Subjects This Year</div>${subjBreakdownHtml}</div>` : ''}
+    </div>`;
+}
+
+// ── All Time View ─────────────────────────────────────────────────────────
+function renderAllTime() {
+  if (viewMode !== 'alltime') { document.getElementById('alltime-area').innerHTML = ''; return; }
+  const at = calcAllTimeStats();
+  const area = document.getElementById('alltime-area');
+  if (!at || !sessions.length) {
+    area.innerHTML = `<div class="empty"><div class="empty-icon">✦</div><div style="font-size:16px;color:var(--text);font-weight:600">No data yet</div><p>Start logging sessions to see your all-time bests.</p></div>`;
+    return;
+  }
+
+  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MN_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  function fmtDate(ds) {
+    if (!ds) return '—';
+    const d = new Date(ds+'T12:00:00');
+    return d.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'});
+  }
+  function fmtMonth(mk) {
+    if (!mk) return '—';
+    const [y,m] = mk.split('-');
+    return MN[parseInt(m)-1] + ' ' + y;
+  }
+  function fmtWeek(ds) {
+    if (!ds) return '—';
+    const d = new Date(ds+'T12:00:00');
+    const end = new Date(d); end.setDate(d.getDate()+6);
+    return `${d.toLocaleDateString('en',{month:'short',day:'numeric'})} – ${end.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}`;
+  }
+
+  const iconClock = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const iconFlame = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg>`;
+  const iconCal   = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+  const iconCalOk = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>`;
+  const iconBars  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>`;
+  const iconStar  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  const iconTarget= `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`;
+  const iconBook  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+  const consistencyPct = at.daySpan > 0 ? Math.round(at.daysStudied / at.daySpan * 100) : 0;
+  
+  const heroCards = `
+    <div class="at-hero">
+      <div class="at-card gold">
+        <div class="at-card-icon">${iconClock}</div>
+        <div class="at-card-label">Total Hours</div>
+        <div class="at-card-val">${fmt(at.total)}</div>
+        <div class="at-card-sub">${at.daysStudied} days studied · ${sessions.length} sessions</div>
+      </div>
+      <div class="at-card green">
+        <div class="at-card-icon">${iconFlame}</div>
+        <div class="at-card-label">Longest Streak</div>
+        <div class="at-card-val">${at.maxStreak} <span style="font-size:16px;font-family:var(--sans);font-weight:400;color:var(--green)">days</span></div>
+        <div class="at-card-sub">consecutive study days</div>
+      </div>
+      <div class="at-card blue">
+        <div class="at-card-icon">${iconCal}</div>
+        <div class="at-card-label">Best Day Ever</div>
+        <div class="at-card-val">${fmt(at.bestDayEntry[1])}</div>
+        <div class="at-card-sub">${fmtDate(at.bestDayEntry[0])}</div>
+      </div>
+      <div class="at-card purple">
+        <div class="at-card-icon">${iconCalOk}</div>
+        <div class="at-card-label">Best Month Ever</div>
+        <div class="at-card-val">${fmt(at.bestMonthEntry[1])}</div>
+        <div class="at-card-sub">${fmtMonth(at.bestMonthEntry[0])}</div>
+      </div>
+      <div class="at-card">
+        <div class="at-card-icon">${iconBars}</div>
+        <div class="at-card-label">Avg per Study Day</div>
+        <div class="at-card-val">${fmt(at.avgPerDay)}</div>
+        <div class="at-card-sub">per active study day</div>
+      </div>
+      <div class="at-card">
+        <div class="at-card-icon">${iconStar}</div>
+        <div class="at-card-label">Best Week Ever</div>
+        <div class="at-card-val">${fmt(at.bestWeekEntry[1])}</div>
+        <div class="at-card-sub">${fmtWeek(at.bestWeekEntry[0])}</div>
+      </div>
+      <div class="at-card">
+        <div class="at-card-icon">${iconTarget}</div>
+        <div class="at-card-label">Consistency</div>
+        <div class="at-card-val">${consistencyPct}<span style="font-size:16px;font-family:var(--sans);font-weight:400;color:var(--text-2)">%</span></div>
+        <div class="at-card-sub">${at.daysStudied} of ${at.daySpan} days tracked</div>
+      </div>
+      <div class="at-card">
+        <div class="at-card-icon">${iconBook}</div>
+        <div class="at-card-label">Subjects Studied</div>
+        <div class="at-card-val">${Object.keys(at.subjMap).length}</div>
+        <div class="at-card-sub">unique subjects logged</div>
+      </div>
+    </div>`;
+
+  const sortedSubj = Object.entries(at.subjMap).sort((a,b)=>b[1]-a[1]);
+  const maxSubjM = sortedSubj.length ? sortedSubj[0][1] : 1;
+  const totalForPct = at.total || 1;
+  const subjBoard = sortedSubj.length ? `
+    <div class="subj-board">
+      ${sortedSubj.map(([s,m],i) => `
+        <div class="subj-rank">
+          <div class="subj-rank-num ${i<3?'top3':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)}</div>
+          <div class="subj-rank-dot" style="background:${sc(s)}; color:${sc(s)}"></div>
+          <div class="subj-rank-name">${s}</div>
+          <div class="subj-rank-bar-wrap"><div class="subj-rank-bar-fill" style="width:${Math.round(m/maxSubjM*100)}%;background:${sc(s)}"></div></div>
+          <div class="subj-rank-val">${fmt(m)}</div>
+          <div class="subj-rank-pct">${Math.round(m/totalForPct*100)}%</div>
+        </div>`).join('')}
+    </div>` : '<div style="color:var(--text-3);font-size:13px;font-style:italic">No subjects yet</div>';
+
+  const yearEntries = Object.entries(at.yearMap).sort((a,b)=>b[0]-a[0]);
+  const maxYearM = yearEntries.length ? Math.max(...yearEntries.map(e=>e[1])) : 1;
+  const bestYear = yearEntries.length ? yearEntries.reduce((a,e)=>e[1]>a[1]?e:a,['',0])[0] : '';
+  const yearCompare = yearEntries.length ? `
+    <div class="year-compare">
+      ${yearEntries.map(([y,m]) => `
+        <div class="yc-row">
+          <div class="yc-label">${y}</div>
+          <div class="yc-bar-wrap">
+            <div class="yc-bar-fill ${y===bestYear?'best':''}" style="width:${Math.round(m/maxYearM*100)}%"></div>
+          </div>
+          <div class="yc-val">${fmt(m)}</div>
+          ${y===bestYear?'<div class="yc-badge">BEST</div>':'<div style="width:40px"></div>'}
+        </div>`).join('')}
+    </div>` : '<div style="color:var(--text-3);font-size:13px">—</div>';
+
+  const maxDow = Math.max(...at.dowMap, 1);
+  const peakDow = at.dowMap.indexOf(Math.max(...at.dowMap));
+  const dowChart = `
+    <div class="dow-chart">
+      ${at.dowMap.map((m,i) => `
+        <div class="dow-col">
+          <div class="dow-bar-outer">
+            <div class="dow-bar ${i===peakDow?'peak':''}" style="height:${Math.round(m/maxDow*100)}%"></div>
+          </div>
+          <div class="dow-label ${i===peakDow?'peak':''}">${DOW[i]}</div>
+        </div>`).join('')}
+    </div>`;
+
+  // Calculate chronological monthly history (All Time Totals)
+  const sortedSessions = [...sessions].sort((a,b)=>a.date.localeCompare(b.date));
+  let historyHtml = '<div style="color:var(--text-3);font-size:13px;font-style:italic">Not enough data to display history</div>';
+  
+  if (sortedSessions.length > 0) {
+    const firstDate = new Date(sortedSessions[0].date+'T12:00:00');
+    const lastDate = new Date(); // end at current month
+    const historyMonths = [];
+    let curr = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+    const endMonth = new Date(lastDate.getFullYear(), lastDate.getMonth(), 1);
+
+    while (curr <= endMonth) {
+      const y = curr.getFullYear();
+      const m = curr.getMonth() + 1;
+      const mk = `${y}-${String(m).padStart(2,'0')}`;
+      historyMonths.push({ mk, label: `${MN_FULL[curr.getMonth()].substring(0,3)} '${String(y).slice(2)}`, mins: 0 });
+      curr.setMonth(curr.getMonth() + 1);
+    }
+    
+    sessions.forEach(s => {
+      const mk = s.date.slice(0,7);
+      const hm = historyMonths.find(x => x.mk === mk);
+      if(hm) hm.mins += s.mins;
+    });
+
+    const maxHistM = Math.max(...historyMonths.map(h => h.mins), 1);
+    const peakHistMk = historyMonths.reduce((max, h) => h.mins > max.mins ? h : max, historyMonths[0])?.mk;
+
+    historyHtml = `
+      <div class="hist-chart-wrap">
+        <div class="hist-chart">
+          ${historyMonths.map(h => `
+            <div class="mt-col">
+              <div class="mt-val">${h.mins > 0 ? fmt(h.mins) : ''}</div>
+              <div class="mt-bar-outer">
+                <div class="mt-bar ${h.mk === peakHistMk && h.mins > 0 ? 'peak' : ''}" style="height:${h.mins ? Math.max(4, Math.round(h.mins/maxHistM*100)) + '%' : '4px'}"></div>
+              </div>
+              <div class="mt-label ${h.mk === peakHistMk && h.mins > 0 ? 'peak' : ''}">${h.label}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Monthly History is now placed on top of Yearly overview
+  area.innerHTML = `
+    <div class="alltime-wrap">
+      ${heroCards}
+      <div class="at-section">
+        <div class="at-section-title">Subject Leaderboard</div>
+        ${subjBoard}
+      </div>
+      <div class="at-section">
+        <div class="at-section-title">Monthly History (All Time) <span style="font-size:12px;font-family:var(--sans);font-style:normal;font-weight:600;color:var(--text-3);margin-left:4px">total hours studied per month</span></div>
+        ${historyHtml}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:24px;margin-bottom:24px">
+        <div class="at-section" style="margin-bottom:0">
+          <div class="at-section-title">Year by Year</div>
+          ${yearCompare}
+        </div>
+        <div class="at-section" style="margin-bottom:0">
+          <div class="at-section-title">Most Active Day</div>
+          ${dowChart}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Timeline ──────────────────────────────────────────────────────────────
+function renderTimeline() {
+  if (viewMode !== 'timeline') { document.getElementById('timeline').innerHTML = ''; return; }
+  const src = (filterSubj ? sessions.filter(s => s.subject===filterSubj) : sessions).filter(s => s.date.startsWith(viewYear));
+  if (!src.length) {
+    document.getElementById('timeline').innerHTML = `<div class="empty"><div class="empty-icon">${viewYear}</div><div style="font-size:18px;color:var(--text);font-weight:600">No sessions found</div><p>${filterSubj?`No "${filterSubj}" sessions in ${viewYear}.`:`Nothing logged for ${viewYear} yet.`}</p></div>`;
+    return;
+  }
+  const byMonth = {};
+  src.forEach(s => { const mk = s.date.slice(0,7); if (!byMonth[mk]) byMonth[mk]=[]; byMonth[mk].push(s); });
+  const MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const html = Object.keys(byMonth).sort((a,b)=>b.localeCompare(a)).map(mk => {
+    const [y, m] = mk.split('-');
+    const msess = byMonth[mk], mTotal = msess.reduce((a,s)=>a+s.mins,0);
+    const byDay = {}; msess.forEach(s => { if (!byDay[s.date]) byDay[s.date]=[]; byDay[s.date].push(s); });
+    
+    const daycards = Object.keys(byDay).sort((a,b)=>b.localeCompare(a)).map(date => {
+      const list = byDay[date], total = list.reduce((a,s)=>a+s.mins,0);
+      const pct = Math.min(100, Math.round(total/goalMins*100)), hit = total>=goalMins;
+      const d = new Date(date+'T12:00:00'), dow = d.toLocaleDateString('en',{weekday:'short'}), isToday = date===todayStr();
+      const rows = list.map(s => `
+        <div class="srow">
+          <div class="srow-l">
+            <div class="dot srow-dot" style="background:${sc(s.subject)}; color:${sc(s.subject)}"></div>
+            <div class="srow-info">
+              <div class="srow-subj">${s.subject}</div>
+              ${s.note?`<div class="srow-note">${s.note}</div>`:''}
+            </div>
+          </div>
+          <div class="srow-r">
+            <span class="smins">${fmt(s.mins)}</span>
+            <button class="sedit" onclick="openModal(${s.id})" title="Edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+            <button class="sdel" onclick="deleteSession(${s.id})" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+          </div>
+        </div>`).join('');
+        
+      return `
+        <div class="day-wrapper">
+          <div class="day-node ${hit?'hit':''}"></div>
+          <div class="day-card">
+            <div class="dhead">
+              <div class="ddate"><span class="dow">${dow}</span>${d.getDate()}${isToday?'<span class="dtoday">TODAY</span>':''}</div>
+              <div class="dtime ${hit?'hit':''}">${fmt(total)} / ${fmt(goalMins)}</div>
+            </div>
+            <div class="prog"><div class="pfill ${hit?'hit':''}" style="width:${pct}%"></div></div>
+            ${rows}
+          </div>
+        </div>`;
+    }).join('');
+    
+    return `<div class="mgroup">
+      <div class="mhead"><div class="mtitle">${MN[parseInt(m)-1]}</div><div class="mtotal">${fmt(mTotal)}</div></div>
+      <div class="timeline-container">
+        ${daycards}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('timeline').innerHTML = html;
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────────
+function showTip(e, date, mins) {
+  const t = document.getElementById('tip');
+  const d = new Date(date+'T12:00:00');
+  const label = d.toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+  t.textContent = mins ? `${label}  ·  ${fmt(mins)}` : `${label}  ·  no sessions`;
+  
+  // Center tip on cursor with dynamic offset
+  t.style.display = 'block'; 
+  
+  // Get exact bounding rect of the hovered cell to place tooltip exactly above it
+  const rect = e.target.getBoundingClientRect();
+  const leftPos = rect.left + rect.width / 2;
+  const topPos = rect.top - 8;
+  
+  // Protect against edge overflow slightly
+  t.style.left = Math.max(40, Math.min(window.innerWidth - 40, leftPos)) + 'px'; 
+  t.style.top = topPos + 'px';
+}
+function hideTip() { document.getElementById('tip').style.display = 'none'; }
+
+// ── Export / Import ───────────────────────────────────────────────────────
+function exportData() {
+  const d = JSON.stringify({sessions, goal: goalMins, version: 4}, null, 2);
+  const a = document.createElement('a'); a.href = 'data:application/json,'+encodeURIComponent(d);
+  a.download = 'studylog-backup-'+todayStr()+'.json'; a.click();
+}
+function importData() { document.getElementById('import-file').click(); }
+function handleImport(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (Array.isArray(d.sessions)) { sessions = d.sessions; persist(); }
+      if (d.goal) { goalMins = d.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
+      sessions.forEach(s => sc(s.subject)); render();
+    } catch(err) { alert("Could not read file — make sure it's a StudyLog JSON export."); }
+  };
+  r.readAsText(f); e.target.value = '';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+initFonts();
+applySidebarState();
+render();
+</script>
+</body>
+</html>
