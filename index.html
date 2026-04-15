@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>StudyLog</title>
+<title>Study Log</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Default Fonts (will be overridden if user applies custom fonts) -->
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" id="default-google-fonts">
-<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
 <style>
 :root {
   /* Modern Zinc/Obsidian Dark Theme */
@@ -724,6 +725,66 @@ header {
   background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.2);
 }
 
+/* ── Google Drive Integration ── */
+.gdrive-section { margin-top: 16px; }
+.gdrive-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: var(--rsm);
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--text-2);
+  margin-bottom: 8px; min-height: 36px;
+}
+.gdrive-status .gdot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--surface-3); transition: background 0.3s;
+}
+.gdrive-status .gdot.on { background: var(--green); box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+.gdrive-status .gdot.busy { background: #f59e0b; animation: pulse 1s infinite; }
+.gdrive-status .gemail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.gdrive-connect-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px; background: #fff; border: 1px solid #dadce0;
+  border-radius: var(--rsm); color: #3c4043;
+  font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 8px;
+}
+.gdrive-connect-btn:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.gdrive-connect-btn svg { flex-shrink: 0; }
+.gdrive-actions { display: flex; flex-direction: column; gap: 6px; }
+.gdrive-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px; background: transparent; border: 1px solid var(--border);
+  border-radius: var(--rsm); color: var(--text-2);
+  font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.gdrive-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-2); }
+.gdrive-btn.save { border-color: rgba(59,130,246,0.3); color: var(--accent); }
+.gdrive-btn.save:hover { background: var(--accent-dim); border-color: var(--accent); }
+.gdrive-btn.load { border-color: rgba(16,185,129,0.3); color: var(--green); }
+.gdrive-btn.load:hover { background: var(--green-dim); border-color: var(--green); }
+.gdrive-btn.disc { border-color: rgba(239,68,68,0.2); color: var(--red); }
+.gdrive-btn.disc:hover { background: rgba(239,68,68,0.08); border-color: var(--red); }
+.gdrive-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
+.gdrive-autosync {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 2px; font-size: 12px; color: var(--text-2); font-weight: 600;
+}
+.toggle-wrap { position: relative; width: 34px; height: 18px; flex-shrink: 0; }
+.toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--surface-3);
+  border-radius: 18px; cursor: pointer; transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #fff; left: 3px; top: 3px; transition: transform 0.2s;
+}
+.toggle-wrap input:checked + .toggle-slider { background: var(--accent); }
+.toggle-wrap input:checked + .toggle-slider::before { transform: translateX(16px); }
+.gdrive-last-sync { font-size: 10px; color: var(--text-3); text-align: center; margin-top: 4px; min-height: 14px; }
+
 /* ── Toast Notification ── */
 .toast-container {
   position: fixed; bottom: 32px; right: 32px;
@@ -758,38 +819,6 @@ header {
   from { opacity: 0; transform: translateY(20px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-
-/* ── Google Drive Button ── */
-.btn-gd {
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 14px; background: var(--surface);
-  border: 1px solid var(--border); border-radius: var(--rsm);
-  color: var(--text-2); font-family: var(--sans);
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
-}
-.btn-gd:hover { background: var(--surface-2); border-color: var(--border-2); color: var(--text); transform: translateY(-1px); }
-.btn-gd.connected { color: var(--green); border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.08); }
-.btn-gd.connected:hover { background: rgba(16,185,129,0.14); }
-.btn-gd.syncing { color: var(--accent); border-color: rgba(59,130,246,0.35); background: rgba(59,130,246,0.08); }
-.btn-gd .gd-dot {
-  width: 7px; height: 7px; border-radius: 50%; background: var(--text-3);
-  flex-shrink: 0; transition: background 0.3s;
-}
-.btn-gd.connected .gd-dot { background: var(--green); box-shadow: 0 0 6px rgba(16,185,129,0.6); }
-.btn-gd.syncing .gd-dot { background: var(--accent); animation: pulse 1s ease infinite; }
-
-/* GD status in sidebar settings */
-.gd-status-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; border-radius: var(--rsm);
-  background: var(--bg); border: 1px solid var(--border);
-  margin-bottom: 8px; font-size: 12px;
-}
-.gd-status-label { color: var(--text-2); font-weight: 600; }
-.gd-status-val { font-family: var(--mono); color: var(--text-3); font-size: 11px; }
-.gd-status-val.ok { color: var(--green); }
-.gd-status-val.err { color: var(--red); }
 </style>
 </head>
 <body>
@@ -804,10 +833,6 @@ header {
     <div class="hstats" id="hstats"></div>
     <div class="header-right">
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
-      <button id="gd-btn" class="btn-gd" onclick="gdToggle()" title="Sync with Google Drive">
-        <span class="gd-dot"></span>
-        <span id="gd-btn-label">Connect Drive</span>
-      </button>
       <button class="btn-add" onclick="openModal()">+ Log Session</button>
     </div>
   </header>
@@ -883,19 +908,6 @@ header {
           </div>
           <div class="slabel" style="margin-top:16px">Data</div>
           <div style="display:flex; flex-direction:column; gap:8px;">
-            <!-- Google Drive Sync -->
-            <div id="gd-sidebar-section">
-              <div class="gd-status-row">
-                <div>
-                  <div class="gd-status-label">☁️ Google Drive</div>
-                  <div class="gd-status-val" id="gd-sidebar-status">Not connected</div>
-                </div>
-                <button class="vbtn" id="gd-sidebar-btn" onclick="gdToggle()" style="padding:6px 12px;font-size:12px;background:var(--surface-3);color:var(--text)">Connect</button>
-              </div>
-              <div id="gd-last-sync" style="font-size:11px;color:var(--text-3);margin-bottom:8px;display:none">
-                Last sync: <span id="gd-sync-time">—</span>
-              </div>
-            </div>
             <button class="settings-btn" onclick="exportData()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               Export Backup
@@ -904,6 +916,43 @@ header {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Import Backup
             </button>
+          </div>
+
+          <!-- Google Drive Section -->
+          <div class="gdrive-section">
+            <div class="slabel" style="margin-top:16px">Google Drive Backup</div>
+            <div class="gdrive-status" id="gdrive-status">
+              <div class="gdot" id="gdrive-dot"></div>
+              <span class="gemail" id="gdrive-email">Not connected</span>
+            </div>
+            <!-- Sign-in button (shown when not connected) -->
+            <button class="gdrive-connect-btn" id="gdrive-signin-btn" onclick="gdriveSignIn()">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Connect Google Drive
+            </button>
+            <!-- Actions (shown when connected) -->
+            <div class="gdrive-actions" id="gdrive-actions" style="display:none">
+              <div class="gdrive-autosync">
+                <span>Auto-sync on save</span>
+                <label class="toggle-wrap">
+                  <input type="checkbox" id="gdrive-autosync" onchange="toggleAutoSync()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <button class="gdrive-btn save" id="gdrive-save-btn" onclick="gdriveSave()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save to Drive
+              </button>
+              <button class="gdrive-btn load" id="gdrive-load-btn" onclick="gdriveLoad()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Load from Drive
+              </button>
+              <button class="gdrive-btn disc" onclick="gdriveSignOut()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Disconnect
+              </button>
+              <div class="gdrive-last-sync" id="gdrive-last-sync"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1057,8 +1106,7 @@ function loadFonts(fonts) {
   if (fonts.mono) document.documentElement.style.setProperty('--mono', `'${fonts.mono}', monospace`);
 }
 
-// ── Persist ───────────────────────────────────────────────────────────────
-function persist() { localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions)); }
+// ── Persist — handled by Google Drive section below ───────────────────────
 
 // ── Sidebar collapse ──────────────────────────────────────────────────────
 function toggleSidebar() {
@@ -1981,253 +2029,279 @@ function handleImport(e) {
   r.readAsText(f); e.target.value = '';
 }
 
-// ── Google Drive Sync ─────────────────────────────────────────────────────
-const GD_CLIENT_ID   = '335010856725-jg5a3m7qa8o2ui4oo3i5ehlv6lacmipi.apps.googleusercontent.com';
-const GD_SCOPE       = 'https://www.googleapis.com/auth/drive.file';
-const GD_FILE_NAME   = 'studylog-data.json';
-const GD_FOLDER_NAME = 'StudyLog';
+// ── Google Drive Integration ───────────────────────────────────────────────
+const GD_CLIENT_ID = '335010856725-jg5a3m7qa8o2ui4oo3i5ehlv6lacmipi.apps.googleusercontent.com';
+const GD_SCOPE     = 'https://www.googleapis.com/auth/drive.file';
+const GD_FOLDER    = 'StudyLog';
+const GD_FILENAME  = 'studylog-data.json';
+const GD_DISCOVERY = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 
-let gdToken      = localStorage.getItem('sl-gd-token')     || null;
-let gdFolderId   = localStorage.getItem('sl-gd-folder-id') || null;
-let gdFileId     = localStorage.getItem('sl-gd-file-id')   || null;
-let gdSyncing    = false;
-let gdSyncDebounce = null;
+let gdTokenClient = null;
+let gdAccessToken  = localStorage.getItem('sl-gd-token') || null;
+let gdFolderId     = localStorage.getItem('sl-gd-folder-id') || null;
+let gdAutoSync     = JSON.parse(localStorage.getItem('sl-gd-autosync') || 'false');
 
-function gdToggle() {
-  if (gdToken) { gdDisconnect(); } else { gdConnect(); }
+// Called once gapi.js has loaded
+function gapiLoaded() {
+  gapi.load('client', async () => {
+    await gapi.client.init({});
+    await gapi.client.load(GD_DISCOVERY);
+    if (gdAccessToken) {
+      gapi.client.setToken({ access_token: gdAccessToken });
+      gdriveUpdateUI(true);
+    }
+  });
 }
 
-function gdConnect() {
-  if (typeof google === 'undefined' || !google.accounts) {
-    alert('Google Sign-In is still loading. Please try again in a moment.');
-    return;
-  }
-  const client = google.accounts.oauth2.initTokenClient({
+// Called once GIS script has loaded
+function gisLoaded() {
+  gdTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GD_CLIENT_ID,
     scope: GD_SCOPE,
     callback: async (resp) => {
-      if (resp.error) { console.error('GD auth error:', resp.error); alert('Google sign-in failed: ' + resp.error); return; }
-      gdToken = resp.access_token;
-      localStorage.setItem('sl-gd-token', gdToken);
-      gdUpdateUI('syncing', 'Setting up…');
+      if (resp.error) { gdriveNotify('❌ Google sign-in failed: ' + resp.error); return; }
+      gdAccessToken = resp.access_token;
+      localStorage.setItem('sl-gd-token', gdAccessToken);
+      gapi.client.setToken({ access_token: gdAccessToken });
+      // Get user email via tokeninfo
       try {
-        await gdEnsureFolder();
-        await gdSaveNow();
-        gdUpdateUI('connected', 'Drive: On');
-        showToast('☁️ Connected to Google Drive! Data is backed up.');
-      } catch(e) {
-        console.error('GD setup error:', e);
-        gdUpdateUI('error', 'Setup failed');
-        alert('Drive setup failed: ' + e.message);
-      }
+        const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: 'Bearer ' + gdAccessToken }
+        });
+        const info = await r.json();
+        localStorage.setItem('sl-gd-email', info.email || '');
+      } catch(e) {}
+      gdriveUpdateUI(true);
+      gdriveNotify('✅ Connected to Google Drive!');
+      if (gdAutoSync) gdriveSave();
     }
   });
-  client.requestAccessToken();
 }
 
-function gdDisconnect() {
-  if (gdToken) { try { google.accounts.oauth2.revoke(gdToken, () => {}); } catch(e) {} }
-  gdToken = gdFolderId = gdFileId = null;
-  localStorage.removeItem('sl-gd-token');
-  localStorage.removeItem('sl-gd-folder-id');
-  localStorage.removeItem('sl-gd-file-id');
-  gdUpdateUI('disconnected', 'Connect Drive');
-  showToast('Drive disconnected. Data still saved locally.');
+// Load both GIS and GAPI on DOMContentLoaded
+window.addEventListener('load', () => {
+  // Wire up auto-sync toggle state
+  const asEl = document.getElementById('gdrive-autosync');
+  if (asEl) asEl.checked = gdAutoSync;
+  // Update last sync label
+  const ls = localStorage.getItem('sl-gd-last-sync');
+  if (ls) document.getElementById('gdrive-last-sync').textContent = 'Last sync: ' + ls;
+
+  // Load gapi then gis
+  if (typeof gapi !== 'undefined') gapiLoaded();
+  else document.querySelector('script[src*="api.js"]')
+    .addEventListener('load', gapiLoaded);
+
+  if (typeof google !== 'undefined' && google.accounts)
+    gisLoaded();
+  else document.querySelector('script[src*="gsi/client"]')
+    .addEventListener('load', gisLoaded);
+
+  // If we had a saved token, reflect connected state
+  if (gdAccessToken) gdriveUpdateUI(true);
+});
+
+function gdriveSignIn() {
+  if (!gdTokenClient) { gdriveNotify('⏳ Google is still loading, try again.'); return; }
+  gdTokenClient.requestAccessToken({ prompt: '' });
 }
 
-async function gdEnsureFolder() {
-  // Look for existing StudyLog folder
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name%3D'${GD_FOLDER_NAME}'+and+mimeType%3D'application%2Fvnd.google-apps.folder'+and+trashed%3Dfalse&fields=files(id%2Cname)`,
-    { headers: { Authorization: 'Bearer ' + gdToken } }
-  );
-  if (!res.ok) throw new Error('Could not search Drive folders (HTTP ' + res.status + ')');
-  const data = await res.json();
-  if (data.files && data.files.length > 0) {
-    gdFolderId = data.files[0].id;
+function gdriveSignOut() {
+  if (gdAccessToken) {
+    google.accounts.oauth2.revoke(gdAccessToken, () => {});
+    gdAccessToken = null;
+    gdFolderId    = null;
+    localStorage.removeItem('sl-gd-token');
+    localStorage.removeItem('sl-gd-folder-id');
+    localStorage.removeItem('sl-gd-email');
+    gapi.client.setToken(null);
+  }
+  gdriveUpdateUI(false);
+  gdriveNotify('Disconnected from Google Drive.');
+}
+
+function gdriveUpdateUI(connected) {
+  const dot     = document.getElementById('gdrive-dot');
+  const email   = document.getElementById('gdrive-email');
+  const signinBtn = document.getElementById('gdrive-signin-btn');
+  const actions = document.getElementById('gdrive-actions');
+  if (connected) {
+    dot.className = 'gdot on';
+    email.textContent = localStorage.getItem('sl-gd-email') || 'Connected';
+    signinBtn.style.display = 'none';
+    actions.style.display = 'flex';
+    actions.style.flexDirection = 'column';
+    actions.style.gap = '6px';
   } else {
-    // Create the folder
-    const r = await fetch('https://www.googleapis.com/drive/v3/files', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + gdToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: GD_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
+    dot.className = 'gdot';
+    email.textContent = 'Not connected';
+    signinBtn.style.display = 'flex';
+    actions.style.display = 'none';
+  }
+}
+
+function gdriveSetBusy(busy) {
+  document.getElementById('gdrive-dot').className = busy ? 'gdot busy' : 'gdot on';
+  document.getElementById('gdrive-save-btn').disabled = busy;
+  document.getElementById('gdrive-load-btn').disabled = busy;
+}
+
+async function gdriveEnsureFolder() {
+  if (gdFolderId) return gdFolderId;
+  // Search for existing folder
+  const res = await gapi.client.drive.files.list({
+    q: `name='${GD_FOLDER}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+    fields: 'files(id,name)',
+    spaces: 'drive'
+  });
+  if (res.result.files && res.result.files.length > 0) {
+    gdFolderId = res.result.files[0].id;
+  } else {
+    // Create folder
+    const cr = await gapi.client.drive.files.create({
+      resource: { name: GD_FOLDER, mimeType: 'application/vnd.google-apps.folder' },
+      fields: 'id'
     });
-    if (!r.ok) throw new Error('Could not create Drive folder (HTTP ' + r.status + ')');
-    const folder = await r.json();
-    gdFolderId = folder.id;
+    gdFolderId = cr.result.id;
   }
   localStorage.setItem('sl-gd-folder-id', gdFolderId);
+  return gdFolderId;
 }
 
-async function gdFindFile() {
-  if (!gdFolderId) return;
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q='${gdFolderId}'+in+parents+and+name%3D'${GD_FILE_NAME}'+and+trashed%3Dfalse&fields=files(id)`,
-    { headers: { Authorization: 'Bearer ' + gdToken } }
-  );
-  if (!res.ok) return;
-  const data = await res.json();
-  if (data.files && data.files.length > 0) {
-    gdFileId = data.files[0].id;
-    localStorage.setItem('sl-gd-file-id', gdFileId);
-  }
-}
-
-async function gdSaveNow() {
-  if (!gdToken || !gdFolderId) return;
-  gdSyncing = true;
-  gdUpdateUI('syncing', 'Syncing…');
-
-  const fonts = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
-  const payload = JSON.stringify({
-    sessions,
-    goal: goalMins,
-    fonts: fonts,
-    view: viewMode,
-    sidebarCollapsed,
-    version: 5,
-    syncedAt: new Date().toISOString()
-  }, null, 2);
-  const blob = new Blob([payload], { type: 'application/json' });
-
+async function gdriveSave() {
+  if (!gdAccessToken) { gdriveNotify('⚠️ Connect Google Drive first.'); return; }
+  gdriveSetBusy(true);
   try {
-    if (gdFileId) {
-      // Update existing file
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify({ name: GD_FILE_NAME })], { type: 'application/json' }));
-      form.append('file', blob);
-      const r = await fetch(
-        `https://www.googleapis.com/upload/drive/v3/files/${gdFileId}?uploadType=multipart`,
-        { method: 'PATCH', headers: { Authorization: 'Bearer ' + gdToken }, body: form }
-      );
-      if (r.status === 401) { gdHandleExpired(); return; }
-      if (!r.ok) throw new Error('Update failed (HTTP ' + r.status + ')');
-    } else {
-      // Create new file inside the StudyLog folder
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify({ name: GD_FILE_NAME, parents: [gdFolderId] })], { type: 'application/json' }));
-      form.append('file', blob);
-      const r = await fetch(
-        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
-        { method: 'POST', headers: { Authorization: 'Bearer ' + gdToken }, body: form }
-      );
-      if (r.status === 401) { gdHandleExpired(); return; }
-      if (!r.ok) throw new Error('Create failed (HTTP ' + r.status + ')');
-      const file = await r.json();
-      gdFileId = file.id;
-      localStorage.setItem('sl-gd-file-id', gdFileId);
-    }
-    gdSyncing = false;
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    localStorage.setItem('sl-gd-last-sync', now);
-    gdUpdateUI('connected', 'Drive: On');
-  } catch(e) {
-    gdSyncing = false;
-    console.error('GD save error:', e);
-    gdUpdateUI('error', 'Sync failed');
-  }
-}
+    const folderId = await gdriveEnsureFolder();
+    const fonts = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
+    const payload = JSON.stringify({
+      sessions, goal: goalMins, fonts,
+      view: viewMode, sidebarCollapsed, version: 5
+    }, null, 2);
 
-async function gdLoad() {
-  if (!gdToken) return;
-  try {
-    if (!gdFolderId) await gdEnsureFolder();
-    if (!gdFileId) await gdFindFile();
-    if (!gdFileId) return; // no file yet, first time
-
-    const r = await fetch(`https://www.googleapis.com/drive/v3/files/${gdFileId}?alt=media`, {
-      headers: { Authorization: 'Bearer ' + gdToken }
+    // Check if file already exists in folder
+    const list = await gapi.client.drive.files.list({
+      q: `name='${GD_FILENAME}' and '${folderId}' in parents and trashed=false`,
+      fields: 'files(id)', spaces: 'drive'
     });
-    if (r.status === 401) { gdHandleExpired(); return; }
-    if (!r.ok) return;
 
-    const d = await r.json();
-    if (Array.isArray(d.sessions)) { sessions = d.sessions; persist(); sessions.forEach(s => sc(s.subject)); }
-    if (d.goal) { goalMins = d.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
-    if (d.fonts) {
-      localStorage.setItem('sl-v4-fonts', JSON.stringify(d.fonts));
-      if (document.getElementById('font-sans')) document.getElementById('font-sans').value = d.fonts.sans || '';
-      if (document.getElementById('font-serif')) document.getElementById('font-serif').value = d.fonts.serif || '';
-      if (document.getElementById('font-mono')) document.getElementById('font-mono').value = d.fonts.mono || '';
-      loadFonts(d.fonts);
+    const blob = new Blob([payload], { type: 'application/json' });
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    await new Promise(res => reader.onload = res);
+    const base64 = reader.result.split(',')[1];
+
+    if (list.result.files && list.result.files.length > 0) {
+      // Update existing file via multipart
+      const fileId = list.result.files[0].id;
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: 'Bearer ' + gdAccessToken,
+          'Content-Type': 'application/json'
+        },
+        body: payload
+      });
+    } else {
+      // Create new file via multipart upload
+      const meta = JSON.stringify({ name: GD_FILENAME, parents: [folderId] });
+      const boundary = 'studylog_boundary_' + Date.now();
+      const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${payload}\r\n--${boundary}--`;
+      await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + gdAccessToken,
+          'Content-Type': `multipart/related; boundary=${boundary}`
+        },
+        body
+      });
     }
-    if (d.view) { viewMode = d.view; localStorage.setItem('sl-v4-view', d.view); }
-    if (d.sidebarCollapsed !== undefined) {
-      sidebarCollapsed = d.sidebarCollapsed;
+
+    const now = new Date().toLocaleString('en', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    localStorage.setItem('sl-gd-last-sync', now);
+    document.getElementById('gdrive-last-sync').textContent = 'Last sync: ' + now;
+    gdriveNotify('☁️ Saved to Google Drive!');
+  } catch(e) {
+    console.error('GDrive save error:', e);
+    gdriveNotify('❌ Drive save failed. Try reconnecting.');
+    if (e.status === 401) { gdAccessToken = null; localStorage.removeItem('sl-gd-token'); gdriveUpdateUI(false); }
+  }
+  gdriveSetBusy(false);
+}
+
+async function gdriveLoad() {
+  if (!gdAccessToken) { gdriveNotify('⚠️ Connect Google Drive first.'); return; }
+  gdriveSetBusy(true);
+  try {
+    const folderId = await gdriveEnsureFolder();
+    const list = await gapi.client.drive.files.list({
+      q: `name='${GD_FILENAME}' and '${folderId}' in parents and trashed=false`,
+      fields: 'files(id,name,modifiedTime)', spaces: 'drive'
+    });
+    if (!list.result.files || !list.result.files.length) {
+      gdriveNotify('ℹ️ No backup found in Drive yet.');
+      gdriveSetBusy(false); return;
+    }
+    const fileId = list.result.files[0].id;
+    const resp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+      headers: { Authorization: 'Bearer ' + gdAccessToken }
+    });
+    if (!resp.ok) throw new Error('fetch failed');
+    const data = await resp.json();
+    if (Array.isArray(data.sessions)) { sessions = data.sessions; persist(); }
+    if (data.goal) { goalMins = data.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
+    if (data.fonts) {
+      localStorage.setItem('sl-v4-fonts', JSON.stringify(data.fonts));
+      document.getElementById('font-sans').value = data.fonts.sans || '';
+      document.getElementById('font-serif').value = data.fonts.serif || '';
+      document.getElementById('font-mono').value = data.fonts.mono || '';
+      loadFonts(data.fonts);
+    }
+    if (data.view) { viewMode = data.view; localStorage.setItem('sl-v4-view', data.view); }
+    if (data.sidebarCollapsed !== undefined) {
+      sidebarCollapsed = data.sidebarCollapsed;
       localStorage.setItem('sl-sidebar-collapsed', JSON.stringify(sidebarCollapsed));
       applySidebarState();
     }
+    sessions.forEach(s => sc(s.subject));
     render();
-    const lastSync = d.syncedAt ? new Date(d.syncedAt).toLocaleString() : '—';
-    localStorage.setItem('sl-gd-last-sync', lastSync);
-    gdUpdateUI('connected', 'Drive: On');
+    const now = new Date().toLocaleString('en', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    localStorage.setItem('sl-gd-last-sync', now);
+    document.getElementById('gdrive-last-sync').textContent = 'Last sync: ' + now;
+    gdriveNotify('✅ Data loaded from Google Drive!');
   } catch(e) {
-    console.error('GD load error:', e);
-    gdUpdateUI('connected', 'Drive: On'); // still connected, just couldn't load
+    console.error('GDrive load error:', e);
+    gdriveNotify('❌ Drive load failed. Try reconnecting.');
+    if (e.status === 401) { gdAccessToken = null; localStorage.removeItem('sl-gd-token'); gdriveUpdateUI(false); }
+  }
+  gdriveSetBusy(false);
+}
+
+function toggleAutoSync() {
+  gdAutoSync = document.getElementById('gdrive-autosync').checked;
+  localStorage.setItem('sl-gd-autosync', JSON.stringify(gdAutoSync));
+  gdriveNotify(gdAutoSync ? '☁️ Auto-sync enabled' : '🔕 Auto-sync disabled');
+}
+
+// Simple non-undo notification for Drive messages
+function gdriveNotify(msg) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span style="flex:1">${msg}</span><button class="toast-close" onclick="this.closest('.toast').remove()">×</button>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 300); }, 4000);
+}
+
+// ── Patched persist — auto-sync to Drive if enabled ───────────────────────
+const _originalPersist = persist;
+function persist() {
+  localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions));
+  if (gdAutoSync && gdAccessToken) {
+    clearTimeout(persist._debounce);
+    persist._debounce = setTimeout(() => gdriveSave(), 2000);
   }
 }
-
-function gdHandleExpired() {
-  // Token expired — clear it so user can reconnect
-  gdToken = null;
-  localStorage.removeItem('sl-gd-token');
-  gdUpdateUI('disconnected', 'Reconnect Drive');
-  showToast('Drive session expired. Click "Reconnect Drive" to re-link.');
-}
-
-// Debounced auto-sync — fires 2s after last data change
-function gdScheduleSync() {
-  if (!gdToken) return;
-  clearTimeout(gdSyncDebounce);
-  gdSyncDebounce = setTimeout(() => gdSaveNow(), 2000);
-}
-
-function gdUpdateUI(state, label) {
-  const btn = document.getElementById('gd-btn');
-  const lblEl = document.getElementById('gd-btn-label');
-  const sidebarBtn = document.getElementById('gd-sidebar-btn');
-  const sidebarStatus = document.getElementById('gd-sidebar-status');
-  const lastSyncRow = document.getElementById('gd-last-sync');
-  const syncTimeEl = document.getElementById('gd-sync-time');
-  if (!btn || !lblEl) return;
-
-  btn.className = 'btn-gd';
-  if (state === 'connected') {
-    btn.classList.add('connected');
-    const lastSync = localStorage.getItem('sl-gd-last-sync') || '—';
-    if (sidebarStatus) { sidebarStatus.textContent = 'Connected ✓'; sidebarStatus.className = 'gd-status-val ok'; }
-    if (sidebarBtn) { sidebarBtn.textContent = 'Disconnect'; sidebarBtn.style.color = 'var(--red)'; }
-    if (lastSyncRow) lastSyncRow.style.display = 'block';
-    if (syncTimeEl) syncTimeEl.textContent = lastSync;
-  } else if (state === 'syncing') {
-    btn.classList.add('syncing');
-    if (sidebarStatus) { sidebarStatus.textContent = 'Syncing…'; sidebarStatus.className = 'gd-status-val'; }
-    if (lastSyncRow) lastSyncRow.style.display = 'none';
-  } else if (state === 'error') {
-    if (sidebarStatus) { sidebarStatus.textContent = 'Sync error'; sidebarStatus.className = 'gd-status-val err'; }
-    if (lastSyncRow) lastSyncRow.style.display = 'none';
-  } else {
-    // disconnected
-    if (sidebarStatus) { sidebarStatus.textContent = 'Not connected'; sidebarStatus.className = 'gd-status-val'; }
-    if (sidebarBtn) { sidebarBtn.textContent = 'Connect'; sidebarBtn.style.color = ''; }
-    if (lastSyncRow) lastSyncRow.style.display = 'none';
-  }
-  lblEl.textContent = label;
-}
-
-// Hook into persist() for auto-sync
-const _origPersist = persist;
-function persist() { _origPersist(); gdScheduleSync(); }
-
-// On startup: restore Drive state and load data
-window.addEventListener('load', () => {
-  if (gdToken) {
-    gdUpdateUI('syncing', 'Loading…');
-    gdLoad();
-  } else {
-    gdUpdateUI('disconnected', 'Connect Drive');
-  }
-});
 
 // ── Init ──────────────────────────────────────────────────────────────────
 initFonts();
