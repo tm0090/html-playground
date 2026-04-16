@@ -1121,7 +1121,8 @@ function persist() { localStorage.setItem('sl-v4-sessions', JSON.stringify(sessi
 
 // ── Google Drive Sync ─────────────────────────────────────────────────────
 const GDRIVE_CLIENT_ID = '335010856725-jg5a3m7qa8o2ui4oo3i5ehlv6lacmipi.apps.googleusercontent.com';
-const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const GDRIVE_FOLDER_NAME = 'StudyLog';
 const GDRIVE_FILENAME = 'studylog-data.json';
 
 const gdrive = {
@@ -1182,6 +1183,14 @@ function initGoogleDrive() {
       }
     }
   });
+
+  // If scope changed (appdata → drive.file), force re-auth by clearing old token
+  const cachedScope = localStorage.getItem('sl-gdrive-scope');
+  if (cachedScope !== GDRIVE_SCOPE) {
+    localStorage.removeItem('sl-gdrive-token');
+    localStorage.removeItem('sl-gdrive-fileid');
+    localStorage.setItem('sl-gdrive-scope', GDRIVE_SCOPE);
+  }
 
   // Restore signed-in state if we have cached info
   const cachedUser = JSON.parse(localStorage.getItem('sl-gdrive-user') || 'null');
@@ -1396,9 +1405,29 @@ function mergeAndApplySessions(remoteData) {
   }
 }
 
+async function findOrCreateFolder() {
+  // Look for existing StudyLog folder
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=name='${GDRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`,
+    { headers: { 'Authorization': 'Bearer ' + gdrive.accessToken } }
+  );
+  if (!res.ok) throw new Error('Failed to search for folder: ' + res.status);
+  const data = await res.json();
+  if (data.files && data.files.length > 0) return data.files[0].id;
+  // Create it
+  const create = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + gdrive.accessToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: GDRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
+  });
+  if (!create.ok) throw new Error('Failed to create folder: ' + create.status);
+  const folder = await create.json();
+  return folder.id;
+}
+
 async function findDriveFile() {
   const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${GDRIVE_FILENAME}'&fields=files(id,name)`,
+    `https://www.googleapis.com/drive/v3/files?q=name='${GDRIVE_FILENAME}' and trashed=false&fields=files(id,name)`,
     { headers: { 'Authorization': 'Bearer ' + gdrive.accessToken } }
   );
   if (!res.ok) throw new Error('Failed to list files: ' + res.status);
@@ -1416,7 +1445,8 @@ async function getDriveFileContent(fileId) {
 }
 
 async function createDriveFile(payload) {
-  const metadata = { name: GDRIVE_FILENAME, parents: ['appDataFolder'], mimeType: 'application/json' };
+  const folderId = await findOrCreateFolder();
+  const metadata = { name: GDRIVE_FILENAME, parents: [folderId], mimeType: 'application/json' };
   const form = new FormData();
   form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
   form.append('file', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
