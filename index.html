@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Default Fonts (will be overridden if user applies custom fonts) -->
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" id="default-google-fonts">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
   /* Modern Zinc/Obsidian Dark Theme */
@@ -761,75 +760,88 @@ header {
 
 /* ── Google Drive Sync ── */
 .sync-btn {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 7px;
   padding: 7px 14px; background: var(--surface);
   border: 1px solid var(--border); border-radius: var(--rsm);
-  color: var(--text-2); cursor: pointer; font-size: 13px; font-weight: 600;
-  font-family: var(--sans); transition: all 0.2s; white-space: nowrap;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  color: var(--text-2); cursor: pointer; font-family: var(--sans);
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+  transition: all 0.2s;
 }
-.sync-btn:hover { background: var(--surface-2); border-color: var(--border-2); color: var(--text); transform: translateY(-1px); }
-.sync-btn.syncing { color: var(--accent); border-color: rgba(59,130,246,0.3); background: var(--accent-dim); }
-.sync-btn.synced { color: var(--green); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); }
-.sync-btn.not-signed-in { opacity: 0.6; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.spin { animation: spin 0.8s linear infinite; display: inline-block; transform-origin: center; }
+.sync-btn:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); transform: translateY(-1px); }
+.sync-btn.syncing { opacity: 0.7; pointer-events: none; }
+.sync-btn.signed-in { color: var(--accent); border-color: rgba(59,130,246,0.25); background: rgba(59,130,246,0.06); }
+.sync-btn.signed-in:hover { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.35); }
+.sync-icon { width: 15px; height: 15px; flex-shrink: 0; transition: transform 0.5s; }
+.sync-btn.syncing .sync-icon { animation: spinSync 1s linear infinite; }
+@keyframes spinSync { to { transform: rotate(360deg); } }
 
-/* Toggle switch */
-.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--rsm); margin-bottom: 8px; }
-.toggle-row .toggle-label { font-size: 12px; font-weight: 600; color: var(--text-2); line-height: 1.3; }
-.toggle-row .toggle-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-.toggle { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
-.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-.toggle-track {
-  position: absolute; inset: 0;
-  background: var(--surface-3); border-radius: 12px;
-  cursor: pointer; transition: background 0.25s;
-  border: 1px solid var(--border-2);
-}
-.toggle input:checked ~ .toggle-track { background: var(--accent); border-color: var(--accent-hover); }
-.toggle-track::after {
-  content: ''; position: absolute;
-  width: 16px; height: 16px;
-  left: 2px; top: 2px;
-  background: #fff; border-radius: 50%;
-  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-}
-.toggle input:checked ~ .toggle-track::after { transform: translateX(16px); }
-
-/* Google Drive account section */
-.gdrive-account-card {
+/* Google Drive Preferences Section */
+.gdrive-section { margin-top: 16px; }
+.gdrive-user {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px; background: var(--surface-2);
   border: 1px solid var(--border); border-radius: var(--rsm);
   margin-bottom: 10px;
 }
 .gdrive-avatar {
-  width: 30px; height: 30px; border-radius: 50%;
-  background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.3);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: var(--accent); flex-shrink: 0;
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent-dim); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--accent);
   overflow: hidden;
 }
 .gdrive-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .gdrive-user-info { flex: 1; min-width: 0; }
-.gdrive-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gdrive-email { font-size: 10px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-.btn-signout { background: transparent; border: none; color: var(--text-3); font-size: 11px; font-weight: 600; font-family: var(--sans); cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; flex-shrink: 0; }
-.btn-signout:hover { color: var(--red); background: rgba(239,68,68,0.08); }
-.btn-google-signin {
-  width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
-  padding: 10px 14px; background: var(--surface-2);
-  border: 1px solid var(--border); border-radius: var(--rsm);
-  color: var(--text); font-family: var(--sans); font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: all 0.2s; margin-bottom: 10px;
+.gdrive-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gdrive-email { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gdrive-signout {
+  background: transparent; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-3); font-size: 11px; font-weight: 600; padding: 4px 8px;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap; font-family: var(--sans);
 }
-.btn-google-signin:hover { background: var(--surface-3); border-color: var(--border-2); transform: translateY(-1px); }
-.sync-last-info { font-size: 11px; color: var(--text-3); padding: 0 2px; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
-.sync-last-info svg { flex-shrink: 0; }
+.gdrive-signout:hover { color: var(--red); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+
+.gdrive-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--rsm);
+  margin-bottom: 8px; gap: 10px;
+}
+.gdrive-toggle-label { font-size: 12px; font-weight: 600; color: var(--text-2); flex: 1; }
+.toggle-switch {
+  position: relative; width: 36px; height: 20px; flex-shrink: 0; cursor: pointer;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute; inset: 0; border-radius: 20px;
+  background: var(--surface-3); border: 1px solid var(--border-3);
+  transition: all 0.25s;
+}
+.toggle-switch input:checked + .toggle-track { background: var(--accent); border-color: var(--accent); }
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px; width: 14px; height: 14px;
+  border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.toggle-switch input:checked ~ .toggle-thumb { transform: translateX(16px); }
+
+.gdrive-last-sync {
+  font-size: 11px; color: var(--text-3); text-align: center;
+  padding: 6px 0 2px; font-family: var(--mono);
+}
+
+.gdrive-signin-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 10px; background: #fff; border: 1px solid rgba(0,0,0,0.12);
+  border-radius: var(--rsm); color: #3c4043; font-family: var(--sans);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.gdrive-signin-btn:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transform: translateY(-1px); }
+.gdrive-signin-btn svg { flex-shrink: 0; }
 </style>
 </head>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <body>
 <div class="app">
 
@@ -842,9 +854,12 @@ header {
     <div class="hstats" id="hstats"></div>
     <div class="header-right">
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
-      <button class="sync-btn not-signed-in" id="sync-btn" onclick="handleSyncClick()" title="Sync with Google Drive">
-        <svg id="sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-        <span id="sync-btn-label">Sync</span>
+      <button class="sync-btn" id="sync-btn" onclick="handleSyncClick()" title="Sync with Google Drive">
+        <svg class="sync-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+        </svg>
+        <span id="sync-btn-label">Sign in</span>
       </button>
       <button class="btn-add" onclick="openModal()">+ Log Session</button>
     </div>
@@ -903,41 +918,7 @@ header {
         </button>
         
         <div id="settings-panel" style="display:none; margin-top: 16px; animation: fadeIn 0.2s ease;">
-          
-          <!-- Google Drive Sync -->
-          <div class="slabel">Google Drive Sync</div>
-          <div id="gdrive-signin-section">
-            <button class="btn-google-signin" onclick="gdriveSignIn()">
-              <svg width="15" height="15" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-              Sign in with Google
-            </button>
-          </div>
-          <div id="gdrive-account-section" style="display:none">
-            <div class="gdrive-account-card">
-              <div class="gdrive-avatar" id="gdrive-avatar">–</div>
-              <div class="gdrive-user-info">
-                <div class="gdrive-name" id="gdrive-name">–</div>
-                <div class="gdrive-email" id="gdrive-email">–</div>
-              </div>
-              <button class="btn-signout" onclick="gdriveSignOut()">Sign out</button>
-            </div>
-            <div class="toggle-row">
-              <div>
-                <div class="toggle-label">Auto-sync after saving</div>
-                <div class="toggle-desc">Sync to Drive when a session is saved</div>
-              </div>
-              <label class="toggle">
-                <input type="checkbox" id="autosync-toggle" onchange="toggleAutoSync(this.checked)">
-                <span class="toggle-track"></span>
-              </label>
-            </div>
-            <div class="sync-last-info" id="sync-last-info">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <span id="sync-last-text">Never synced</span>
-            </div>
-          </div>
-
-          <div class="slabel" style="margin-top:20px">Custom Fonts</div>
+          <div class="slabel">Custom Fonts</div>
           <div class="sblock" style="padding:14px">
             <div style="margin-bottom:10px">
               <div style="font-size:10px; font-weight:700; color:var(--text-3); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em">Main Text</div>
@@ -963,6 +944,40 @@ header {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Import Backup
             </button>
+          </div>
+
+          <!-- Google Drive Sync -->
+          <div class="gdrive-section">
+            <div class="slabel" style="margin-top:16px">Google Drive Sync</div>
+            
+            <!-- Signed-out state -->
+            <div id="gdrive-signedout">
+              <button class="gdrive-signin-btn" onclick="gdriveSignIn()">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Sign in with Google
+              </button>
+            </div>
+
+            <!-- Signed-in state -->
+            <div id="gdrive-signedin" style="display:none">
+              <div class="gdrive-user" id="gdrive-user-card">
+                <div class="gdrive-avatar" id="gdrive-avatar">—</div>
+                <div class="gdrive-user-info">
+                  <div class="gdrive-name" id="gdrive-name">—</div>
+                  <div class="gdrive-email" id="gdrive-email">—</div>
+                </div>
+                <button class="gdrive-signout" onclick="gdriveSignOut()">Sign out</button>
+              </div>
+              <div class="gdrive-toggle-row">
+                <span class="gdrive-toggle-label">Sync after I finish editing</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="gdrive-auto-sync" onchange="saveAutoSyncPref()">
+                  <div class="toggle-track"></div>
+                  <div class="toggle-thumb"></div>
+                </label>
+              </div>
+              <div class="gdrive-last-sync" id="gdrive-last-sync">Last synced: never</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1117,321 +1132,7 @@ function loadFonts(fonts) {
 }
 
 // ── Persist ───────────────────────────────────────────────────────────────
-function persist() { localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions)); }
-
-// ── Google Drive Sync ─────────────────────────────────────────────────────
-const GDRIVE_CLIENT_ID = '335010856725-jg5a3m7qa8o2ui4oo3i5ehlv6lacmipi.apps.googleusercontent.com';
-const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
-const GDRIVE_FILENAME = 'studylog-data.json';
-
-const gdrive = {
-  tokenClient: null,
-  accessToken: null,
-  tokenExpiry: 0,
-  fileId: null,
-  signedIn: false,
-  userInfo: null,
-  autoSync: JSON.parse(localStorage.getItem('sl-gdrive-autosync') || 'false'),
-  lastSync: localStorage.getItem('sl-gdrive-lastsync') || null,
-};
-
-// Init GIS token client once the library loads
-function initGoogleDrive() {
-  if (typeof google === 'undefined' || !google.accounts) {
-    setTimeout(initGoogleDrive, 500);
-    return;
-  }
-  gdrive.tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GDRIVE_CLIENT_ID,
-    scope: GDRIVE_SCOPE + ' https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-    callback: async (tokenResponse) => {
-      if (tokenResponse.error) { showSyncToast('Sign-in failed: ' + tokenResponse.error, 'error'); return; }
-      gdrive.accessToken = tokenResponse.access_token;
-      gdrive.tokenExpiry = Date.now() + (tokenResponse.expires_in * 1000) - 60000;
-      gdrive.signedIn = true;
-      await fetchUserInfo();
-      updateSyncUI();
-      await performSync();
-    }
-  });
-
-  // Restore signed-in state if we have cached info
-  const cachedUser = JSON.parse(localStorage.getItem('sl-gdrive-user') || 'null');
-  if (cachedUser) {
-    gdrive.signedIn = true;
-    gdrive.userInfo = cachedUser;
-    updateSyncUI();
-  }
-}
-
-async function fetchUserInfo() {
-  try {
-    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { 'Authorization': 'Bearer ' + gdrive.accessToken }
-    });
-    if (res.ok) {
-      gdrive.userInfo = await res.json();
-      localStorage.setItem('sl-gdrive-user', JSON.stringify(gdrive.userInfo));
-    }
-  } catch (e) {}
-}
-
-function gdriveSignIn() {
-  if (!gdrive.tokenClient) { showSyncToast('Google services not ready yet. Please wait a moment.', 'error'); return; }
-  gdrive.tokenClient.requestAccessToken({ prompt: 'consent' });
-}
-
-function gdriveSignOut() {
-  if (gdrive.accessToken) {
-    google.accounts.oauth2.revoke(gdrive.accessToken, () => {});
-  }
-  gdrive.accessToken = null;
-  gdrive.signedIn = false;
-  gdrive.userInfo = null;
-  gdrive.fileId = null;
-  localStorage.removeItem('sl-gdrive-user');
-  updateSyncUI();
-  showSyncToast('Signed out of Google Drive.', 'info');
-}
-
-function updateSyncUI() {
-  const signinSection = document.getElementById('gdrive-signin-section');
-  const accountSection = document.getElementById('gdrive-account-section');
-  const syncBtn = document.getElementById('sync-btn');
-
-  if (gdrive.signedIn && gdrive.userInfo) {
-    signinSection.style.display = 'none';
-    accountSection.style.display = 'block';
-
-    // Set avatar
-    const avatarEl = document.getElementById('gdrive-avatar');
-    if (gdrive.userInfo.picture) {
-      avatarEl.innerHTML = `<img src="${gdrive.userInfo.picture}" alt="">`;
-    } else {
-      avatarEl.textContent = (gdrive.userInfo.name || gdrive.userInfo.email || '?')[0].toUpperCase();
-    }
-    document.getElementById('gdrive-name').textContent = gdrive.userInfo.name || '–';
-    document.getElementById('gdrive-email').textContent = gdrive.userInfo.email || '–';
-    document.getElementById('autosync-toggle').checked = gdrive.autoSync;
-
-    syncBtn.classList.remove('not-signed-in');
-    syncBtn.title = 'Sync with Google Drive';
-  } else {
-    signinSection.style.display = 'block';
-    accountSection.style.display = 'none';
-    syncBtn.classList.add('not-signed-in');
-    syncBtn.title = 'Sign in to sync with Google Drive';
-  }
-
-  updateLastSyncDisplay();
-}
-
-function updateLastSyncDisplay() {
-  const el = document.getElementById('sync-last-text');
-  if (!el) return;
-  if (gdrive.lastSync) {
-    const d = new Date(gdrive.lastSync);
-    const dateStr = d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
-    const timeStr = d.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
-    el.textContent = `Last synced: ${dateStr} at ${timeStr}`;
-  } else {
-    el.textContent = 'Never synced';
-  }
-}
-
-function toggleAutoSync(val) {
-  gdrive.autoSync = val;
-  localStorage.setItem('sl-gdrive-autosync', JSON.stringify(val));
-}
-
-function handleSyncClick() {
-  if (!gdrive.signedIn) {
-    // Open preferences and prompt sign in
-    if (!settingsOpen) toggleSettings();
-    gdriveSignIn();
-  } else {
-    performSync();
-  }
-}
-
-async function ensureValidToken() {
-  if (gdrive.accessToken && Date.now() < gdrive.tokenExpiry) return true;
-  // Token expired — request new one silently
-  return new Promise((resolve) => {
-    gdrive.tokenClient.requestAccessToken({ prompt: '' });
-    // The callback in initGoogleDrive will handle the new token
-    // We resolve false here to avoid hanging; the sync will be triggered by callback
-    resolve(false);
-  });
-}
-
-async function performSync() {
-  if (!gdrive.signedIn) { gdriveSignIn(); return; }
-  if (!gdrive.accessToken || Date.now() >= gdrive.tokenExpiry) {
-    gdrive.tokenClient.requestAccessToken({ prompt: '' });
-    return;
-  }
-
-  setSyncState('syncing');
-
-  try {
-    // Step 1: Find or get existing file
-    const existingFileId = gdrive.fileId || await findDriveFile();
-
-    // Step 2: Merge remote data with local
-    if (existingFileId) {
-      gdrive.fileId = existingFileId;
-      const remoteData = await getDriveFileContent(existingFileId);
-      if (remoteData && Array.isArray(remoteData.sessions)) {
-        mergeAndApplySessions(remoteData);
-      }
-    }
-
-    // Step 3: Upload merged/local data
-    const payload = buildSyncPayload();
-    if (existingFileId) {
-      await updateDriveFile(existingFileId, payload);
-    } else {
-      gdrive.fileId = await createDriveFile(payload);
-    }
-
-    // Step 4: Record last sync
-    gdrive.lastSync = new Date().toISOString();
-    localStorage.setItem('sl-gdrive-lastsync', gdrive.lastSync);
-    updateLastSyncDisplay();
-
-    setSyncState('synced');
-    showSyncToast('Synced with Google Drive successfully.', 'success');
-    setTimeout(() => setSyncState('idle'), 3000);
-
-  } catch (err) {
-    console.error('Sync error:', err);
-    setSyncState('idle');
-    showSyncToast('Sync failed. Please try again.', 'error');
-  }
-}
-
-function buildSyncPayload() {
-  const fonts = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
-  return {
-    sessions,
-    goal: goalMins,
-    fonts,
-    view: viewMode,
-    sidebarCollapsed,
-    version: 5,
-    syncedAt: new Date().toISOString()
-  };
-}
-
-function mergeAndApplySessions(remoteData) {
-  if (!remoteData.sessions) return;
-  const localIds = new Set(sessions.map(s => s.id));
-  let changed = false;
-  remoteData.sessions.forEach(rs => {
-    if (!localIds.has(rs.id)) {
-      sessions.push(rs);
-      sc(rs.subject);
-      changed = true;
-    }
-  });
-  if (changed) {
-    sessions.sort((a, b) => b.date.localeCompare(a.date));
-    persist();
-    render();
-  }
-}
-
-async function findDriveFile() {
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${GDRIVE_FILENAME}'&fields=files(id,name)`,
-    { headers: { 'Authorization': 'Bearer ' + gdrive.accessToken } }
-  );
-  if (!res.ok) throw new Error('Failed to list files: ' + res.status);
-  const data = await res.json();
-  return data.files && data.files.length > 0 ? data.files[0].id : null;
-}
-
-async function getDriveFileContent(fileId) {
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-    { headers: { 'Authorization': 'Bearer ' + gdrive.accessToken } }
-  );
-  if (!res.ok) throw new Error('Failed to fetch file: ' + res.status);
-  return res.json();
-}
-
-async function createDriveFile(payload) {
-  const metadata = { name: GDRIVE_FILENAME, parents: ['appDataFolder'], mimeType: 'application/json' };
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-  form.append('file', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-  const res = await fetch(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
-    { method: 'POST', headers: { 'Authorization': 'Bearer ' + gdrive.accessToken }, body: form }
-  );
-  if (!res.ok) throw new Error('Failed to create file: ' + res.status);
-  const data = await res.json();
-  return data.id;
-}
-
-async function updateDriveFile(fileId, payload) {
-  const form = new FormData();
-  form.append('file', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-  const res = await fetch(
-    `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`,
-    { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + gdrive.accessToken }, body: form }
-  );
-  if (!res.ok) throw new Error('Failed to update file: ' + res.status);
-}
-
-function setSyncState(state) {
-  const btn = document.getElementById('sync-btn');
-  const icon = document.getElementById('sync-icon');
-  const label = document.getElementById('sync-btn-label');
-  btn.classList.remove('syncing', 'synced', 'not-signed-in');
-  if (state === 'syncing') {
-    btn.classList.add('syncing');
-    icon.classList.add('spin');
-    label.textContent = 'Syncing…';
-    btn.disabled = true;
-  } else if (state === 'synced') {
-    btn.classList.add('synced');
-    icon.classList.remove('spin');
-    icon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
-    icon.setAttribute('viewBox', '0 0 24 24');
-    label.textContent = 'Synced';
-    btn.disabled = false;
-  } else {
-    icon.classList.remove('spin');
-    icon.innerHTML = '<polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>';
-    label.textContent = 'Sync';
-    btn.disabled = false;
-    if (!gdrive.signedIn) btn.classList.add('not-signed-in');
-  }
-}
-
-function showSyncToast(msg, type) {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  const color = type === 'success' ? 'var(--green)' : type === 'error' ? 'var(--red)' : 'var(--accent)';
-  const icon = type === 'success'
-    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
-    : type === 'error'
-    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
-    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
-  toast.innerHTML = `
-    <span style="color:${color};display:flex;align-items:center;flex-shrink:0">${icon}</span>
-    <span style="flex:1">${msg}</span>
-    <button class="toast-close" onclick="this.closest('.toast').remove()">×</button>
-  `;
-  container.appendChild(toast);
-  setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 300); }, 5000);
-}
-
-// Init on load
-initGoogleDrive();
+function persist() { localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions)); if (typeof triggerAutoSync === 'function') triggerAutoSync(); }
 
 // ── Sidebar collapse ──────────────────────────────────────────────────────
 function toggleSidebar() {
@@ -1617,11 +1318,6 @@ function saveSession() {
   persist();
   document.getElementById('overlay').classList.remove('show');
   
-  // Auto-sync if enabled
-  if (gdrive.signedIn && gdrive.autoSync) {
-    setTimeout(() => performSync(), 400);
-  }
-
   // Make sure we switch view to where the date was added
   const newDate = new Date(date + 'T12:00:00');
   viewYear = newDate.getFullYear();
@@ -2358,6 +2054,258 @@ function handleImport(e) {
   };
   r.readAsText(f); e.target.value = '';
 }
+
+// ── Google Drive Sync ──────────────────────────────────────────────────────
+const GDRIVE_CLIENT_ID = '335010856725-jg5a3m7qa8o2ui4oo3i5ehlv6lacmipi.apps.googleusercontent.com';
+const GDRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.appdata profile email';
+const GDRIVE_FILE_NAME = 'studylog-data.json';
+
+let gdriveToken = null;
+let gdriveUser = null;
+let gdriveFileId = null;
+let tokenClient = null;
+let autoSyncTimer = null;
+
+// Load persisted state
+function gdriveInit() {
+  const saved = JSON.parse(localStorage.getItem('sl-gdrive') || 'null');
+  if (saved) {
+    gdriveUser = saved.user;
+    gdriveFileId = saved.fileId || null;
+    renderGdriveUI();
+  }
+  // Auto-sync preference
+  const autoSync = localStorage.getItem('sl-gdrive-autosync') === 'true';
+  const checkbox = document.getElementById('gdrive-auto-sync');
+  if (checkbox) checkbox.checked = autoSync;
+  updateLastSyncLabel();
+}
+
+function saveAutoSyncPref() {
+  const checked = document.getElementById('gdrive-auto-sync').checked;
+  localStorage.setItem('sl-gdrive-autosync', String(checked));
+}
+
+function renderGdriveUI() {
+  const signedIn = !!gdriveUser;
+  document.getElementById('gdrive-signedout').style.display = signedIn ? 'none' : 'block';
+  document.getElementById('gdrive-signedin').style.display = signedIn ? 'block' : 'none';
+
+  const btn = document.getElementById('sync-btn');
+  const lbl = document.getElementById('sync-btn-label');
+  if (signedIn) {
+    btn.classList.add('signed-in');
+    lbl.textContent = 'Sync';
+    // Avatar
+    const av = document.getElementById('gdrive-avatar');
+    if (gdriveUser.picture) {
+      av.innerHTML = `<img src="${gdriveUser.picture}" alt="">`;
+    } else {
+      av.textContent = (gdriveUser.name || '?')[0].toUpperCase();
+    }
+    document.getElementById('gdrive-name').textContent = gdriveUser.name || '';
+    document.getElementById('gdrive-email').textContent = gdriveUser.email || '';
+  } else {
+    btn.classList.remove('signed-in');
+    lbl.textContent = 'Sign in';
+  }
+  updateLastSyncLabel();
+}
+
+function updateLastSyncLabel() {
+  const el = document.getElementById('gdrive-last-sync');
+  if (!el) return;
+  const ts = localStorage.getItem('sl-gdrive-lastsync');
+  if (ts) {
+    const d = new Date(parseInt(ts));
+    el.textContent = 'Last synced: ' + d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+  } else {
+    el.textContent = 'Last synced: never';
+  }
+}
+
+function gdriveSignIn() {
+  if (!tokenClient) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GDRIVE_CLIENT_ID,
+      scope: GDRIVE_SCOPES,
+      callback: async (resp) => {
+        if (resp.error) { showToast('⚠️ Sign-in failed: ' + resp.error, null, 4000); return; }
+        gdriveToken = resp.access_token;
+        await fetchGdriveProfile();
+        await syncToDrive(true); // first sync: pull existing data if any
+      }
+    });
+  }
+  tokenClient.requestAccessToken();
+}
+
+function gdriveSignOut() {
+  if (gdriveToken) google.accounts.oauth2.revoke(gdriveToken, () => {});
+  gdriveToken = null;
+  gdriveUser = null;
+  gdriveFileId = null;
+  localStorage.removeItem('sl-gdrive');
+  renderGdriveUI();
+  showToast('Signed out of Google Drive', null, 3000);
+}
+
+async function fetchGdriveProfile() {
+  try {
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: 'Bearer ' + gdriveToken }
+    });
+    const info = await r.json();
+    gdriveUser = { name: info.name, email: info.email, picture: info.picture };
+    localStorage.setItem('sl-gdrive', JSON.stringify({ user: gdriveUser, fileId: gdriveFileId }));
+    renderGdriveUI();
+  } catch (e) { console.error('Profile fetch failed', e); }
+}
+
+// Sync button click — sign in if not signed in, else sync
+function handleSyncClick() {
+  if (!gdriveUser) { gdriveSignIn(); return; }
+  // Re-request token (may be expired) then sync
+  if (!tokenClient) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GDRIVE_CLIENT_ID,
+      scope: GDRIVE_SCOPES,
+      callback: async (resp) => {
+        if (resp.error) { showToast('⚠️ Auth failed: ' + resp.error, null, 4000); return; }
+        gdriveToken = resp.access_token;
+        await syncToDrive(false);
+      }
+    });
+  }
+  if (gdriveToken) {
+    syncToDrive(false);
+  } else {
+    tokenClient.requestAccessToken({ prompt: '' });
+  }
+}
+
+// Trigger auto-sync after edit (debounced)
+function triggerAutoSync() {
+  if (localStorage.getItem('sl-gdrive-autosync') !== 'true') return;
+  if (!gdriveUser) return;
+  clearTimeout(autoSyncTimer);
+  autoSyncTimer = setTimeout(() => {
+    if (!gdriveToken) {
+      // Silently re-auth without prompt
+      if (!tokenClient) return;
+      tokenClient.requestAccessToken({ prompt: '' });
+    } else {
+      syncToDrive(false);
+    }
+  }, 2000); // 2s after last edit
+}
+
+async function findOrCreateDriveFile() {
+  // Search in appDataFolder
+  const searchRes = await fetch(
+    `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27${GDRIVE_FILE_NAME}%27&fields=files(id,name)`,
+    { headers: { Authorization: 'Bearer ' + gdriveToken } }
+  );
+  const searchJson = await searchRes.json();
+  if (searchJson.files && searchJson.files.length > 0) {
+    return searchJson.files[0].id;
+  }
+  return null;
+}
+
+async function syncToDrive(isFirstSync) {
+  if (!gdriveToken) return;
+  setSyncState(true);
+  try {
+    // On first sync, try to pull existing data first
+    let remoteFileId = gdriveFileId;
+    if (!remoteFileId) remoteFileId = await findOrCreateDriveFile();
+
+    if (isFirstSync && remoteFileId) {
+      // Pull from Drive — ask user
+      const pulled = await pullFromDrive(remoteFileId);
+      if (pulled) {
+        gdriveFileId = remoteFileId;
+        localStorage.setItem('sl-gdrive', JSON.stringify({ user: gdriveUser, fileId: gdriveFileId }));
+        setSyncState(false);
+        localStorage.setItem('sl-gdrive-lastsync', String(Date.now()));
+        updateLastSyncLabel();
+        showToast('✓ Synced — data loaded from Google Drive', null, 4000);
+        return;
+      }
+    }
+
+    // Push to Drive
+    const payload = JSON.stringify({ sessions, goal: goalMins, version: 5, syncedAt: new Date().toISOString() }, null, 2);
+    const blob = new Blob([payload], { type: 'application/json' });
+
+    let fileId = remoteFileId;
+    if (fileId) {
+      // Update existing file
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer ' + gdriveToken, 'Content-Type': 'application/json' },
+        body: blob
+      });
+    } else {
+      // Create new file in appDataFolder
+      const meta = { name: GDRIVE_FILE_NAME, parents: ['appDataFolder'] };
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+      form.append('file', blob);
+      const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + gdriveToken },
+        body: form
+      });
+      const created = await createRes.json();
+      fileId = created.id;
+    }
+
+    gdriveFileId = fileId;
+    localStorage.setItem('sl-gdrive', JSON.stringify({ user: gdriveUser, fileId: gdriveFileId }));
+    localStorage.setItem('sl-gdrive-lastsync', String(Date.now()));
+    updateLastSyncLabel();
+    setSyncState(false);
+    showToast('✓ Synced to Google Drive', null, 3000);
+  } catch (e) {
+    console.error('Sync failed', e);
+    setSyncState(false);
+    showToast('⚠️ Sync failed — ' + (e.message || 'unknown error'), null, 5000);
+  }
+}
+
+async function pullFromDrive(fileId) {
+  try {
+    const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+      headers: { Authorization: 'Bearer ' + gdriveToken }
+    });
+    if (!r.ok) return false;
+    const data = await r.json();
+    if (Array.isArray(data.sessions)) {
+      sessions = data.sessions;
+      persist();
+      sessions.forEach(s => sc(s.subject));
+    }
+    if (data.goal) { goalMins = data.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
+    render();
+    return true;
+  } catch (e) { return false; }
+}
+
+function setSyncState(syncing) {
+  const btn = document.getElementById('sync-btn');
+  if (syncing) btn.classList.add('syncing');
+  else btn.classList.remove('syncing');
+}
+
+// Hook into persist to trigger auto-sync (patched after load)
+
+// Init Google Drive on load
+window.addEventListener('load', () => {
+  // Small delay to let GIS script load
+  setTimeout(gdriveInit, 500);
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────
 initFonts();
