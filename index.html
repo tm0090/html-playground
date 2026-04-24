@@ -893,27 +893,26 @@ function startRealtimeSync() {
   const docRef = fbDb.collection('users').doc(fbUser.uid).collection('studylog').doc('data');
 
   fbUnsubscribe = docRef.onSnapshot(doc => {
+    // Skip snapshots caused by this device's own pending write (not yet confirmed
+    // by server). We already have the correct local state; applying it again just
+    // causes a needless re-render.
+    if (doc.metadata.hasPendingWrites) return;
+
     if (!doc.exists) {
-      // First time this account is used — push local data up to the cloud
+      // First time this account is used — push local data up to the cloud.
       pushToCloud();
       return;
     }
 
     const d = doc.data();
 
-    // BUG FIX: Correct merge strategy.
-    // pushToCloud() always writes the FULL sessions array, so the cloud copy is
-    // always the authoritative state for whatever device last saved.
-    // Strategy: use cloud sessions as the base (covers edits AND deletions from
-    // other devices), then union-in any local sessions not yet pushed to cloud
-    // (covers the rare race-condition window between a local edit and its push).
+    // ── TRUE SYNC: cloud is the single source of truth ──────────────────────
+    // pushToCloud() always writes the COMPLETE sessions array, so whatever is
+    // in Firestore right now IS the correct state across all devices.
+    // We NEVER re-add local sessions here — doing so is exactly what causes
+    // deleted sessions to "come back" on other devices.
     if (Array.isArray(d.sessions)) {
-      const cloudMap = new Map(d.sessions.map(s => [s.id, s]));
-      const merged = [...d.sessions]; // start with all cloud sessions (respects edits & deletions)
-      sessions.forEach(s => {
-        if (!cloudMap.has(s.id)) merged.push(s); // preserve local-only (not yet pushed) sessions
-      });
-      sessions = merged;
+      sessions = [...d.sessions];
       sessions.sort((a, b) => b.date.localeCompare(a.date));
       localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions));
     }
@@ -1010,7 +1009,7 @@ function setSyncPreference(val) {
 function triggerAutoSync() {
   if (!getSyncPreference() || !fbUser) return;
   clearTimeout(syncDebounceTimer);
-  syncDebounceTimer = setTimeout(() => pushToCloud(), 1500); // 1.5s debounce
+  syncDebounceTimer = setTimeout(() => pushToCloud(), 500); // 500ms debounce — fast enough for real-time feel
 }
 
 async function manualSync() {
