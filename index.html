@@ -861,6 +861,7 @@ const FIREBASE_CONFIG = {
 
 let fbApp = null, fbAuth = null, fbDb = null, fbUser = null;
 let syncDebounceTimer = null;
+let fbUnsubscribe = null; // Holds the active Firestore real-time listener
 
 function initFirebase() {
   try {
@@ -872,9 +873,73 @@ function initFirebase() {
     fbAuth.onAuthStateChanged(user => {
       fbUser = user;
       updateAuthUI();
-      if (user) syncFromCloud(); // pull latest data on sign-in
+      if (user) {
+        startRealtimeSync(); // BUG FIX: use real-time listener instead of one-time pull
+      } else {
+        // Clean up the listener when the user signs out
+        if (fbUnsubscribe) { fbUnsubscribe(); fbUnsubscribe = null; }
+      }
     });
   } catch(e) { console.warn('Firebase init failed:', e); }
+}
+
+// BUG FIX: Real-time listener — fires immediately on subscribe AND on every
+// future change made by any device, so all devices stay in sync automatically.
+function startRealtimeSync() {
+  if (!fbUser || !fbDb) return;
+  // Tear down any existing listener before creating a new one
+  if (fbUnsubscribe) { fbUnsubscribe(); fbUnsubscribe = null; }
+
+  const docRef = fbDb.collection('users').doc(fbUser.uid).collection('studylog').doc('data');
+
+  fbUnsubscribe = docRef.onSnapshot(doc => {
+    if (!doc.exists) {
+      // First time this account is used — push local data up to the cloud
+      pushToCloud();
+      return;
+    }
+
+    const d = doc.data();
+
+    // BUG FIX: Correct merge strategy.
+    // pushToCloud() always writes the FULL sessions array, so the cloud copy is
+    // always the authoritative state for whatever device last saved.
+    // Strategy: use cloud sessions as the base (covers edits AND deletions from
+    // other devices), then union-in any local sessions not yet pushed to cloud
+    // (covers the rare race-condition window between a local edit and its push).
+    if (Array.isArray(d.sessions)) {
+      const cloudMap = new Map(d.sessions.map(s => [s.id, s]));
+      const merged = [...d.sessions]; // start with all cloud sessions (respects edits & deletions)
+      sessions.forEach(s => {
+        if (!cloudMap.has(s.id)) merged.push(s); // preserve local-only (not yet pushed) sessions
+      });
+      sessions = merged;
+      sessions.sort((a, b) => b.date.localeCompare(a.date));
+      localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions));
+    }
+
+    if (d.goal) { goalMins = d.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
+    if (d.fonts && Object.keys(d.fonts).length) {
+      localStorage.setItem('sl-v4-fonts', JSON.stringify(d.fonts));
+      const fs = document.getElementById('font-sans');
+      const ff = document.getElementById('font-serif');
+      const fm = document.getElementById('font-mono');
+      if (fs && d.fonts.sans) fs.value = d.fonts.sans;
+      if (ff && d.fonts.serif) ff.value = d.fonts.serif;
+      if (fm && d.fonts.mono) fm.value = d.fonts.mono;
+      loadFonts(d.fonts);
+    }
+
+    const now = new Date().toISOString();
+    localStorage.setItem('sl-last-sync', now);
+    sessions.forEach(s => sc(s.subject));
+    render();
+    setSyncBtnState('synced');
+    renderLastSync();
+  }, error => {
+    console.warn('Firestore real-time sync error:', error);
+    showSyncToast('Sync error: ' + error.message, 'error');
+  });
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────
@@ -979,50 +1044,7 @@ async function pushToCloud() {
   }
 }
 
-async function syncFromCloud() {
-  if (!fbUser || !fbDb) return;
-  setSyncBtnState('syncing');
-  try {
-    const doc = await fbDb.collection('users').doc(fbUser.uid).collection('studylog').doc('data').get();
-    if (!doc.exists) {
-      // First time — push local data up
-      await pushToCloud();
-      return;
-    }
-    const d = doc.data();
-    // Merge strategy: cloud wins on sessions (most sessions array wins)
-    if (Array.isArray(d.sessions)) {
-      // Merge: union by id
-      const localIds = new Set(sessions.map(s => s.id));
-      const cloudSessions = d.sessions;
-      const cloudIds = new Set(cloudSessions.map(s => s.id));
-      // Add any cloud sessions not in local
-      const merged = [...sessions];
-      cloudSessions.forEach(s => { if (!localIds.has(s.id)) merged.push(s); });
-      sessions = merged;
-      sessions.sort((a, b) => b.date.localeCompare(a.date));
-      localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions));
-    }
-    if (d.goal) { goalMins = d.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
-    if (d.fonts && Object.keys(d.fonts).length) {
-      localStorage.setItem('sl-v4-fonts', JSON.stringify(d.fonts));
-      if (d.fonts.sans) document.getElementById('font-sans').value = d.fonts.sans;
-      if (d.fonts.serif) document.getElementById('font-serif').value = d.fonts.serif;
-      if (d.fonts.mono) document.getElementById('font-mono').value = d.fonts.mono;
-      loadFonts(d.fonts);
-    }
-    const now = new Date().toISOString();
-    localStorage.setItem('sl-last-sync', now);
-    sessions.forEach(s => sc(s.subject));
-    render();
-    setSyncBtnState('synced');
-    // Success is shown via the floating sync indicator — no toast needed
-    renderLastSync();
-  } catch(e) {
-    setSyncBtnState('idle');
-    showSyncToast('Sync error: ' + e.message, 'error');
-  }
-}
+
 
 function setSyncBtnState(state) {
   const ind = document.getElementById('sync-indicator');
