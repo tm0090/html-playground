@@ -383,11 +383,17 @@
   <div class="logo">MCU <span>Tracker</span></div>
   <div class="header-right">
     <div class="sync-dot" id="syncDot" title="Sync status"></div>
+    <button class="file-btn" id="exportBtn" onclick="exportFile()" style="display:none">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M8 2v8M5 7l3 3 3-3M3 12h10"/>
+      </svg>
+      Export .md
+    </button>
     <button class="file-btn" id="fileBtn" onclick="openFile()">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M2 4a1 1 0 011-1h4l1.5 1.5H13a1 1 0 011 1V12a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/>
       </svg>
-      Open .md file
+      Import .md
     </button>
   </div>
 </header>
@@ -427,12 +433,10 @@
         <path d="M4 11h24M10 6V4M22 6V4M9 16h6M9 20h10"/>
       </svg>
     </div>
-    <div class="empty-title">Load your watchlist</div>
-    <div class="empty-sub">Open your MCU markdown file to start tracking. Click a film to mark it as watched — the date is saved back automatically.</div>
-    <button class="empty-btn" onclick="openFile()">Choose .md file</button>
-    <div class="no-api" id="noApiWarning">
-      Your browser doesn't support the File System Access API. Try Chrome, Edge, or Opera for full read/write support.
-    </div>
+    <div class="empty-title">Import your watchlist</div>
+    <div class="empty-sub">Import your MCU markdown file once — your progress is saved in the browser so you can click films to mark them watched anytime, no file needed after that.</div>
+    <button class="empty-btn" onclick="openFile()">Import .md file</button>
+    <div class="no-api" id="noApiWarning" style="display:none"></div>
   </div>
   <div id="content" style="display:none"></div>
 </main>
@@ -440,137 +444,50 @@
 <div class="toast" id="toast"></div>
 
 <script>
+const LS_KEY = 'mcu-tracker-content';
 let fileHandle = null;
-let lastContent = '';
-let pollInterval = null;
+let currentContent = '';
 const today = new Date();
 
+// ── Boot: load from localStorage if available ─────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    currentContent = saved;
+    renderContent(saved);
+    setSyncDot('active');
+    document.getElementById('exportBtn').style.display = 'flex';
+  }
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────
 function fmtDate(d) {
   return d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
 }
-
-function todayStr() {
-  return fmtDate(today);
-}
-
-async function openFile() {
-  if (!window.showOpenFilePicker) {
-    document.getElementById('noApiWarning').style.display = 'block';
-    return;
-  }
-  try {
-    [fileHandle] = await window.showOpenFilePicker({
-      types: [{ description: 'Markdown', accept: {'text/markdown': ['.md','.txt']} }]
-    });
-    const btn = document.getElementById('fileBtn');
-    btn.textContent = '↻ ' + fileHandle.name;
-    btn.classList.add('connected');
-    await readAndRender();
-    startPolling();
-  } catch(e) {
-    if (e.name !== 'AbortError') showToast('Could not open file.');
-  }
-}
-
-async function readAndRender(silent=false) {
-  if (!fileHandle) return;
-  try {
-    if (!silent) setSyncDot('syncing');
-    const file = await fileHandle.getFile();
-    const content = await file.text();
-    if (content !== lastContent) {
-      lastContent = content;
-      renderContent(content);
-    }
-    setSyncDot('active');
-  } catch(e) {
-    setSyncDot('');
-    if (!silent) showToast('Could not read file.');
-  }
-}
+function todayStr() { return fmtDate(today); }
 
 function setSyncDot(state) {
   const dot = document.getElementById('syncDot');
   dot.className = 'sync-dot' + (state ? ' ' + state : '');
 }
 
-function startPolling() {
-  if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(() => readAndRender(true), 3000);
-}
-
-async function writeFile(newContent) {
-  if (!fileHandle) return;
-  try {
-    const writable = await fileHandle.createWritable();
-    await writable.write(newContent);
-    await writable.close();
-    lastContent = newContent;
-  } catch(e) {
-    showToast('Could not save — check file permissions.');
-  }
-}
-
-async function toggleWatch(title, watched) {
-  if (!fileHandle) return;
-  const file = await fileHandle.getFile();
-  let content = await file.text();
-  const lines = content.split('\n');
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const titleInLine = extractTitle(line);
-    if (!titleInLine || normalize(titleInLine) !== normalize(title)) continue;
-
-    if (!watched) {
-      // Mark as watched
-      lines[i] = lines[i]
-        .replace(/^(\s*-\s*)\[ \]/, '$1[x]')
-        .replace(/\s*—\s*✅.*$/, '');
-      if (!lines[i].includes('✅')) {
-        lines[i] = lines[i].replace(/(\([^)]+\))\s*$/, `$1 — ✅ ${todayStr()}`);
-        if (!lines[i].includes('✅')) {
-          lines[i] = lines[i].trimEnd() + ` — ✅ ${todayStr()}`;
-        }
-      }
-      showToast('Marked as watched · ' + todayStr());
-    } else {
-      // Unwatch
-      lines[i] = lines[i]
-        .replace(/^(\s*-\s*)\[x\]/i, '$1[ ]')
-        .replace(/\s*—\s*✅.*$/, '');
-      showToast('Removed from watched');
-    }
-    break;
-  }
-
-  await writeFile(lines.join('\n'));
-  await readAndRender();
-}
-
-function normalize(s) {
-  return s.toLowerCase().replace(/[^a-z0-9]/g,'');
-}
+function normalize(s) { return s.toLowerCase().replace(/[^a-z0-9]/g,''); }
 
 function extractTitle(line) {
   const m = line.match(/^\s*-\s*\[[ xX]\]\s*(.+)/);
   if (!m) return null;
   let t = m[1];
-  t = t.replace(/\s*—\s*✅.*$/, '');
-  t = t.replace(/\s*\([^)]*\)\s*$/, '');
+  t = t.replace(/\s*—\s*✅.*$/, '').replace(/\s*\([^)]*\)\s*$/, '');
   return t.trim();
 }
-
 function extractYear(line) {
   const m = line.match(/\(([^)]+)\)/);
   return m ? m[1] : '';
 }
-
 function extractWatchDate(line) {
   const m = line.match(/✅\s*(.+)$/);
   return m ? m[1].trim() : null;
 }
-
 function isUpcoming(yearStr) {
   const m = yearStr.match(/(\d{4})/);
   if (!m) return false;
@@ -587,6 +504,106 @@ function isUpcoming(yearStr) {
   return false;
 }
 
+// ── Save helpers ──────────────────────────────────────────────────────────
+function saveToLocalStorage(content) {
+  localStorage.setItem(LS_KEY, content);
+  currentContent = content;
+}
+
+async function saveToFile(content) {
+  if (!fileHandle) return;
+  try {
+    const writable = await fileHandle.createWritable();
+    await writable.write(content);
+    await writable.close();
+  } catch(e) {
+    showToast('File sync failed — progress saved in browser.');
+  }
+}
+
+// ── Import .md file ───────────────────────────────────────────────────────
+async function openFile() {
+  // Always support manual text import as fallback
+  if (!window.showOpenFilePicker) {
+    // Fallback: hidden input
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.md,.txt';
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      const text = await file.text();
+      saveToLocalStorage(text);
+      renderContent(text);
+      setSyncDot('active');
+      document.getElementById('exportBtn').style.display = 'flex';
+      showToast('Imported · progress saved in browser');
+    };
+    input.click();
+    return;
+  }
+  try {
+    [fileHandle] = await window.showOpenFilePicker({
+      types: [{ description: 'Markdown', accept: {'text/markdown': ['.md','.txt']} }]
+    });
+    const file = await fileHandle.getFile();
+    const content = await file.text();
+    saveToLocalStorage(content);
+    renderContent(content);
+    setSyncDot('active');
+    document.getElementById('fileBtn').innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4a1 1 0 011-1h4l1.5 1.5H13a1 1 0 011 1V12a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/></svg> ${fileHandle.name}`;
+    document.getElementById('fileBtn').classList.add('connected');
+    document.getElementById('exportBtn').style.display = 'flex';
+    showToast('Imported · progress saved in browser');
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Could not open file.');
+  }
+}
+
+// ── Export .md file ───────────────────────────────────────────────────────
+function exportFile() {
+  const blob = new Blob([currentContent], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mcu-watchlist.md';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Downloaded mcu-watchlist.md');
+}
+
+// ── Toggle watched ────────────────────────────────────────────────────────
+async function toggleWatch(title, watched) {
+  const lines = currentContent.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const titleInLine = extractTitle(lines[i]);
+    if (!titleInLine || normalize(titleInLine) !== normalize(title)) continue;
+
+    if (!watched) {
+      lines[i] = lines[i]
+        .replace(/^(\s*-\s*)\[ \]/, '$1[x]')
+        .replace(/\s*—\s*✅.*$/, '');
+      if (!lines[i].includes('✅')) {
+        lines[i] = lines[i].replace(/(\([^)]+\))\s*$/, `$1 — ✅ ${todayStr()}`);
+        if (!lines[i].includes('✅')) lines[i] = lines[i].trimEnd() + ` — ✅ ${todayStr()}`;
+      }
+      showToast('Marked as watched · ' + todayStr());
+    } else {
+      lines[i] = lines[i]
+        .replace(/^(\s*-\s*)\[x\]/i, '$1[ ]')
+        .replace(/\s*—\s*✅.*$/, '');
+      showToast('Removed from watched');
+    }
+    break;
+  }
+
+  const newContent = lines.join('\n');
+  saveToLocalStorage(newContent);
+  await saveToFile(newContent);   // no-op if no file handle
+  renderContent(newContent);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
 function renderContent(md) {
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('statsBar').style.display = 'flex';
@@ -597,7 +614,6 @@ function renderContent(md) {
   let curSaga = null, curPhase = null;
 
   for (const line of lines) {
-    // Saga line (###)
     const sagaM = line.match(/^###\s+(.+)/);
     if (sagaM && !line.match(/^####/)) {
       curSaga = { title: sagaM[1].replace(/\*+/g,'').trim(), phases: [] };
@@ -605,7 +621,6 @@ function renderContent(md) {
       curPhase = null;
       continue;
     }
-    // Phase line (####)
     const phaseM = line.match(/^#{2,4}\s+(.+)/);
     if (phaseM) {
       if (!curSaga) { curSaga = { title: '', phases: [] }; sagas.push(curSaga); }
@@ -613,7 +628,6 @@ function renderContent(md) {
       curSaga.phases.push(curPhase);
       continue;
     }
-    // Movie line
     const movieM = line.match(/^\s*[-*]\s*\[([xX ])\]\s*(.+)/);
     if (movieM) {
       if (!curPhase) {
@@ -669,7 +683,6 @@ function renderContent(md) {
           ${dateEl}${upcomingEl}
         </div>`;
       }
-
       html += `</div></div>`;
     }
     html += `</div>`;
@@ -695,10 +708,6 @@ function showToast(msg) {
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
-}
-
-if (!window.showOpenFilePicker) {
-  document.getElementById('noApiWarning').style.display = 'block';
 }
 </script>
 </body>
