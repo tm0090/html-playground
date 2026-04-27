@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movie Tracker Prompt Helper</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #141417;
+      --border: #242428;
+      --accent: #e8c97a;
+      --accent-dim: rgba(232, 201, 122, 0.12);
+      --text: #e8e6e0;
+      --muted: #7a7870;
+      --success: #6fcf97;
+      --code-bg: #0a0a0c;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px 80px;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 740px;
+    }
+
+    header {
+      margin-bottom: 48px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(232,201,122,0.25);
+      padding: 4px 10px;
+      border-radius: 2px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 520px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      animation: fadeUp 0.7s ease 0.1s both;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+    }
+
+    .card-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.8;
+    }
+
+    .copy-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(232,201,122,0.3);
+      border-radius: 4px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .copy-btn:hover {
+      background: rgba(232,201,122,0.2);
+      border-color: rgba(232,201,122,0.5);
+      transform: translateY(-1px);
+    }
+
+    .copy-btn:active {
+      transform: translateY(0);
+    }
+
+    .copy-btn.copied {
+      color: var(--success);
+      background: rgba(111,207,151,0.1);
+      border-color: rgba(111,207,151,0.35);
+    }
+
+    .copy-btn svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+      transition: opacity 0.2s;
+    }
+
+    .prompt-body {
+      padding: 28px 28px 24px;
+      background: var(--code-bg);
+    }
+
+    pre {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.8;
+      color: #c9c5ba;
+      white-space: pre-wrap;
+      word-break: break-word;
+      tab-size: 2;
+    }
+
+    /* Syntax highlighting with CSS */
+    .line-comment { color: var(--muted); font-style: italic; }
+    .line-rule { color: #b08ae0; }
+    .line-num { color: var(--accent); font-weight: 500; }
+    .line-example-label { color: #6fcf97; }
+    .line-code { color: #88c9e8; }
+
+    /* Footer note */
+    .footer-note {
+      margin-top: 28px;
+      padding: 16px 20px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(232,201,122,0.2);
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      animation: fadeUp 0.7s ease 0.25s both;
+    }
+
+    .footer-note strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Steps */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 36px;
+      animation: fadeUp 0.7s ease 0.35s both;
+    }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 16px 18px;
+    }
+
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--border);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .step-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .step-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <header>
+      <div class="tag">Prompt Helper</div>
+      
+      <p class="subtitle">Copy this ready-made prompt and paste it into any AI to instantly generate a formatted markdown tracking list for any franchise.</p>
+    </header>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">prompt</span>
+        <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">
+          <svg id="iconCopy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <svg id="iconCheck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span id="btnLabel">Copy Prompt</span>
+        </button>
+      </div>
+      <div class="prompt-body">
+        <pre id="promptText">
+        
+Please act as a helpful assistant and generate a markdown tracking list for [INSERT YOUR MOVIE/TV SERIES HERE - e.g., Star Wars, Harry Potter, James Bond].
+
+CRITICAL FORMATTING RULES YOU MUST FOLLOW EXACTLY:
+1. Sagas or major overarching storylines MUST use 3 hashes: `### Name of Saga`
+2. Phases, seasons, or smaller groupings MUST use 4 hashes: `#### Name of Phase`
+3. Movies MUST be formatted as a checklist item: `- [ ] Movie Title (Year)`
+4. DO NOT add any extra markdown formatting (no bolding, no italics) inside the checklist items.
+5. ONLY output the raw markdown list, no pleasantries or intro text.
+6. Must follow the EXAMPLE OUTPUT FORMAT:. There should not be any missing space between lines 
+
+EXAMPLE OUTPUT FORMAT:
+
+### The Example Saga
+
+#### Phase 1: Origins
+
+- [ ] First Movie (2008)
+- [ ] Second Movie (2010)
+
+#### Phase 2: The Sequel Era
+
+- [ ] Third Movie (Upcoming 2026)
+
+---
+
+</pre>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <strong>Tip:</strong> Replace <code style="background:rgba(232,201,122,0.1);padding:1px 5px;border-radius:3px;font-size:12px;">[INSERT YOUR MOVIE/TV SERIES HERE]</code> with the franchise name before sending — e.g., <em>Marvel Cinematic Universe</em>, <em>The Lord of the Rings</em>, <em>Breaking Bad</em>.
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-label">Copy the Prompt</div>
+        <div class="step-desc">Hit the copy button above to grab the full prompt.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-label">Fill in the Blank</div>
+        <div class="step-desc">Replace the placeholder with your chosen franchise.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-label">Paste into AI</div>
+        <div class="step-desc">Send to any AI of your choice and get your tracking list instantly.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-label">Use the Output</div>
+        <div class="step-desc">Drop the markdown into your tracker site or notes app.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function copyPrompt() {
+      const text = document.getElementById('promptText').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const iconCopy = document.getElementById('iconCopy');
+        const iconCheck = document.getElementById('iconCheck');
+        const label = document.getElementById('btnLabel');
+
+        btn.classList.add('copied');
+        iconCopy.style.display = 'none';
+        iconCheck.style.display = 'block';
+        label.textContent = 'Copied!';
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          iconCopy.style.display = 'block';
+          iconCheck.style.display = 'none';
+          label.textContent = 'Copy Prompt';
+        }, 2200);
+      });
+    }
+  </script>
+</body>
+</html>
