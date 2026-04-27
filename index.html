@@ -20,26 +20,48 @@
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
     pointer-events: none;
     z-index: 9999;
   }
 
   .glass-header {
-    background: rgba(2, 6, 23, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(2, 6, 23, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  
+  .glass-panel {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   /* Custom scrollbar */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: #0f172a; }
-  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  ::-webkit-scrollbar-track { background: #020617; }
+  ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #334155; }
 
   /* Toast Animation */
   .toast-enter { transform: translate(-50%, 100px); opacity: 0; }
   .toast-active { transform: translate(-50%, 0); opacity: 1; }
+
+  /* Collapsible Grid Animation */
+  .collapsible-grid {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 1;
+  }
+  .collapsible-grid.is-collapsed {
+    grid-template-rows: 0fr;
+    opacity: 0.5;
+  }
+  .collapsible-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
 </style>
 <script>
   tailwind.config = {
@@ -47,35 +69,44 @@
       extend: {
         colors: {
           slate: { 850: '#151f32', 950: '#020617' }
+        },
+        boxShadow: {
+          'glow-amber': '0 0 20px -5px rgba(245, 158, 11, 0.3)',
+          'glow-emerald': '0 0 20px -5px rgba(16, 185, 129, 0.2)',
         }
       }
     }
   }
 </script>
 </head>
-<body class="min-h-screen selection:bg-amber-500/30 pb-24">
+<body class="min-h-screen selection:bg-amber-500/30 pb-24 relative">
+
+<!-- Background Ambient Glow -->
+<div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-amber-500/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
 <!-- Header -->
-<header class="glass-header sticky top-0 z-50 border-b border-slate-800 transition-all duration-300">
-  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-    <div class="flex items-center gap-2 text-amber-500 font-bold text-xl tracking-wider">
-      <i data-lucide="clapperboard" class="w-6 h-6"></i>
-      <span>MOVIE<span class="text-slate-100 font-light ml-1">TRACKER</span></span>
+<header class="glass-header sticky top-0 z-50 border-b border-white/5 transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="p-1.5 bg-gradient-to-br from-amber-400 to-orange-600 rounded-lg shadow-glow-amber">
+        <i data-lucide="clapperboard" class="w-5 h-5 text-slate-950"></i>
+      </div>
+      <span class="text-xl font-bold tracking-wider text-slate-100">MOVIE<span class="text-slate-400 font-light ml-1">TRACKER</span></span>
     </div>
     
     <div class="flex items-center gap-3">
-      <button onclick="toggleView()" id="viewToggleBtn" class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white hover:border-slate-500 transition-colors">
+      <button onclick="toggleView()" id="viewToggleBtn" class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-700/50 bg-slate-800/30 text-slate-300 hover:text-white hover:bg-slate-700/50 hover:border-slate-600 transition-all">
         <i data-lucide="code" class="w-4 h-4"></i> Raw Editor
       </button>
 
-      <div class="h-6 w-px bg-slate-800 mx-1"></div>
+      <div class="h-6 w-px bg-slate-800 mx-1 hidden sm:block"></div>
 
       <input type="file" id="fileInput" accept=".md,.txt" class="hidden" onchange="handleFileSelect(event)">
-      <button onclick="document.getElementById('fileInput').click()" class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 transition-colors">
-        <i data-lucide="folder-open" class="w-4 h-4 text-amber-500"></i> <span class="hidden sm:inline">Import</span>
+      <button onclick="document.getElementById('fileInput').click()" class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-700/50 bg-slate-800/30 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 hover:text-amber-400 transition-all">
+        <i data-lucide="folder-open" class="w-4 h-4"></i> <span class="hidden sm:inline">Import</span>
       </button>
       
-      <button onclick="exportMarkdown()" id="exportBtn" style="display:none" class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+      <button onclick="exportMarkdown()" id="exportBtn" style="display:none" class="flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 hover:from-amber-400 hover:to-orange-400 transition-all shadow-glow-amber">
         <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden sm:inline">Export</span>
       </button>
     </div>
@@ -83,83 +114,100 @@
 </header>
 
 <!-- Stats Bar -->
-<div id="statsBar" style="display:none" class="bg-slate-900/50 border-b border-slate-800 p-4">
-  <div class="max-w-6xl mx-auto flex flex-wrap items-center gap-6 sm:gap-12">
-    <div class="flex items-center gap-3">
-      <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20">
-        <i data-lucide="award" class="w-6 h-6"></i>
+<div id="statsBar" style="display:none" class="max-w-7xl mx-auto px-4 mt-8 relative z-10">
+  <div class="glass-panel rounded-2xl p-4 sm:p-6 flex flex-wrap items-center justify-between gap-6 sm:gap-12 shadow-lg">
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20 shadow-glow-emerald">
+          <i data-lucide="award" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="text-[11px] text-slate-400 uppercase tracking-widest font-semibold mb-0.5">Watched</div>
+          <div id="statWatched" class="text-3xl font-bold text-slate-100 leading-none">0</div>
+        </div>
       </div>
-      <div>
-        <div id="statWatched" class="text-2xl font-bold text-emerald-400 leading-none">0</div>
-        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1">Watched</div>
-      </div>
-    </div>
-    
-    <div class="hidden sm:block w-px h-10 bg-slate-800"></div>
-    
-    <div class="flex items-center gap-3">
-      <div class="p-2 bg-slate-800 rounded-lg text-slate-400 border border-slate-700">
-        <i data-lucide="film" class="w-6 h-6"></i>
-      </div>
-      <div>
-        <div id="statTotal" class="text-2xl font-bold text-slate-200 leading-none">0</div>
-        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1">Total Films</div>
+      
+      <div class="w-px h-12 bg-white/5 hidden sm:block"></div>
+      
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-slate-800/50 rounded-xl text-slate-400 border border-slate-700/50">
+          <i data-lucide="film" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="text-[11px] text-slate-400 uppercase tracking-widest font-semibold mb-0.5">Total Films</div>
+          <div id="statTotal" class="text-3xl font-bold text-slate-100 leading-none">0</div>
+        </div>
       </div>
     </div>
 
-    <div class="flex-1 min-w-[200px]">
-      <div class="flex justify-between items-end mb-2">
-        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Completion</div>
-        <div id="statPct" class="text-sm font-bold text-emerald-400">0%</div>
+    <div class="flex-1 min-w-[250px] max-w-md w-full ml-auto">
+      <div class="flex justify-between items-end mb-2.5">
+        <div class="text-[11px] text-slate-400 uppercase tracking-widest font-semibold flex items-center gap-2">
+          <i data-lucide="target" class="w-3.5 h-3.5"></i> Completion
+        </div>
+        <div id="statPct" class="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">0%</div>
       </div>
-      <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-        <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-700 ease-out" style="width: 0%"></div>
+      <div class="h-2.5 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5 shadow-inner">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000 ease-out relative" style="width: 0%">
+          <div class="absolute inset-0 bg-white/20 w-full animate-pulse"></div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Empty State -->
-<main id="emptyState" class="max-w-3xl mx-auto px-4 py-24 flex flex-col items-center text-center">
-  <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center border border-slate-700 mb-6 text-slate-400">
-    <i data-lucide="file-text" class="w-10 h-10"></i>
+<main id="emptyState" class="max-w-3xl mx-auto px-4 py-32 flex flex-col items-center text-center relative z-10">
+  <div class="w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center border border-white/5 mb-8 text-slate-500 shadow-2xl relative">
+    <div class="absolute inset-0 bg-amber-500/5 rounded-full blur-xl"></div>
+    <i data-lucide="file-text" class="w-10 h-10 relative z-10"></i>
   </div>
-  <h1 class="text-3xl font-bold text-white mb-4">Load your Watchlist</h1>
-  <p class="text-slate-400 mb-8 max-w-md">Import your MCU markdown file once. It will be saved securely in your browser so you can track and edit it anytime without needing to reload the file.</p>
-  <button onclick="document.getElementById('fileInput').click()" class="px-6 py-3 bg-amber-500 text-slate-950 font-semibold rounded-lg hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 flex items-center gap-2">
+  <h1 class="text-4xl font-bold text-white mb-4 tracking-tight">Load your Watchlist</h1>
+  <p class="text-slate-400 mb-10 max-w-md text-lg leading-relaxed">Import your markdown file once. It saves securely in your browser so you can track and edit it seamlessly.</p>
+  <button onclick="document.getElementById('fileInput').click()" class="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold rounded-xl hover:from-amber-400 hover:to-orange-400 transition-all shadow-glow-amber flex items-center gap-3 transform hover:-translate-y-1">
     <i data-lucide="folder-open" class="w-5 h-5"></i>
     Select .md File
   </button>
 </main>
 
 <!-- Main Visual Content -->
-<main id="visualView" style="display:none" class="max-w-6xl mx-auto px-4 py-8"></main>
+<main id="visualView" style="display:none" class="max-w-7xl mx-auto px-4 py-8 relative z-10"></main>
 
 <!-- Raw Editor Content -->
-<main id="editorView" style="display:none" class="max-w-6xl mx-auto px-4 py-8">
-  <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[70vh]">
-    <div class="bg-slate-800/50 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
-      <div class="flex items-center gap-2 text-sm font-medium text-slate-300">
-        <i data-lucide="terminal" class="w-4 h-4"></i> Markdown Source
+<main id="editorView" style="display:none" class="max-w-7xl mx-auto px-4 py-8 relative z-10">
+  <div class="glass-panel rounded-2xl overflow-hidden flex flex-col h-[75vh] shadow-2xl border border-white/10">
+    <div class="bg-slate-900/80 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+      <div class="flex items-center gap-2 text-sm font-semibold text-slate-300 tracking-wide uppercase">
+        <i data-lucide="terminal" class="w-4 h-4 text-amber-500"></i> Markdown Source
       </div>
-      <span class="text-xs text-slate-500">Auto-saves as you type</span>
+      <div class="flex items-center gap-2">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="text-xs text-slate-400 font-medium">Auto-saving</span>
+      </div>
     </div>
-    <textarea id="rawEditor" oninput="handleEditorInput()" class="flex-1 w-full bg-transparent p-6 text-slate-300 font-mono text-sm leading-relaxed focus:outline-none resize-none" spellcheck="false"></textarea>
+    <textarea id="rawEditor" oninput="handleEditorInput()" class="flex-1 w-full bg-slate-950/50 p-6 text-slate-300 font-mono text-sm leading-loose focus:outline-none resize-none custom-scrollbar" spellcheck="false"></textarea>
   </div>
 </main>
 
 <!-- Toast -->
-<div id="toast" class="fixed bottom-6 left-1/2 toast-enter bg-slate-800 text-slate-200 px-6 py-3 rounded-full shadow-2xl border border-slate-700 font-medium transition-all duration-300 flex items-center gap-2 z-50 pointer-events-none">
-  <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400" id="toastIcon"></i>
-  <span id="toastMsg">Saved</span>
+<div id="toast" class="fixed bottom-8 left-1/2 toast-enter bg-slate-900 text-slate-200 px-6 py-3.5 rounded-2xl shadow-2xl border border-white/10 font-medium transition-all duration-300 flex items-center gap-3 z-50 pointer-events-none backdrop-blur-md">
+  <div id="toastIconWrapper" class="p-1 rounded-full bg-slate-800">
+    <i data-lucide="check-circle" class="w-4 h-4" id="toastIcon"></i>
+  </div>
+  <span id="toastMsg" class="tracking-wide text-sm">Saved</span>
 </div>
 
 <script>
 // --- Core Logic ---
 const STORAGE_KEY = 'mcu_tracker_live_data';
+const COLLAPSE_STORAGE_KEY = 'mcu_tracker_collapsed_state';
 let currentMarkdown = localStorage.getItem(STORAGE_KEY) || '';
 let isEditorView = false;
 const today = new Date();
+const collapsedPhases = new Set(JSON.parse(localStorage.getItem(COLLAPSE_STORAGE_KEY) || '[]')); // Stores IDs of collapsed phases
 
 // Initialize icons
 lucide.createIcons();
@@ -170,7 +218,7 @@ if (currentMarkdown.trim().length > 0) {
 }
 
 // --- Date Helpers ---
-function fmtDate(d) { return d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }); }
+function fmtDate(d) { return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }); }
 function todayStr() { return fmtDate(today); }
 
 // --- File Handling ---
@@ -181,7 +229,7 @@ function handleFileSelect(event) {
   reader.onload = (e) => {
     currentMarkdown = e.target.result;
     saveAndRender();
-    showToast("File Imported Successfully!", "check-circle", "text-emerald-400");
+    showToast("File Imported Successfully!", "check", "text-emerald-400", "bg-emerald-500/20");
   };
   reader.readAsText(file);
 }
@@ -192,12 +240,12 @@ function exportMarkdown() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'mcu-tracker.md';
+  a.download = 'movie-tracker.md';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast("File Downloaded!", "download", "text-amber-500");
+  showToast("File Downloaded!", "download", "text-amber-500", "bg-amber-500/20");
 }
 
 function saveAndRender() {
@@ -242,17 +290,15 @@ function toggleWatch(title, watchedStr) {
     if (!titleInLine || titleInLine.toLowerCase().replace(/[^a-z0-9]/g,'') !== normalizedTitle) continue;
 
     if (!isWatched) {
-      // Mark Watched
       lines[i] = lines[i].replace(/^(\s*-\s*)\[ \]/, '$1[x]').replace(/\s*—\s*✅.*$/, '');
       if (!lines[i].includes('✅')) {
         lines[i] = lines[i].replace(/(\([^)]+\))\s*$/, `$1 — ✅ ${todayStr()}`);
         if (!lines[i].includes('✅')) lines[i] = lines[i].trimEnd() + ` — ✅ ${todayStr()}`;
       }
-      showToast('Marked as watched', 'check-circle', 'text-emerald-400');
+      showToast('Marked as watched', 'check', 'text-emerald-400', 'bg-emerald-500/20');
     } else {
-      // Unwatch
       lines[i] = lines[i].replace(/^(\s*-\s*)\[x\]/i, '$1[ ]').replace(/\s*—\s*✅.*$/, '');
-      showToast('Removed from watched', 'x-circle', 'text-slate-400');
+      showToast('Removed from watched', 'x', 'text-slate-400', 'bg-slate-700');
     }
     break;
   }
@@ -266,6 +312,24 @@ function handleEditorInput() {
   localStorage.setItem(STORAGE_KEY, currentMarkdown);
 }
 
+function togglePhase(phaseId) {
+  const wrapper = document.getElementById(`wrapper-${phaseId}`);
+  const icon = document.getElementById(`icon-${phaseId}`);
+  
+  if (collapsedPhases.has(phaseId)) {
+    collapsedPhases.delete(phaseId);
+    wrapper.classList.remove('is-collapsed');
+    icon.classList.remove('-rotate-90');
+  } else {
+    collapsedPhases.add(phaseId);
+    wrapper.classList.add('is-collapsed');
+    icon.classList.add('-rotate-90');
+  }
+  
+  // Save the new state to local storage
+  localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify([...collapsedPhases]));
+}
+
 // --- Views ---
 function toggleView() {
   isEditorView = !isEditorView;
@@ -275,16 +339,15 @@ function toggleView() {
     document.getElementById('editorView').style.display = 'block';
     document.getElementById('rawEditor').value = currentMarkdown;
     btn.innerHTML = `<i data-lucide="layout-grid" class="w-4 h-4"></i> Visual View`;
-    btn.classList.add('bg-amber-500/10', 'text-amber-500', 'border-amber-500/30');
-    btn.classList.remove('bg-slate-800/50', 'text-slate-300', 'border-slate-700');
+    btn.classList.add('bg-amber-500/10', 'text-amber-400', 'border-amber-500/30');
+    btn.classList.remove('bg-slate-800/30', 'text-slate-300', 'border-slate-700/50');
   } else {
-    // Switching back to visual - re-parse what they typed!
     renderApp();
     document.getElementById('editorView').style.display = 'none';
     document.getElementById('visualView').style.display = 'block';
     btn.innerHTML = `<i data-lucide="code" class="w-4 h-4"></i> Raw Editor`;
-    btn.classList.remove('bg-amber-500/10', 'text-amber-500', 'border-amber-500/30');
-    btn.classList.add('bg-slate-800/50', 'text-slate-300', 'border-slate-700');
+    btn.classList.remove('bg-amber-500/10', 'text-amber-400', 'border-amber-500/30');
+    btn.classList.add('bg-slate-800/30', 'text-slate-300', 'border-slate-700/50');
   }
   lucide.createIcons();
 }
@@ -340,73 +403,98 @@ function renderApp() {
 
   let totalWatched = 0, totalMovies = 0;
   let html = '';
+  let phaseCounter = 0;
 
   for (const saga of sagas) {
     if (!saga.phases.length) continue;
     const allMovies = saga.phases.flatMap(p => p.movies);
     if (!allMovies.length) continue;
     
-    html += `<div class="mb-12">`;
-    if (saga.title) html += `<h2 class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-6 border-b border-slate-800 pb-2">${saga.title}</h2>`;
+    html += `<div class="mb-16">`;
+    if (saga.title) {
+      html += `<div class="relative mb-8">
+                 <h2 class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 uppercase tracking-[0.25em] pb-3 inline-block">${saga.title}</h2>
+                 <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-amber-500/30 via-slate-700/50 to-transparent"></div>
+               </div>`;
+    }
 
     for (const phase of saga.phases) {
       if (!phase.movies.length) continue;
       const pw = phase.movies.filter(m => m.watched).length;
-      const pt = phase.movies.filter(m => !m.upcoming).length; // Only count released for stats
-      const rawPt = phase.movies.length;
+      const pt = phase.movies.filter(m => !m.upcoming).length; 
       const pct = pt ? Math.round(pw/pt*100) : 0;
       totalWatched += pw; totalMovies += pt;
+      
+      // Use the phase title to create a stable ID for saving the collapse state
+      const safePhaseTitle = phase.title ? phase.title.replace(/[^a-z0-9]/gi, '-').toLowerCase() : `unnamed-${phaseCounter}`;
+      const phaseId = `phase-${safePhaseTitle}`;
+      phaseCounter++;
+      
+      const isCollapsed = collapsedPhases.has(phaseId);
+      const collapsedClass = isCollapsed ? 'is-collapsed' : '';
+      const iconRotateClass = isCollapsed ? '-rotate-90' : '';
 
-      html += `<div class="mb-10">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">${phase.title || 'Films'}</h3>
-          <div class="flex items-center gap-3 text-sm">
-            <span class="text-slate-400 font-mono">${pw} / ${pt}</span>
-            <div class="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden hidden sm:block">
-              <div class="h-full bg-amber-500 transition-all duration-500" style="width:${pct}%"></div>
+      html += `<div class="mb-6 bg-slate-900/30 rounded-2xl border border-white/5 p-4 sm:p-6 hover:border-white/10 transition-colors">
+        
+        <!-- Collapsible Header -->
+        <button onclick="togglePhase('${phaseId}')" class="w-full flex items-center justify-between group cursor-pointer text-left focus:outline-none">
+          <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-lg bg-slate-800/80 border border-white/5 flex items-center justify-center text-slate-400 group-hover:text-amber-400 group-hover:border-amber-500/30 transition-all">
+               <i data-lucide="chevron-down" id="icon-${phaseId}" class="w-5 h-5 transition-transform duration-300 ${iconRotateClass}"></i>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-100 group-hover:text-white transition-colors">${phase.title || 'Films'}</h3>
+          </div>
+          <div class="flex items-center gap-4 text-sm">
+            <span class="text-slate-400 font-mono font-medium tracking-wider bg-slate-950 px-3 py-1 rounded-full border border-white/5">${pw} <span class="text-slate-600">/</span> ${pt}</span>
+            <div class="w-24 h-1.5 bg-slate-950 rounded-full overflow-hidden hidden sm:block border border-white/5 shadow-inner">
+              <div class="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-700" style="width:${pct}%"></div>
             </div>
           </div>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">`;
+        </button>
+
+        <!-- Collapsible Grid Content -->
+        <div id="wrapper-${phaseId}" class="collapsible-grid ${collapsedClass}">
+          <div class="collapsible-inner">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-6">`;
 
       for (const movie of phase.movies) {
         const safeTitle = movie.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         
         let cardClass = movie.upcoming 
-          ? 'bg-slate-900/20 border-slate-800/50 opacity-60 cursor-not-allowed'
+          ? 'bg-slate-900/40 border-slate-700/50 opacity-60 cursor-not-allowed border-dashed'
           : movie.watched
-            ? 'bg-emerald-950/20 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)] cursor-pointer hover:border-emerald-500/60 hover:-translate-y-1'
-            : 'bg-slate-900 border-slate-800 cursor-pointer hover:border-amber-500/50 hover:bg-slate-800/80 hover:-translate-y-1 shadow-lg';
+            ? 'bg-gradient-to-br from-emerald-900/30 to-slate-900/50 border-emerald-500/30 shadow-[0_4px_20px_rgba(16,185,129,0.07)] cursor-pointer hover:border-emerald-400/60 hover:-translate-y-1.5 hover:shadow-[0_8px_25px_rgba(16,185,129,0.15)]'
+            : 'bg-gradient-to-br from-slate-800/60 to-slate-900/60 border-white/5 cursor-pointer hover:border-amber-500/40 hover:from-slate-800/80 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-amber-500/5';
             
-        let checkClass = movie.upcoming ? 'bg-slate-800/50 border border-slate-700/50' 
-          : movie.watched ? 'bg-emerald-500 text-slate-950' 
-          : 'border border-slate-600 bg-slate-800/50 group-hover:border-amber-500/50';
+        let checkClass = movie.upcoming ? 'bg-slate-900 border border-slate-700 text-slate-600' 
+          : movie.watched ? 'bg-emerald-500 text-slate-950 shadow-glow-emerald border border-emerald-400' 
+          : 'border border-slate-600 bg-slate-900/50 text-transparent group-hover:border-amber-500/50';
 
-        let titleClass = movie.watched ? 'text-emerald-400' : 'text-slate-200';
+        let titleClass = movie.watched ? 'text-slate-100' : 'text-slate-200';
         let clickAttr = movie.upcoming ? '' : `onclick="toggleWatch('${safeTitle}', '${movie.watched}')"`;
 
         html += `
-        <div class="relative group p-4 rounded-xl border transition-all duration-200 select-none flex flex-col justify-between min-h-[140px] ${cardClass}" ${clickAttr}>
-          <div class="flex justify-between items-start mb-3">
-            <div class="w-6 h-6 rounded flex items-center justify-center transition-colors ${checkClass}">
-              ${movie.watched ? '<i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>' : ''}
+        <div class="relative group p-4 sm:p-5 rounded-xl border transition-all duration-300 select-none flex flex-col justify-between min-h-[140px] sm:min-h-[160px] ${cardClass}" ${clickAttr}>
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-300 ${checkClass}">
+              <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
             </div>
-            ${movie.upcoming ? '<span class="text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Upcoming</span>' : ''}
+            ${movie.upcoming ? '<span class="text-[9px] uppercase tracking-widest font-bold text-slate-400 bg-slate-950 px-2 py-1 rounded-md border border-slate-800/80 shadow-inner">Upcoming</span>' : ''}
           </div>
           <div>
-            <h4 class="font-semibold leading-tight mb-1.5 ${titleClass}">${movie.title}</h4>
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                <i data-lucide="calendar" class="w-3 h-3"></i> ${movie.yearStr}
+            <h4 class="font-bold leading-snug mb-2 ${titleClass} text-[15px] group-hover:text-white transition-colors">${movie.title}</h4>
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 opacity-70"></i> ${movie.yearStr}
               </div>
-              ${movie.watchDate ? `<div class="text-[10px] text-emerald-500/80 font-medium mt-1">Watched ${movie.watchDate}</div>` : ''}
+              ${movie.watchDate ? `<div class="text-[10px] text-emerald-400/80 font-semibold tracking-wide uppercase mt-1 flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3"></i> ${movie.watchDate}</div>` : ''}
             </div>
           </div>
         </div>`;
       }
-      html += `</div></div>`;
+      html += `</div></div></div></div>`; // Close grid, inner, wrapper, phase container
     }
-    html += `</div>`;
+    html += `</div>`; // Close saga container
   }
 
   document.getElementById('visualView').innerHTML = html;
@@ -416,20 +504,28 @@ function renderApp() {
   document.getElementById('statTotal').textContent = totalMovies;
   const totalPct = totalMovies ? Math.round(totalWatched/totalMovies*100) : 0;
   document.getElementById('statPct').textContent = totalPct + '%';
-  document.getElementById('progressBar').style.width = totalPct + '%';
+  
+  // Animate progress bar slightly delayed for visual effect
+  setTimeout(() => {
+    document.getElementById('progressBar').style.width = totalPct + '%';
+  }, 50);
 
   lucide.createIcons();
 }
 
 // --- Toast ---
 let toastTimer;
-function showToast(msg, iconName, iconColorClass) {
+function showToast(msg, iconName, iconColorClass, bgWrapperClass) {
   const el = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
   
+  const iconWrapper = document.getElementById('toastIconWrapper');
+  iconWrapper.className = `p-1.5 rounded-full ${bgWrapperClass}`;
+
   const iconEl = document.getElementById('toastIcon');
   iconEl.setAttribute('data-lucide', iconName);
   iconEl.className = `w-4 h-4 ${iconColorClass}`;
+  
   lucide.createIcons();
 
   el.classList.remove('toast-enter');
@@ -439,7 +535,7 @@ function showToast(msg, iconName, iconColorClass) {
   toastTimer = setTimeout(() => {
     el.classList.remove('toast-active');
     el.classList.add('toast-enter');
-  }, 2500);
+  }, 3000);
 }
 
 </script>
