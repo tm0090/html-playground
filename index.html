@@ -1,714 +1,291 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCU Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --gold: #c9a84c;
-    --gold-dim: #8a6e2f;
-    --gold-bright: #e8c76a;
-    --bg: #0a0908;
-    --bg2: #111009;
-    --bg3: #161410;
-    --card: #1a1714;
-    --card2: #201d19;
-    --border: #2e2a24;
-    --border2: #3d3830;
-    --text: #e8e0d0;
-    --text2: #9a9080;
-    --text3: #5a5448;
-    --green: #4a8c5c;
-    --green-bg: #162218;
-    --red: #8c4a4a;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Outfit', sans-serif;
-    font-weight: 300;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+import React, { useState, useMemo } from 'react';
+import { Check, Film, Calendar, Clapperboard, Award, Sparkles } from 'lucide-react';
 
-  /* Grain overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.4;
+// Built-in MCU Data so you don't need an external markdown file
+const mcuData = [
+  {
+    saga: "The Infinity Saga",
+    phases: [
+      {
+        phase: "Phase 1",
+        movies: [
+          { id: "im1", title: "Iron Man", year: "2008" },
+          { id: "ih", title: "The Incredible Hulk", year: "2008" },
+          { id: "im2", title: "Iron Man 2", year: "2010" },
+          { id: "th1", title: "Thor", year: "2011" },
+          { id: "ca1", title: "Captain America: The First Avenger", year: "2011" },
+          { id: "av1", title: "The Avengers", year: "2012" }
+        ]
+      },
+      {
+        phase: "Phase 2",
+        movies: [
+          { id: "im3", title: "Iron Man 3", year: "2013" },
+          { id: "th2", title: "Thor: The Dark World", year: "2013" },
+          { id: "ca2", title: "Captain America: The Winter Soldier", year: "2014" },
+          { id: "gotg1", title: "Guardians of the Galaxy", year: "2014" },
+          { id: "av2", title: "Avengers: Age of Ultron", year: "2015" },
+          { id: "am1", title: "Ant-Man", year: "2015" }
+        ]
+      },
+      {
+        phase: "Phase 3",
+        movies: [
+          { id: "ca3", title: "Captain America: Civil War", year: "2016" },
+          { id: "ds1", title: "Doctor Strange", year: "2016" },
+          { id: "gotg2", title: "Guardians of the Galaxy Vol. 2", year: "2017" },
+          { id: "sm1", title: "Spider-Man: Homecoming", year: "2017" },
+          { id: "th3", title: "Thor: Ragnarok", year: "2017" },
+          { id: "bp1", title: "Black Panther", year: "2018" },
+          { id: "av3", title: "Avengers: Infinity War", year: "2018" },
+          { id: "am2", title: "Ant-Man and the Wasp", year: "2018" },
+          { id: "cm", title: "Captain Marvel", year: "2019" },
+          { id: "av4", title: "Avengers: Endgame", year: "2019" },
+          { id: "sm2", title: "Spider-Man: Far From Home", year: "2019" }
+        ]
+      }
+    ]
+  },
+  {
+    saga: "The Multiverse Saga",
+    phases: [
+      {
+        phase: "Phase 4",
+        movies: [
+          { id: "bw", title: "Black Widow", year: "2021" },
+          { id: "sc", title: "Shang-Chi and the Legend of the Ten Rings", year: "2021" },
+          { id: "et", title: "Eternals", year: "2021" },
+          { id: "sm3", title: "Spider-Man: No Way Home", year: "2021" },
+          { id: "ds2", title: "Doctor Strange in the Multiverse of Madness", year: "2022" },
+          { id: "th4", title: "Thor: Love and Thunder", year: "2022" },
+          { id: "bp2", title: "Black Panther: Wakanda Forever", year: "2022" }
+        ]
+      },
+      {
+        phase: "Phase 5",
+        movies: [
+          { id: "am3", title: "Ant-Man and the Wasp: Quantumania", year: "2023" },
+          { id: "gotg3", title: "Guardians of the Galaxy Vol. 3", year: "2023" },
+          { id: "tm", title: "The Marvels", year: "2023" },
+          { id: "dw", title: "Deadpool & Wolverine", year: "2024" },
+          { id: "ca4", title: "Captain America: Brave New World", year: "2025" },
+          { id: "tb", title: "Thunderbolts*", year: "2025" }
+        ]
+      },
+      {
+        phase: "Phase 6",
+        movies: [
+          { id: "ff", title: "The Fantastic Four: First Steps", year: "2025", upcoming: true },
+          { id: "av5", title: "Avengers: Doomsday", year: "2026", upcoming: true },
+          { id: "sm4", title: "Spider-Man 4", year: "2026", upcoming: true },
+          { id: "av6", title: "Avengers: Secret Wars", year: "2027", upcoming: true }
+        ]
+      }
+    ]
   }
+];
 
-  /* Header */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(10,9,8,0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-  }
-  .logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--gold);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .logo span { color: var(--text2); font-weight: 400; font-style: italic; font-size: 1rem; }
+export default function App() {
+  const [watchedIds, setWatchedIds] = useState(new Set());
+  const [toast, setToast] = useState(null);
 
-  .header-right { display: flex; align-items: center; gap: 1rem; }
-
-  .file-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--text2);
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 400;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.04em;
-  }
-  .file-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
-  .file-btn.connected { border-color: var(--green); color: #6db882; }
-  .file-btn svg { width:14px; height:14px; flex-shrink:0; }
-
-  .sync-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--text3);
-    transition: background 0.3s;
-  }
-  .sync-dot.active { background: #6db882; animation: pulse 2s infinite; }
-  .sync-dot.syncing { background: var(--gold); }
-
-  @keyframes pulse {
-    0%,100% { opacity:1; } 50% { opacity:0.4; }
-  }
-
-  /* Stats bar */
-  .stats-bar {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    height: 52px;
-    overflow-x: auto;
-  }
-  .stat {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .stat-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: var(--gold);
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 0.7rem;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    line-height: 1.3;
-  }
-  .stat-sep { width: 1px; height: 28px; background: var(--border); }
-
-  .total-bar-wrap {
-    flex: 1;
-    min-width: 120px;
-    max-width: 280px;
-  }
-  .total-bar-track {
-    height: 3px;
-    background: var(--border2);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 4px;
-  }
-  .total-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright));
-    border-radius: 2px;
-    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-  }
-
-  /* Main content */
-  main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
-
-  /* Empty state */
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 60vh;
-    text-align: center;
-    gap: 1.5rem;
-  }
-  .empty-icon {
-    width: 72px; height: 72px;
-    border: 1px solid var(--border2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text3);
-  }
-  .empty-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 2rem;
-    color: var(--text2);
-  }
-  .empty-sub { font-size: 0.9rem; color: var(--text3); max-width: 360px; line-height: 1.6; }
-  .empty-btn {
-    background: var(--gold);
-    color: #0a0908;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 4px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-    letter-spacing: 0.04em;
-  }
-  .empty-btn:hover { background: var(--gold-bright); }
-
-  /* Saga section */
-  .saga {
-    margin-bottom: 3rem;
-  }
-  .saga-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.75rem;
-    font-weight: 400;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  /* Phase */
-  .phase { margin-bottom: 2rem; }
-  .phase-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  .phase-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--text);
-    white-space: nowrap;
-  }
-  .phase-count {
-    font-size: 0.75rem;
-    color: var(--text3);
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-  }
-  .phase-bar-wrap {
-    flex: 1;
-    height: 2px;
-    background: var(--border);
-    border-radius: 1px;
-    overflow: hidden;
-  }
-  .phase-bar-fill {
-    height: 100%;
-    background: var(--gold-dim);
-    border-radius: 1px;
-    transition: width 0.5s ease;
-  }
-  .phase-bar-fill.full { background: var(--gold); }
-
-  /* Movie grid */
-  .movie-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-  }
-
-  /* Movie card */
-  .movie-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-    user-select: none;
-  }
-  .movie-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(201,168,76,0.04) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  .movie-card:hover { border-color: var(--border2); background: var(--card2); transform: translateY(-1px); }
-  .movie-card:hover::before { opacity: 1; }
-  .movie-card.watched {
-    background: var(--green-bg);
-    border-color: rgba(74,140,92,0.3);
-  }
-  .movie-card.watched:hover { border-color: rgba(74,140,92,0.5); }
-  .movie-card.upcoming { opacity: 0.6; cursor: default; }
-  .movie-card.upcoming:hover { transform: none; }
-
-  .movie-check {
-    width: 16px; height: 16px;
-    border: 1px solid var(--border2);
-    border-radius: 3px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.2s;
-  }
-  .movie-card.watched .movie-check {
-    background: var(--green);
-    border-color: var(--green);
-  }
-  .movie-check svg { width:10px; height:10px; display:none; }
-  .movie-card.watched .movie-check svg { display:block; }
-
-  .movie-title {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1.35;
-    margin-bottom: 6px;
-  }
-  .movie-card.watched .movie-title { color: #7dba93; }
-
-  .movie-year {
-    font-size: 0.7rem;
-    color: var(--text3);
-    letter-spacing: 0.04em;
-  }
-
-  .movie-watch-date {
-    font-size: 0.68rem;
-    color: #4a8c5c;
-    margin-top: 4px;
-    letter-spacing: 0.02em;
-  }
-
-  .movie-upcoming-badge {
-    font-size: 0.65rem;
-    color: var(--gold-dim);
-    margin-top: 4px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--card2);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    padding: 12px 24px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    z-index: 500;
-    white-space: nowrap;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* No file warning */
-  .no-api { 
-    display:none;
-    background: rgba(140,74,74,0.15);
-    border: 1px solid rgba(140,74,74,0.3);
-    color: #c98080;
-    padding: 12px 20px;
-    border-radius: 6px;
-    font-size: 0.82rem;
-    margin-bottom: 1.5rem;
-    line-height: 1.5;
-  }
-
-  .shimmer {
-    animation: shimmer 0.5s ease;
-  }
-  @keyframes shimmer {
-    0% { opacity: 0.6; } 100% { opacity: 1; }
-  }
-</style>
-</head>
-<body>
-
-<header>
-  <div class="logo">MCU <span>Tracker</span></div>
-  <div class="header-right">
-    <div class="sync-dot" id="syncDot" title="Sync status"></div>
-    <button class="file-btn" id="exportBtn" onclick="exportFile()" style="display:none">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M8 2v8M5 7l3 3 3-3M3 12h10"/>
-      </svg>
-      Export .md
-    </button>
-    <button class="file-btn" id="fileBtn" onclick="openFile()">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M2 4a1 1 0 011-1h4l1.5 1.5H13a1 1 0 011 1V12a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/>
-      </svg>
-      Import .md
-    </button>
-  </div>
-</header>
-
-<div class="stats-bar" id="statsBar" style="display:none">
-  <div class="stat">
-    <div class="stat-num" id="statWatched">0</div>
-    <div class="stat-label">Watched</div>
-  </div>
-  <div class="stat-sep"></div>
-  <div class="stat">
-    <div class="stat-num" id="statTotal">0</div>
-    <div class="stat-label">Total Films</div>
-  </div>
-  <div class="stat-sep"></div>
-  <div class="stat">
-    <div class="stat-num" id="statRemain">0</div>
-    <div class="stat-label">Remaining</div>
-  </div>
-  <div class="stat-sep"></div>
-  <div class="total-bar-wrap">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div class="stat-label">Progress</div>
-      <div class="stat-label" id="statPct">0%</div>
-    </div>
-    <div class="total-bar-track">
-      <div class="total-bar-fill" id="totalBarFill" style="width:0%"></div>
-    </div>
-  </div>
-</div>
-
-<main id="main">
-  <div class="empty-state" id="emptyState">
-    <div class="empty-icon">
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2">
-        <rect x="4" y="6" width="24" height="22" rx="2"/>
-        <path d="M4 11h24M10 6V4M22 6V4M9 16h6M9 20h10"/>
-      </svg>
-    </div>
-    <div class="empty-title">Import your watchlist</div>
-    <div class="empty-sub">Import your MCU markdown file once — your progress is saved in the browser so you can click films to mark them watched anytime, no file needed after that.</div>
-    <button class="empty-btn" onclick="openFile()">Import .md file</button>
-    <div class="no-api" id="noApiWarning" style="display:none"></div>
-  </div>
-  <div id="content" style="display:none"></div>
-</main>
-
-<div class="toast" id="toast"></div>
-
-<script>
-const LS_KEY = 'mcu-tracker-content';
-let fileHandle = null;
-let currentContent = '';
-const today = new Date();
-
-// ── Boot: load from localStorage if available ─────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem(LS_KEY);
-  if (saved) {
-    currentContent = saved;
-    renderContent(saved);
-    setSyncDot('active');
-    document.getElementById('exportBtn').style.display = 'flex';
-  }
-});
-
-// ── Helpers ───────────────────────────────────────────────────────────────
-function fmtDate(d) {
-  return d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
-}
-function todayStr() { return fmtDate(today); }
-
-function setSyncDot(state) {
-  const dot = document.getElementById('syncDot');
-  dot.className = 'sync-dot' + (state ? ' ' + state : '');
-}
-
-function normalize(s) { return s.toLowerCase().replace(/[^a-z0-9]/g,''); }
-
-function extractTitle(line) {
-  const m = line.match(/^\s*-\s*\[[ xX]\]\s*(.+)/);
-  if (!m) return null;
-  let t = m[1];
-  t = t.replace(/\s*—\s*✅.*$/, '').replace(/\s*\([^)]*\)\s*$/, '');
-  return t.trim();
-}
-function extractYear(line) {
-  const m = line.match(/\(([^)]+)\)/);
-  return m ? m[1] : '';
-}
-function extractWatchDate(line) {
-  const m = line.match(/✅\s*(.+)$/);
-  return m ? m[1].trim() : null;
-}
-function isUpcoming(yearStr) {
-  const m = yearStr.match(/(\d{4})/);
-  if (!m) return false;
-  const y = parseInt(m[1]);
-  if (y > today.getFullYear()) return true;
-  if (y === today.getFullYear()) {
-    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const monthM = yearStr.match(/(January|February|March|April|May|June|July|August|September|October|November|December)/i);
-    if (monthM) {
-      const month = monthNames.findIndex(mn => mn.toLowerCase() === monthM[1].toLowerCase());
-      return month > today.getMonth();
-    }
-  }
-  return false;
-}
-
-// ── Save helpers ──────────────────────────────────────────────────────────
-function saveToLocalStorage(content) {
-  localStorage.setItem(LS_KEY, content);
-  currentContent = content;
-}
-
-async function saveToFile(content) {
-  if (!fileHandle) return;
-  try {
-    const writable = await fileHandle.createWritable();
-    await writable.write(content);
-    await writable.close();
-  } catch(e) {
-    showToast('File sync failed — progress saved in browser.');
-  }
-}
-
-// ── Import .md file ───────────────────────────────────────────────────────
-async function openFile() {
-  // Always support manual text import as fallback
-  if (!window.showOpenFilePicker) {
-    // Fallback: hidden input
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.md,.txt';
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (!file) return;
-      const text = await file.text();
-      saveToLocalStorage(text);
-      renderContent(text);
-      setSyncDot('active');
-      document.getElementById('exportBtn').style.display = 'flex';
-      showToast('Imported · progress saved in browser');
-    };
-    input.click();
-    return;
-  }
-  try {
-    [fileHandle] = await window.showOpenFilePicker({
-      types: [{ description: 'Markdown', accept: {'text/markdown': ['.md','.txt']} }]
+  // Calculate Stats
+  const stats = useMemo(() => {
+    let total = 0;
+    let released = 0;
+    
+    mcuData.forEach(saga => {
+      saga.phases.forEach(phase => {
+        phase.movies.forEach(movie => {
+          total++;
+          if (!movie.upcoming) released++;
+        });
+      });
     });
-    const file = await fileHandle.getFile();
-    const content = await file.text();
-    saveToLocalStorage(content);
-    renderContent(content);
-    setSyncDot('active');
-    document.getElementById('fileBtn').innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4a1 1 0 011-1h4l1.5 1.5H13a1 1 0 011 1V12a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/></svg> ${fileHandle.name}`;
-    document.getElementById('fileBtn').classList.add('connected');
-    document.getElementById('exportBtn').style.display = 'flex';
-    showToast('Imported · progress saved in browser');
-  } catch(e) {
-    if (e.name !== 'AbortError') showToast('Could not open file.');
-  }
-}
 
-// ── Export .md file ───────────────────────────────────────────────────────
-function exportFile() {
-  const blob = new Blob([currentContent], { type: 'text/markdown' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'mcu-watchlist.md';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showToast('Downloaded mcu-watchlist.md');
-}
+    return {
+      total,
+      released,
+      watched: watchedIds.size,
+      remaining: released - watchedIds.size,
+      percent: released === 0 ? 0 : Math.round((watchedIds.size / released) * 100)
+    };
+  }, [watchedIds]);
 
-// ── Toggle watched ────────────────────────────────────────────────────────
-async function toggleWatch(title, watched) {
-  const lines = currentContent.split('\n');
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2500);
+  };
 
-  for (let i = 0; i < lines.length; i++) {
-    const titleInLine = extractTitle(lines[i]);
-    if (!titleInLine || normalize(titleInLine) !== normalize(title)) continue;
-
-    if (!watched) {
-      lines[i] = lines[i]
-        .replace(/^(\s*-\s*)\[ \]/, '$1[x]')
-        .replace(/\s*—\s*✅.*$/, '');
-      if (!lines[i].includes('✅')) {
-        lines[i] = lines[i].replace(/(\([^)]+\))\s*$/, `$1 — ✅ ${todayStr()}`);
-        if (!lines[i].includes('✅')) lines[i] = lines[i].trimEnd() + ` — ✅ ${todayStr()}`;
+  const toggleWatch = (movie) => {
+    if (movie.upcoming) return;
+    
+    setWatchedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(movie.id)) {
+        newSet.delete(movie.id);
+        showToast(`Removed "${movie.title}"`);
+      } else {
+        newSet.add(movie.id);
+        showToast(`Marked "${movie.title}" as Watched!`);
       }
-      showToast('Marked as watched · ' + todayStr());
-    } else {
-      lines[i] = lines[i]
-        .replace(/^(\s*-\s*)\[x\]/i, '$1[ ]')
-        .replace(/\s*—\s*✅.*$/, '');
-      showToast('Removed from watched');
-    }
-    break;
-  }
+      return newSet;
+    });
+  };
 
-  const newContent = lines.join('\n');
-  saveToLocalStorage(newContent);
-  await saveToFile(newContent);   // no-op if no file handle
-  renderContent(newContent);
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-300 font-sans selection:bg-amber-500/30">
+      
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-amber-500 font-bold text-xl tracking-wider">
+            <Clapperboard className="w-6 h-6" />
+            <span>MCU<span className="text-slate-100 font-light ml-1">TRACKER</span></span>
+          </div>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <div className="hidden sm:flex items-center gap-2 text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20">
+              <Sparkles className="w-4 h-4" />
+              <span>In-Memory Session Active</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Stats Bar */}
+      <div className="bg-slate-900/50 border-b border-slate-800 p-4">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-6 sm:gap-12">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
+              <Award className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-amber-500 leading-none">{stats.watched}</div>
+              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Watched</div>
+            </div>
+          </div>
+          
+          <div className="hidden sm:block w-px h-10 bg-slate-800" />
+          
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-slate-800 rounded-lg text-slate-400">
+              <Film className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-slate-200 leading-none">{stats.released}</div>
+              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Released Films</div>
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-[200px]">
+            <div className="flex justify-between items-end mb-2">
+              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Progress</div>
+              <div className="text-sm font-bold text-amber-500">{stats.percent}%</div>
+            </div>
+            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-700 ease-out"
+                style={{ width: `${stats.percent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-8 pb-24">
+        {mcuData.map((saga, sIdx) => (
+          <div key={sIdx} className="mb-12">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-6 border-b border-slate-800 pb-2">
+              {saga.saga}
+            </h2>
+
+            {saga.phases.map((phase, pIdx) => {
+              const phaseMovies = phase.movies;
+              const watchedInPhase = phaseMovies.filter(m => watchedIds.has(m.id)).length;
+              const releasedInPhase = phaseMovies.filter(m => !m.upcoming).length;
+              const phasePercent = releasedInPhase === 0 ? 0 : Math.round((watchedInPhase / releasedInPhase) * 100);
+
+              return (
+                <div key={pIdx} className="mb-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-slate-100 flex items-center gap-3">
+                      {phase.phase}
+                    </h3>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-slate-400 font-mono">{watchedInPhase} / {releasedInPhase}</span>
+                      <div className="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden hidden sm:block">
+                        <div 
+                          className="h-full bg-amber-500 transition-all duration-500"
+                          style={{ width: `${phasePercent}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {phaseMovies.map(movie => {
+                      const isWatched = watchedIds.has(movie.id);
+                      
+                      return (
+                        <div
+                          key={movie.id}
+                          onClick={() => toggleWatch(movie)}
+                          className={`
+                            relative group p-4 rounded-xl border transition-all duration-200 select-none flex flex-col justify-between min-h-[140px]
+                            ${movie.upcoming 
+                              ? 'bg-slate-900/20 border-slate-800/50 opacity-60 cursor-not-allowed' 
+                              : isWatched
+                                ? 'bg-emerald-950/20 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)] cursor-pointer hover:border-emerald-500/60 hover:-translate-y-1'
+                                : 'bg-slate-900 border-slate-800 cursor-pointer hover:border-amber-500/50 hover:bg-slate-800/80 hover:-translate-y-1 shadow-lg'
+                            }
+                          `}
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div className={`
+                              w-6 h-6 rounded flex items-center justify-center transition-colors
+                              ${movie.upcoming ? 'bg-slate-800/50 border border-slate-700/50' : 
+                                isWatched ? 'bg-emerald-500 text-slate-950' : 'border border-slate-600 bg-slate-800/50 group-hover:border-amber-500/50'}
+                            `}>
+                              {isWatched && <Check className="w-4 h-4 stroke-[3]" />}
+                            </div>
+                            {movie.upcoming && (
+                              <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                                Upcoming
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <h4 className={`font-semibold leading-tight mb-1.5 ${isWatched ? 'text-emerald-400' : 'text-slate-200'}`}>
+                              {movie.title}
+                            </h4>
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                              <Calendar className="w-3 h-3" />
+                              {movie.year}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </main>
+
+      {/* Toast Notification */}
+      <div className={`
+        fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-slate-800 text-slate-200 
+        shadow-2xl border border-slate-700 font-medium transition-all duration-300 flex items-center gap-2 z-50
+        ${toast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'}
+      `}>
+        {toast?.includes('Marked') ? <Check className="w-4 h-4 text-emerald-400" /> : <Film className="w-4 h-4 text-slate-400" />}
+        {toast}
+      </div>
+
+    </div>
+  );
 }
-
-// ── Render ────────────────────────────────────────────────────────────────
-function renderContent(md) {
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('statsBar').style.display = 'flex';
-  document.getElementById('content').style.display = 'block';
-
-  const lines = md.split('\n');
-  const sagas = [];
-  let curSaga = null, curPhase = null;
-
-  for (const line of lines) {
-    const sagaM = line.match(/^###\s+(.+)/);
-    if (sagaM && !line.match(/^####/)) {
-      curSaga = { title: sagaM[1].replace(/\*+/g,'').trim(), phases: [] };
-      sagas.push(curSaga);
-      curPhase = null;
-      continue;
-    }
-    const phaseM = line.match(/^#{2,4}\s+(.+)/);
-    if (phaseM) {
-      if (!curSaga) { curSaga = { title: '', phases: [] }; sagas.push(curSaga); }
-      curPhase = { title: phaseM[1].replace(/\*+/g,'').trim(), movies: [] };
-      curSaga.phases.push(curPhase);
-      continue;
-    }
-    const movieM = line.match(/^\s*[-*]\s*\[([xX ])\]\s*(.+)/);
-    if (movieM) {
-      if (!curPhase) {
-        if (!curSaga) { curSaga = { title:'', phases:[] }; sagas.push(curSaga); }
-        curPhase = { title: '', movies: [] };
-        curSaga.phases.push(curPhase);
-      }
-      const checked = movieM[1].toLowerCase() === 'x';
-      const rest = movieM[2];
-      const title = rest.replace(/\s*—\s*✅.*$/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
-      const yearStr = extractYear(rest) || '';
-      const watchDate = extractWatchDate(rest);
-      curPhase.movies.push({ title, yearStr, watched: checked, watchDate, upcoming: !checked && isUpcoming(yearStr) });
-    }
-  }
-
-  let totalWatched = 0, totalMovies = 0;
-  let html = '';
-
-  for (const saga of sagas) {
-    if (!saga.phases.length) continue;
-    const allMovies = saga.phases.flatMap(p => p.movies);
-    if (!allMovies.length) continue;
-    html += `<div class="saga">`;
-    if (saga.title) html += `<div class="saga-title">${saga.title}</div>`;
-
-    for (const phase of saga.phases) {
-      if (!phase.movies.length) continue;
-      const pw = phase.movies.filter(m => m.watched).length;
-      const pt = phase.movies.length;
-      const pct = pt ? Math.round(pw/pt*100) : 0;
-      totalWatched += pw; totalMovies += pt;
-      const fullClass = pw === pt ? ' full' : '';
-
-      html += `<div class="phase">`;
-      html += `<div class="phase-header">
-        <div class="phase-name">${phase.title || 'Films'}</div>
-        <div class="phase-bar-wrap"><div class="phase-bar-fill${fullClass}" style="width:${pct}%"></div></div>
-        <div class="phase-count">${pw}/${pt}</div>
-      </div>`;
-      html += `<div class="movie-grid">`;
-
-      for (const movie of phase.movies) {
-        const cls = movie.watched ? ' watched' : (movie.upcoming ? ' upcoming' : '');
-        const checkmark = movie.watched ? `<svg viewBox="0 0 10 8" fill="none" stroke="white" stroke-width="1.8"><polyline points="1,4 4,7 9,1"/></svg>` : '';
-        const dateEl = movie.watchDate ? `<div class="movie-watch-date">Watched ${movie.watchDate}</div>` : '';
-        const upcomingEl = movie.upcoming ? `<div class="movie-upcoming-badge">Upcoming</div>` : '';
-        const clickAttr = movie.upcoming ? '' : `onclick="toggleWatch(${JSON.stringify(movie.title)}, ${movie.watched})"`;
-        html += `<div class="movie-card${cls}" ${clickAttr}>
-          <div class="movie-check">${checkmark}</div>
-          <div class="movie-title">${movie.title}</div>
-          <div class="movie-year">${movie.yearStr}</div>
-          ${dateEl}${upcomingEl}
-        </div>`;
-      }
-      html += `</div></div>`;
-    }
-    html += `</div>`;
-  }
-
-  document.getElementById('content').innerHTML = html;
-  updateStats(totalWatched, totalMovies);
-}
-
-function updateStats(w, t) {
-  document.getElementById('statWatched').textContent = w;
-  document.getElementById('statTotal').textContent = t;
-  document.getElementById('statRemain').textContent = t - w;
-  const pct = t ? Math.round(w/t*100) : 0;
-  document.getElementById('statPct').textContent = pct + '%';
-  document.getElementById('totalBarFill').style.width = pct + '%';
-}
-
-let toastTimer;
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
-}
-</script>
-</body>
-</html>
