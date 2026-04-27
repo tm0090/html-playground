@@ -3,518 +3,445 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCU Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>MCU Tracker - Live</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
-  :root {
-    --gold: #c9a84c;
-    --gold-dim: #8a6e2f;
-    --gold-bright: #e8c76a;
-    --bg: #0a0908;
-    --bg2: #111009;
-    --bg3: #161410;
-    --card: #1a1714;
-    --card2: #201d19;
-    --border: #2e2a24;
-    --border2: #3d3830;
-    --text: #e8e0d0;
-    --text2: #9a9080;
-    --text3: #5a5448;
-    --green: #4a8c5c;
-    --green-bg: #162218;
-    --red: #8c4a4a;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior: smooth; }
   body {
-    background: var(--bg);
-    color: var(--text);
     font-family: 'Outfit', sans-serif;
-    font-weight: 300;
-    min-height: 100vh;
+    background-color: #020617; /* slate-950 */
+    color: #cbd5e1; /* slate-300 */
     overflow-x: hidden;
   }
+  
+  /* Subtle film grain overlay */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
     pointer-events: none;
-    z-index: 1000;
-    opacity: 0.4;
+    z-index: 9999;
   }
-  header {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(10,9,8,0.92);
+
+  .glass-header {
+    background: rgba(2, 6, 23, 0.85);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 64px;
-  }
-  .logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.5rem; font-weight: 600;
-    color: var(--gold);
-    letter-spacing: 0.08em; text-transform: uppercase;
-  }
-  .logo span { color: var(--text2); font-weight: 400; font-style: italic; font-size: 1rem; }
-  .header-right { display: flex; align-items: center; gap: 0.75rem; }
-  .hdr-btn {
-    display: flex; align-items: center; gap: 7px;
-    background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--text2);
-    padding: 7px 14px;
-    border-radius: 4px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.78rem; font-weight: 400;
-    cursor: pointer; transition: all 0.2s;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
-  .hdr-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
-  .hdr-btn.danger:hover { border-color: var(--red); color: #c98080; }
-  .hdr-btn svg { width:13px; height:13px; flex-shrink:0; }
-
-  .stats-bar {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex; align-items: center; gap: 2rem;
-    height: 52px; overflow-x: auto;
-  }
-  .stat { display: flex; align-items: center; gap: 10px; white-space: nowrap; flex-shrink: 0; }
-  .stat-num {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.4rem; font-weight: 600;
-    color: var(--gold); line-height: 1;
-  }
-  .stat-label { font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; line-height: 1.3; }
-  .stat-sep { width: 1px; height: 28px; background: var(--border); }
-  .total-bar-wrap { flex: 1; min-width: 120px; max-width: 280px; }
-  .total-bar-track { height: 3px; background: var(--border2); border-radius: 2px; overflow: hidden; margin-top: 4px; }
-  .total-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright));
-    border-radius: 2px;
-    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    -webkit-backdrop-filter: blur(12px);
   }
 
-  main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #0f172a; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-  .saga { margin-bottom: 3rem; }
-  .saga-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.75rem; font-weight: 400;
-    color: var(--text3); text-transform: uppercase; letter-spacing: 0.2em;
-    margin-bottom: 0.5rem; padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .phase { margin-bottom: 2rem; }
-  .phase-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-  .phase-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.3rem; font-weight: 600; color: var(--text); white-space: nowrap;
-  }
-  .phase-count { font-size: 0.75rem; color: var(--text3); letter-spacing: 0.05em; white-space: nowrap; }
-  .phase-bar-wrap { flex: 1; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
-  .phase-bar-fill { height: 100%; background: var(--gold-dim); border-radius: 1px; transition: width 0.5s ease; }
-  .phase-bar-fill.full { background: var(--gold); }
-
-  .movie-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-  }
-  .movie-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative; overflow: hidden;
-    user-select: none;
-  }
-  .movie-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(201,168,76,0.04) 0%, transparent 60%);
-    opacity: 0; transition: opacity 0.2s;
-  }
-  .movie-card:hover { border-color: var(--border2); background: var(--card2); transform: translateY(-1px); }
-  .movie-card:hover::before { opacity: 1; }
-  .movie-card.watched { background: var(--green-bg); border-color: rgba(74,140,92,0.3); }
-  .movie-card.watched:hover { border-color: rgba(74,140,92,0.5); }
-  .movie-card.upcoming { opacity: 0.6; cursor: default; }
-  .movie-card.upcoming:hover { transform: none; }
-
-  .movie-check {
-    width: 16px; height: 16px;
-    border: 1px solid var(--border2);
-    border-radius: 3px;
-    margin-bottom: 10px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: all 0.2s;
-  }
-  .movie-card.watched .movie-check { background: var(--green); border-color: var(--green); }
-  .movie-check svg { width:10px; height:10px; display:none; }
-  .movie-card.watched .movie-check svg { display:block; }
-  .movie-title { font-size: 0.85rem; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 6px; }
-  .movie-card.watched .movie-title { color: #7dba93; }
-  .movie-year { font-size: 0.7rem; color: var(--text3); letter-spacing: 0.04em; }
-  .movie-watch-date { font-size: 0.68rem; color: #4a8c5c; margin-top: 4px; letter-spacing: 0.02em; }
-  .movie-upcoming-badge { font-size: 0.65rem; color: var(--gold-dim); margin-top: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
-
-  .toast {
-    position: fixed; bottom: 2rem; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--card2); border: 1px solid var(--border2);
-    color: var(--text); padding: 12px 24px; border-radius: 6px;
-    font-size: 0.85rem;
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    z-index: 500; white-space: nowrap;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* Reset modal */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7); z-index: 900;
-    align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--card); border: 1px solid var(--border2);
-    border-radius: 8px; padding: 2rem; max-width: 360px; width: 90%;
-    text-align: center;
-  }
-  .modal h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--text); margin-bottom: 0.75rem; }
-  .modal p { font-size: 0.85rem; color: var(--text2); line-height: 1.6; margin-bottom: 1.5rem; }
-  .modal-btns { display: flex; gap: 0.75rem; justify-content: center; }
-  .modal-btn {
-    padding: 9px 22px; border-radius: 4px;
-    font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 500;
-    cursor: pointer; transition: all 0.2s; border: 1px solid var(--border2); 
-  }
-  .modal-btn.cancel { background: transparent; color: var(--text2); }
-  .modal-btn.cancel:hover { border-color: var(--gold-dim); color: var(--gold); }
-  .modal-btn.confirm { background: var(--red); color: #f0d8d8; border-color: var(--red); }
-  .modal-btn.confirm:hover { background: #a05858; }
+  /* Toast Animation */
+  .toast-enter { transform: translate(-50%, 100px); opacity: 0; }
+  .toast-active { transform: translate(-50%, 0); opacity: 1; }
 </style>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          slate: { 850: '#151f32', 950: '#020617' }
+        }
+      }
+    }
+  }
+</script>
 </head>
-<body>
+<body class="min-h-screen selection:bg-amber-500/30 pb-24">
 
-<header>
-  <div class="logo">MCU <span>Tracker</span></div>
-  <div class="header-right">
-    <button class="hdr-btn" onclick="exportMd()">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M3 12h10"/></svg>
-      Export .md
-    </button>
-    <button class="hdr-btn danger" onclick="document.getElementById('resetModal').classList.add('open')">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l10 10M13 3L3 13"/></svg>
-      Reset
-    </button>
+<!-- Header -->
+<header class="glass-header sticky top-0 z-50 border-b border-slate-800 transition-all duration-300">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-2 text-amber-500 font-bold text-xl tracking-wider">
+      <i data-lucide="clapperboard" class="w-6 h-6"></i>
+      <span>MCU<span class="text-slate-100 font-light ml-1">TRACKER</span></span>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <button onclick="toggleView()" id="viewToggleBtn" class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white hover:border-slate-500 transition-colors">
+        <i data-lucide="code" class="w-4 h-4"></i> Raw Editor
+      </button>
+
+      <div class="h-6 w-px bg-slate-800 mx-1"></div>
+
+      <input type="file" id="fileInput" accept=".md,.txt" class="hidden" onchange="handleFileSelect(event)">
+      <button onclick="document.getElementById('fileInput').click()" class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 transition-colors">
+        <i data-lucide="folder-open" class="w-4 h-4 text-amber-500"></i> <span class="hidden sm:inline">Import</span>
+      </button>
+      
+      <button onclick="exportMarkdown()" id="exportBtn" style="display:none" class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+        <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden sm:inline">Export</span>
+      </button>
+    </div>
   </div>
 </header>
 
-<div class="stats-bar">
-  <div class="stat">
-    <div class="stat-num" id="statWatched">0</div>
-    <div class="stat-label">Watched</div>
-  </div>
-  <div class="stat-sep"></div>
-  <div class="stat">
-    <div class="stat-num" id="statTotal">0</div>
-    <div class="stat-label">Total Films</div>
-  </div>
-  <div class="stat-sep"></div>
-  <div class="stat">
-    <div class="stat-num" id="statRemain">0</div>
-    <div class="stat-label">Remaining</div>
-  </div>
-  <div class="stat-sep"></div>
-  <div class="total-bar-wrap">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div class="stat-label">Progress</div>
-      <div class="stat-label" id="statPct">0%</div>
+<!-- Stats Bar -->
+<div id="statsBar" style="display:none" class="bg-slate-900/50 border-b border-slate-800 p-4">
+  <div class="max-w-6xl mx-auto flex flex-wrap items-center gap-6 sm:gap-12">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20">
+        <i data-lucide="award" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <div id="statWatched" class="text-2xl font-bold text-emerald-400 leading-none">0</div>
+        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1">Watched</div>
+      </div>
     </div>
-    <div class="total-bar-track">
-      <div class="total-bar-fill" id="totalBarFill" style="width:0%"></div>
+    
+    <div class="hidden sm:block w-px h-10 bg-slate-800"></div>
+    
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-slate-800 rounded-lg text-slate-400 border border-slate-700">
+        <i data-lucide="film" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <div id="statTotal" class="text-2xl font-bold text-slate-200 leading-none">0</div>
+        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1">Total Films</div>
+      </div>
+    </div>
+
+    <div class="flex-1 min-w-[200px]">
+      <div class="flex justify-between items-end mb-2">
+        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Completion</div>
+        <div id="statPct" class="text-sm font-bold text-emerald-400">0%</div>
+      </div>
+      <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-700 ease-out" style="width: 0%"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<main>
-  <div id="content"></div>
+<!-- Empty State -->
+<main id="emptyState" class="max-w-3xl mx-auto px-4 py-24 flex flex-col items-center text-center">
+  <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center border border-slate-700 mb-6 text-slate-400">
+    <i data-lucide="file-text" class="w-10 h-10"></i>
+  </div>
+  <h1 class="text-3xl font-bold text-white mb-4">Load your Watchlist</h1>
+  <p class="text-slate-400 mb-8 max-w-md">Import your MCU markdown file once. It will be saved securely in your browser so you can track and edit it anytime without needing to reload the file.</p>
+  <button onclick="document.getElementById('fileInput').click()" class="px-6 py-3 bg-amber-500 text-slate-950 font-semibold rounded-lg hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 flex items-center gap-2">
+    <i data-lucide="folder-open" class="w-5 h-5"></i>
+    Select .md File
+  </button>
 </main>
 
-<div class="toast" id="toast"></div>
+<!-- Main Visual Content -->
+<main id="visualView" style="display:none" class="max-w-6xl mx-auto px-4 py-8"></main>
 
-<!-- Reset modal -->
-<div class="modal-overlay" id="resetModal">
-  <div class="modal">
-    <h3>Reset all progress?</h3>
-    <p>This will clear every watched date and mark all films as unwatched. This cannot be undone.</p>
-    <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="document.getElementById('resetModal').classList.remove('open')">Cancel</button>
-      <button class="modal-btn confirm" onclick="resetAll()">Reset</button>
+<!-- Raw Editor Content -->
+<main id="editorView" style="display:none" class="max-w-6xl mx-auto px-4 py-8">
+  <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[70vh]">
+    <div class="bg-slate-800/50 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
+      <div class="flex items-center gap-2 text-sm font-medium text-slate-300">
+        <i data-lucide="terminal" class="w-4 h-4"></i> Markdown Source
+      </div>
+      <span class="text-xs text-slate-500">Auto-saves as you type</span>
     </div>
+    <textarea id="rawEditor" oninput="handleEditorInput()" class="flex-1 w-full bg-transparent p-6 text-slate-300 font-mono text-sm leading-relaxed focus:outline-none resize-none" spellcheck="false"></textarea>
   </div>
+</main>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 left-1/2 toast-enter bg-slate-800 text-slate-200 px-6 py-3 rounded-full shadow-2xl border border-slate-700 font-medium transition-all duration-300 flex items-center gap-2 z-50 pointer-events-none">
+  <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400" id="toastIcon"></i>
+  <span id="toastMsg">Saved</span>
 </div>
 
 <script>
-// ─────────────────────────────────────────────
-// MCU DATA — edit titles/years here if needed
-// ─────────────────────────────────────────────
-const MCU = [
-  {
-    saga: 'The Infinity Saga',
-    phases: [
-      {
-        name: 'Phase One',
-        movies: [
-          { title: 'Iron Man', year: '2008' },
-          { title: 'The Incredible Hulk', year: '2008' },
-          { title: 'Iron Man 2', year: '2010' },
-          { title: 'Thor', year: '2011' },
-          { title: 'Captain America: The First Avenger', year: '2011' },
-          { title: 'The Avengers', year: '2012' },
-        ]
-      },
-      {
-        name: 'Phase Two',
-        movies: [
-          { title: 'Iron Man 3', year: '2013' },
-          { title: 'Thor: The Dark World', year: '2013' },
-          { title: 'Captain America: The Winter Soldier', year: '2014' },
-          { title: 'Guardians of the Galaxy', year: '2014' },
-          { title: 'Avengers: Age of Ultron', year: '2015' },
-          { title: 'Ant-Man', year: '2015' },
-        ]
-      },
-      {
-        name: 'Phase Three',
-        movies: [
-          { title: 'Captain America: Civil War', year: '2016' },
-          { title: 'Doctor Strange', year: '2016' },
-          { title: 'Guardians of the Galaxy Vol. 2', year: '2017' },
-          { title: 'Spider-Man: Homecoming', year: '2017' },
-          { title: 'Thor: Ragnarok', year: '2017' },
-          { title: 'Black Panther', year: '2018' },
-          { title: 'Avengers: Infinity War', year: '2018' },
-          { title: 'Ant-Man and the Wasp', year: '2018' },
-          { title: 'Captain Marvel', year: '2019' },
-          { title: 'Avengers: Endgame', year: '2019' },
-          { title: 'Spider-Man: Far From Home', year: '2019' },
-        ]
-      }
-    ]
-  },
-  {
-    saga: 'The Multiverse Saga',
-    phases: [
-      {
-        name: 'Phase Four',
-        movies: [
-          { title: 'Black Widow', year: '2021' },
-          { title: 'Shang-Chi and the Legend of the Ten Rings', year: '2021' },
-          { title: 'Eternals', year: '2021' },
-          { title: 'Spider-Man: No Way Home', year: '2021' },
-          { title: 'Doctor Strange in the Multiverse of Madness', year: '2022' },
-          { title: 'Thor: Love and Thunder', year: '2022' },
-          { title: 'Black Panther: Wakanda Forever', year: '2022' },
-        ]
-      },
-      {
-        name: 'Phase Five',
-        movies: [
-          { title: 'Ant-Man and the Wasp: Quantumania', year: '2023' },
-          { title: 'Guardians of the Galaxy Vol. 3', year: '2023' },
-          { title: 'The Marvels', year: '2023' },
-          { title: 'Deadpool & Wolverine', year: '2024' },
-          { title: 'Captain America: Brave New World', year: '2025' },
-          { title: 'Thunderbolts*', year: '2025' },
-        ]
-      },
-      {
-        name: 'Phase Six',
-        movies: [
-          { title: 'The Fantastic Four: First Steps', year: 'July 2025' },
-          { title: 'Avengers: Doomsday', year: 'May 2026' },
-          { title: 'Avengers: Secret Wars', year: 'May 2027' },
-        ]
-      }
-    ]
-  }
-];
-
-// ─────────────────────────────────────────────
-// Storage: { "Iron Man": { watched: true, date: "April 27, 2026" } }
-// ─────────────────────────────────────────────
-const LS_KEY = 'mcu-watch-states';
+// --- Core Logic ---
+const STORAGE_KEY = 'mcu_tracker_live_data';
+let currentMarkdown = localStorage.getItem(STORAGE_KEY) || '';
+let isEditorView = false;
 const today = new Date();
 
-function loadStates() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
-  catch { return {}; }
-}
-function saveStates(states) {
-  localStorage.setItem(LS_KEY, JSON.stringify(states));
+// Initialize icons
+lucide.createIcons();
+
+// Boot sequence
+if (currentMarkdown.trim().length > 0) {
+  renderApp();
 }
 
-function fmtDate(d) {
-  return d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+// --- Date Helpers ---
+function fmtDate(d) { return d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }); }
+function todayStr() { return fmtDate(today); }
+
+// --- File Handling ---
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    currentMarkdown = e.target.result;
+    saveAndRender();
+    showToast("File Imported Successfully!", "check-circle", "text-emerald-400");
+  };
+  reader.readAsText(file);
 }
 
-function isUpcoming(year) {
-  const m = year.match(/(\d{4})/);
+function exportMarkdown() {
+  if (!currentMarkdown) return;
+  const blob = new Blob([currentMarkdown], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mcu-tracker.md';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("File Downloaded!", "download", "text-amber-500");
+}
+
+function saveAndRender() {
+  localStorage.setItem(STORAGE_KEY, currentMarkdown);
+  renderApp();
+}
+
+// --- Parsing ---
+function extractYear(line) { const m = line.match(/\(([^)]+)\)/); return m ? m[1] : ''; }
+function extractWatchDate(line) { const m = line.match(/✅\s*(.+)$/); return m ? m[1].trim() : null; }
+function extractTitle(line) {
+  const m = line.match(/^\s*-\s*\[[ xX]\]\s*(.+)/);
+  if (!m) return null;
+  let t = m[1].replace(/\s*—\s*✅.*$/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+  return t;
+}
+
+function isUpcoming(yearStr) {
+  const m = yearStr.match(/(\d{4})/);
   if (!m) return false;
   const y = parseInt(m[1]);
   if (y > today.getFullYear()) return true;
   if (y === today.getFullYear()) {
     const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const mM = year.match(/(January|February|March|April|May|June|July|August|September|October|November|December)/i);
-    if (mM) {
-      const idx = monthNames.findIndex(mn => mn.toLowerCase() === mM[1].toLowerCase());
-      return idx > today.getMonth();
+    const monthM = yearStr.match(/(January|February|March|April|May|June|July|August|September|October|November|December)/i);
+    if (monthM) {
+      const month = monthNames.findIndex(mn => mn.toLowerCase() === monthM[1].toLowerCase());
+      return month > today.getMonth();
     }
   }
   return false;
 }
 
-// ─────────────────────────────────────────────
-// Toggle
-// ─────────────────────────────────────────────
-function toggleWatch(title) {
-  const states = loadStates();
-  const cur = states[title];
-  if (cur && cur.watched) {
-    delete states[title];
-    showToast('Removed from watched');
-  } else {
-    states[title] = { watched: true, date: fmtDate(today) };
-    showToast('Marked as watched · ' + fmtDate(today));
-  }
-  saveStates(states);
-  render();
-}
+// --- Interaction ---
+function toggleWatch(title, watchedStr) {
+  const isWatched = watchedStr === 'true';
+  const lines = currentMarkdown.split('\n');
+  const normalizedTitle = title.toLowerCase().replace(/[^a-z0-9]/g,'');
 
-function resetAll() {
-  saveStates({});
-  document.getElementById('resetModal').classList.remove('open');
-  showToast('All progress cleared');
-  render();
-}
+  for (let i = 0; i < lines.length; i++) {
+    const titleInLine = extractTitle(lines[i]);
+    if (!titleInLine || titleInLine.toLowerCase().replace(/[^a-z0-9]/g,'') !== normalizedTitle) continue;
 
-// ─────────────────────────────────────────────
-// Export to .md
-// ─────────────────────────────────────────────
-function exportMd() {
-  const states = loadStates();
-  let md = '# MCU Watchlist\n\n';
-  for (const saga of MCU) {
-    md += `### ${saga.saga}\n\n`;
-    for (const phase of saga.phases) {
-      md += `#### ${phase.name}\n\n`;
-      for (const movie of phase.movies) {
-        const s = states[movie.title];
-        const checked = s && s.watched ? 'x' : ' ';
-        const datePart = s && s.watched ? ` — ✅ ${s.date}` : '';
-        md += `- [${checked}] ${movie.title} (${movie.year})${datePart}\n`;
+    if (!isWatched) {
+      // Mark Watched
+      lines[i] = lines[i].replace(/^(\s*-\s*)\[ \]/, '$1[x]').replace(/\s*—\s*✅.*$/, '');
+      if (!lines[i].includes('✅')) {
+        lines[i] = lines[i].replace(/(\([^)]+\))\s*$/, `$1 — ✅ ${todayStr()}`);
+        if (!lines[i].includes('✅')) lines[i] = lines[i].trimEnd() + ` — ✅ ${todayStr()}`;
       }
-      md += '\n';
+      showToast('Marked as watched', 'check-circle', 'text-emerald-400');
+    } else {
+      // Unwatch
+      lines[i] = lines[i].replace(/^(\s*-\s*)\[x\]/i, '$1[ ]').replace(/\s*—\s*✅.*$/, '');
+      showToast('Removed from watched', 'x-circle', 'text-slate-400');
+    }
+    break;
+  }
+
+  currentMarkdown = lines.join('\n');
+  saveAndRender();
+}
+
+function handleEditorInput() {
+  currentMarkdown = document.getElementById('rawEditor').value;
+  localStorage.setItem(STORAGE_KEY, currentMarkdown);
+}
+
+// --- Views ---
+function toggleView() {
+  isEditorView = !isEditorView;
+  const btn = document.getElementById('viewToggleBtn');
+  if (isEditorView) {
+    document.getElementById('visualView').style.display = 'none';
+    document.getElementById('editorView').style.display = 'block';
+    document.getElementById('rawEditor').value = currentMarkdown;
+    btn.innerHTML = `<i data-lucide="layout-grid" class="w-4 h-4"></i> Visual View`;
+    btn.classList.add('bg-amber-500/10', 'text-amber-500', 'border-amber-500/30');
+    btn.classList.remove('bg-slate-800/50', 'text-slate-300', 'border-slate-700');
+  } else {
+    // Switching back to visual - re-parse what they typed!
+    renderApp();
+    document.getElementById('editorView').style.display = 'none';
+    document.getElementById('visualView').style.display = 'block';
+    btn.innerHTML = `<i data-lucide="code" class="w-4 h-4"></i> Raw Editor`;
+    btn.classList.remove('bg-amber-500/10', 'text-amber-500', 'border-amber-500/30');
+    btn.classList.add('bg-slate-800/50', 'text-slate-300', 'border-slate-700');
+  }
+  lucide.createIcons();
+}
+
+// --- Rendering ---
+function renderApp() {
+  if (!currentMarkdown.trim()) {
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('visualView').style.display = 'none';
+    document.getElementById('statsBar').style.display = 'none';
+    document.getElementById('exportBtn').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('emptyState').style.display = 'none';
+  if(!isEditorView) document.getElementById('visualView').style.display = 'block';
+  document.getElementById('statsBar').style.display = 'block';
+  document.getElementById('exportBtn').style.display = 'flex';
+  
+  const lines = currentMarkdown.split('\n');
+  const sagas = [];
+  let curSaga = null, curPhase = null;
+
+  for (const line of lines) {
+    const sagaM = line.match(/^###\s+(.+)/);
+    if (sagaM && !line.match(/^####/)) {
+      curSaga = { title: sagaM[1].replace(/\*+/g,'').trim(), phases: [] };
+      sagas.push(curSaga); curPhase = null; continue;
+    }
+    const phaseM = line.match(/^#{2,4}\s+(.+)/);
+    if (phaseM) {
+      if (!curSaga) { curSaga = { title: '', phases: [] }; sagas.push(curSaga); }
+      curPhase = { title: phaseM[1].replace(/\*+/g,'').trim(), movies: [] };
+      curSaga.phases.push(curPhase); continue;
+    }
+    const movieM = line.match(/^\s*[-*]\s*\[([xX ])\]\s*(.+)/);
+    if (movieM) {
+      if (!curPhase) {
+        if (!curSaga) { curSaga = { title:'', phases:[] }; sagas.push(curSaga); }
+        curPhase = { title: '', movies: [] }; curSaga.phases.push(curPhase);
+      }
+      const checked = movieM[1].toLowerCase() === 'x';
+      const rest = movieM[2];
+      const title = rest.replace(/\s*—\s*✅.*$/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+      const yearStr = extractYear(rest) || '';
+      curPhase.movies.push({ 
+        title, yearStr, watched: checked, 
+        watchDate: extractWatchDate(rest), 
+        upcoming: !checked && isUpcoming(yearStr) 
+      });
     }
   }
-  const blob = new Blob([md], { type: 'text/markdown' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'mcu-watchlist.md';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showToast('Downloaded mcu-watchlist.md');
-}
 
-// ─────────────────────────────────────────────
-// Render
-// ─────────────────────────────────────────────
-function render() {
-  const states = loadStates();
   let totalWatched = 0, totalMovies = 0;
   let html = '';
 
-  for (const saga of MCU) {
-    html += `<div class="saga"><div class="saga-title">${saga.saga}</div>`;
+  for (const saga of sagas) {
+    if (!saga.phases.length) continue;
+    const allMovies = saga.phases.flatMap(p => p.movies);
+    if (!allMovies.length) continue;
+    
+    html += `<div class="mb-12">`;
+    if (saga.title) html += `<h2 class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-6 border-b border-slate-800 pb-2">${saga.title}</h2>`;
 
     for (const phase of saga.phases) {
-      const pw = phase.movies.filter(m => states[m.title] && states[m.title].watched).length;
-      const pt = phase.movies.length;
-      const pct = Math.round(pw / pt * 100);
+      if (!phase.movies.length) continue;
+      const pw = phase.movies.filter(m => m.watched).length;
+      const pt = phase.movies.filter(m => !m.upcoming).length; // Only count released for stats
+      const rawPt = phase.movies.length;
+      const pct = pt ? Math.round(pw/pt*100) : 0;
       totalWatched += pw; totalMovies += pt;
-      const fullClass = pw === pt ? ' full' : '';
 
-      html += `<div class="phase">
-        <div class="phase-header">
-          <div class="phase-name">${phase.name}</div>
-          <div class="phase-bar-wrap"><div class="phase-bar-fill${fullClass}" style="width:${pct}%"></div></div>
-          <div class="phase-count">${pw}/${pt}</div>
+      html += `<div class="mb-10">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">${phase.title || 'Films'}</h3>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-slate-400 font-mono">${pw} / ${pt}</span>
+            <div class="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden hidden sm:block">
+              <div class="h-full bg-amber-500 transition-all duration-500" style="width:${pct}%"></div>
+            </div>
+          </div>
         </div>
-        <div class="movie-grid">`;
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">`;
 
       for (const movie of phase.movies) {
-        const s = states[movie.title];
-        const watched = !!(s && s.watched);
-        const upcoming = !watched && isUpcoming(movie.year);
-        const cls = watched ? ' watched' : upcoming ? ' upcoming' : '';
-        const checkmark = watched ? `<svg viewBox="0 0 10 8" fill="none" stroke="white" stroke-width="1.8"><polyline points="1,4 4,7 9,1"/></svg>` : '';
-        const dateEl = watched && s.date ? `<div class="movie-watch-date">Watched ${s.date}</div>` : '';
-        const upcomingEl = upcoming ? `<div class="movie-upcoming-badge">Upcoming</div>` : '';
-        const clickAttr = upcoming ? '' : `onclick="toggleWatch(${JSON.stringify(movie.title)})"`;
+        const safeTitle = movie.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        
+        let cardClass = movie.upcoming 
+          ? 'bg-slate-900/20 border-slate-800/50 opacity-60 cursor-not-allowed'
+          : movie.watched
+            ? 'bg-emerald-950/20 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)] cursor-pointer hover:border-emerald-500/60 hover:-translate-y-1'
+            : 'bg-slate-900 border-slate-800 cursor-pointer hover:border-amber-500/50 hover:bg-slate-800/80 hover:-translate-y-1 shadow-lg';
+            
+        let checkClass = movie.upcoming ? 'bg-slate-800/50 border border-slate-700/50' 
+          : movie.watched ? 'bg-emerald-500 text-slate-950' 
+          : 'border border-slate-600 bg-slate-800/50 group-hover:border-amber-500/50';
 
-        html += `<div class="movie-card${cls}" ${clickAttr}>
-          <div class="movie-check">${checkmark}</div>
-          <div class="movie-title">${movie.title}</div>
-          <div class="movie-year">${movie.year}</div>
-          ${dateEl}${upcomingEl}
+        let titleClass = movie.watched ? 'text-emerald-400' : 'text-slate-200';
+        let clickAttr = movie.upcoming ? '' : `onclick="toggleWatch('${safeTitle}', '${movie.watched}')"`;
+
+        html += `
+        <div class="relative group p-4 rounded-xl border transition-all duration-200 select-none flex flex-col justify-between min-h-[140px] ${cardClass}" ${clickAttr}>
+          <div class="flex justify-between items-start mb-3">
+            <div class="w-6 h-6 rounded flex items-center justify-center transition-colors ${checkClass}">
+              ${movie.watched ? '<i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>' : ''}
+            </div>
+            ${movie.upcoming ? '<span class="text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Upcoming</span>' : ''}
+          </div>
+          <div>
+            <h4 class="font-semibold leading-tight mb-1.5 ${titleClass}">${movie.title}</h4>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <i data-lucide="calendar" class="w-3 h-3"></i> ${movie.yearStr}
+              </div>
+              ${movie.watchDate ? `<div class="text-[10px] text-emerald-500/80 font-medium mt-1">Watched ${movie.watchDate}</div>` : ''}
+            </div>
+          </div>
         </div>`;
       }
-
       html += `</div></div>`;
     }
     html += `</div>`;
   }
 
-  document.getElementById('content').innerHTML = html;
-
+  document.getElementById('visualView').innerHTML = html;
+  
+  // Update Stats
   document.getElementById('statWatched').textContent = totalWatched;
   document.getElementById('statTotal').textContent = totalMovies;
-  document.getElementById('statRemain').textContent = totalMovies - totalWatched;
-  const pct = totalMovies ? Math.round(totalWatched / totalMovies * 100) : 0;
-  document.getElementById('statPct').textContent = pct + '%';
-  document.getElementById('totalBarFill').style.width = pct + '%';
+  const totalPct = totalMovies ? Math.round(totalWatched/totalMovies*100) : 0;
+  document.getElementById('statPct').textContent = totalPct + '%';
+  document.getElementById('progressBar').style.width = totalPct + '%';
+
+  lucide.createIcons();
 }
 
-// ─────────────────────────────────────────────
-// Toast
-// ─────────────────────────────────────────────
+// --- Toast ---
 let toastTimer;
-function showToast(msg) {
+function showToast(msg, iconName, iconColorClass) {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
+  document.getElementById('toastMsg').textContent = msg;
+  
+  const iconEl = document.getElementById('toastIcon');
+  iconEl.setAttribute('data-lucide', iconName);
+  iconEl.className = `w-4 h-4 ${iconColorClass}`;
+  lucide.createIcons();
+
+  el.classList.remove('toast-enter');
+  el.classList.add('toast-active');
+  
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+  toastTimer = setTimeout(() => {
+    el.classList.remove('toast-active');
+    el.classList.add('toast-enter');
+  }, 2500);
 }
 
-// Close modal on overlay click
-document.getElementById('resetModal').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('open');
-});
-
-// Boot
-render();
 </script>
 </body>
 </html>
