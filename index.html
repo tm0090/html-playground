@@ -1644,6 +1644,217 @@
     // ─── Init ─────────────────────────────────────────────────────────────────
     initHeader();
     render();
+
+    // ─── Keyboard Navigation ──────────────────────────────────────────────────
+    // Tracks which card index is currently "focused" (-1 = none)
+    let kbFocusIndex = -1;
+
+    // Add a CSS style for the keyboard focus ring
+    const kbStyle = document.createElement('style');
+    kbStyle.textContent = `
+        .kb-focus {
+            outline: 2px solid rgba(255,255,255,0.55) !important;
+            outline-offset: 2px !important;
+            transform: translateY(-4px) scale(1.01) !important;
+            z-index: 10 !important;
+        }
+        .kb-focus.folder-card {
+            outline-color: rgba(251,191,36,0.7) !important;
+        }
+        #kb-hint {
+            position: fixed;
+            bottom: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 999px;
+            padding: 0.35rem 1rem;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+            z-index: 500;
+            backdrop-filter: blur(8px);
+            letter-spacing: 0.01em;
+        }
+        #kb-hint.visible { opacity: 1; }
+        #kb-hint kbd {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 5px;
+            padding: 1px 6px;
+            font-size: 0.7rem;
+            font-family: inherit;
+            color: rgba(255,255,255,0.5);
+        }
+    `;
+    document.head.appendChild(kbStyle);
+
+    // Create a small hint bar that shows when keyboard nav is active
+    const kbHint = document.createElement('div');
+    kbHint.id = 'kb-hint';
+    kbHint.innerHTML = `<kbd>↑↓←→</kbd> Navigate &nbsp;·&nbsp; <kbd>Enter</kbd> Open &nbsp;·&nbsp; <kbd>Esc</kbd> Back`;
+    document.body.appendChild(kbHint);
+
+    let kbHintTimeout = null;
+    function showKbHint() {
+        kbHint.classList.add('visible');
+        clearTimeout(kbHintTimeout);
+        kbHintTimeout = setTimeout(() => kbHint.classList.remove('visible'), 2500);
+    }
+
+    function getCards() {
+        return Array.from(grid.querySelectorAll('.premium-card'));
+    }
+
+    function getColumns() {
+        // Determine grid column count by comparing card positions
+        const cards = getCards();
+        if (cards.length < 2) return 1;
+        const firstTop = cards[0].getBoundingClientRect().top;
+        let cols = 1;
+        for (let i = 1; i < cards.length; i++) {
+            if (Math.abs(cards[i].getBoundingClientRect().top - firstTop) < 5) cols++;
+            else break;
+        }
+        return cols;
+    }
+
+    function clearKbFocus() {
+        getCards().forEach(c => c.classList.remove('kb-focus'));
+    }
+
+    function setKbFocus(index) {
+        const cards = getCards();
+        if (cards.length === 0) return;
+        index = Math.max(0, Math.min(index, cards.length - 1));
+        kbFocusIndex = index;
+        clearKbFocus();
+        cards[index].classList.add('kb-focus');
+        cards[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function isAnyOverlayOpen() {
+        const moveSheet   = document.getElementById('move-sheet');
+        const actionSheet = document.getElementById('action-sheet');
+        const folderAS    = document.getElementById('folder-action-sheet');
+        const mc          = document.getElementById('modal-content');
+        const fm          = document.getElementById('folder-modal-content');
+
+        const isSheetOpen = el => el && !el.classList.contains('translate-y-full') && !el.classList.contains('hidden');
+        return isSheetOpen(moveSheet) || isSheetOpen(actionSheet) || isSheetOpen(folderAS)
+            || (mc && !mc.classList.contains('hidden'))
+            || (fm && !fm.classList.contains('hidden'));
+    }
+
+    document.addEventListener('keydown', e => {
+        // Don't hijack typing in inputs / contenteditable
+        const tag = document.activeElement?.tagName;
+        const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable;
+
+        // Allow Escape to bubble even from inputs (closes modals)
+        if (e.key === 'Escape') {
+            clearKbFocus();
+            kbFocusIndex = -1;
+            return; // let the existing popstate/close handlers take over
+        }
+
+        if (isEditable) return;
+        if (isAnyOverlayOpen()) return;
+
+        const cards = getCards();
+        if (cards.length === 0) return;
+
+        const cols = getColumns();
+
+        switch (e.key) {
+            case 'ArrowRight':
+            case 'l':
+                e.preventDefault();
+                setKbFocus(kbFocusIndex < 0 ? 0 : kbFocusIndex + 1);
+                showKbHint();
+                break;
+
+            case 'ArrowLeft':
+            case 'h':
+                e.preventDefault();
+                setKbFocus(kbFocusIndex <= 0 ? 0 : kbFocusIndex - 1);
+                showKbHint();
+                break;
+
+            case 'ArrowDown':
+            case 'j':
+                e.preventDefault();
+                if (kbFocusIndex < 0) { setKbFocus(0); }
+                else { setKbFocus(Math.min(kbFocusIndex + cols, cards.length - 1)); }
+                showKbHint();
+                break;
+
+            case 'ArrowUp':
+            case 'k':
+                e.preventDefault();
+                if (kbFocusIndex < 0) { setKbFocus(0); }
+                else { setKbFocus(Math.max(kbFocusIndex - cols, 0)); }
+                showKbHint();
+                break;
+
+            case 'Enter': {
+                e.preventDefault();
+                if (kbFocusIndex < 0 || kbFocusIndex >= cards.length) break;
+                const card = cards[kbFocusIndex];
+                const folderId = card.getAttribute('data-folder-id');
+                const linkId   = card.getAttribute('data-id');
+                if (folderId) {
+                    // Open folder
+                    clearKbFocus();
+                    kbFocusIndex = -1;
+                    navigateToFolder(folderId);
+                } else if (linkId) {
+                    // Open link in new tab
+                    const link = links.find(l => l.id === linkId);
+                    if (link) window.open(link.url, '_blank');
+                }
+                break;
+            }
+
+            case '/':
+                // Jump to search bar
+                e.preventDefault();
+                clearKbFocus();
+                kbFocusIndex = -1;
+                searchInput.focus();
+                searchInput.select();
+                break;
+        }
+    });
+
+    // Reset focus index when the grid re-renders (navigation, search, etc.)
+    const _origRender = render;
+    // Patch render to reset kb state on re-render
+    const _renderObserver = new MutationObserver(() => {
+        const cards = getCards();
+        // If the focused index is now out of range, reset it
+        if (kbFocusIndex >= cards.length) {
+            kbFocusIndex = -1;
+        }
+        // Re-apply focus highlight if still valid
+        if (kbFocusIndex >= 0 && cards[kbFocusIndex]) {
+            cards[kbFocusIndex].classList.add('kb-focus');
+        }
+    });
+    _renderObserver.observe(grid, { childList: true });
+
+    // Clicking a card with the mouse clears keyboard focus
+    grid.addEventListener('click', () => {
+        clearKbFocus();
+        kbFocusIndex = -1;
+    }, true);
     </script>
 </body>
 </html>
