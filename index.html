@@ -377,24 +377,45 @@ header {
 .hmap-subj-bar-fill { height: 100%; border-radius: 5px; transition: width 0.7s cubic-bezier(0.16,1,0.3,1); }
 .hmap-subj-val { font-family: var(--mono); font-size: 12px; color: var(--text-2); width: 60px; text-align: right; flex-shrink: 0; }
 
-/* ── All Time View ── */
+/* ── All Time View Enhancements ── */
 .alltime-wrap { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-.at-hero {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px; margin-bottom: 32px;
+/* Bento Grid */
+.at-bento {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+@media (min-width: 768px) {
+  .at-card.wide { grid-column: span 2; }
 }
 
-/* Redesigned All Time Cards */
 .at-card {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--r); padding: 20px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 4px 12px rgba(0,0,0,0.1);
+  display: flex; flex-direction: column; justify-content: center;
 }
-.at-card:hover { border-color: var(--border-3); transform: translateY(-3px); box-shadow: var(--shadow); background: var(--surface-2); }
+.at-card:hover { border-color: var(--border-3); transform: translateY(-3px); box-shadow: var(--shadow); }
+
+/* Themed Hero Cards */
+.at-card.primary {
+  background: linear-gradient(145deg, rgba(59, 130, 246, 0.1) 0%, var(--surface-2) 100%);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+.at-card.primary:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 8px 32px var(--accent-dim); }
+.at-card.primary .at-card-icon { background: rgba(59, 130, 246, 0.15); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.15); }
+
+.at-card.green {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, var(--surface-2) 100%);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+.at-card.green:hover { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 8px 32px var(--green-dim); }
+.at-card.green .at-card-icon { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.15); }
 
 .at-card-icon {
   margin-bottom: 16px; width: 38px; height: 38px; border-radius: 10px;
@@ -405,14 +426,8 @@ header {
 }
 .at-card-icon svg { width: 18px; height: 18px; }
 
-/* Themed Icons */
-.at-card.primary .at-card-icon { background: rgba(59, 130, 246, 0.15); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.15); }
-.at-card.green .at-card-icon { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.15); }
-.at-card.blue .at-card-icon { background: rgba(59, 130, 246, 0.15); color: var(--blue); border: 1px solid rgba(59, 130, 246, 0.15); }
-.at-card.purple .at-card-icon { background: rgba(139, 92, 246, 0.15); color: var(--purple); border: 1px solid rgba(139, 92, 246, 0.15); }
-
 .at-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
-.at-card-val { font-family: var(--mono); font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; letter-spacing: -0.02em; }
+.at-card-val { font-family: var(--mono); font-size: 32px; font-weight: 600; color: var(--text); line-height: 1; letter-spacing: -0.02em; }
 .at-card-sub { font-size: 12px; font-weight: 600; color: var(--text-2); margin-top: 8px; line-height: 1.4; }
 
 .at-section { margin-bottom: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; box-shadow: var(--shadow-sm); }
@@ -423,6 +438,24 @@ header {
 }
 .at-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
+/* Badges System */
+.badge-row { display: flex; gap: 16px; overflow-x: auto; padding: 4px 4px 16px 4px; margin: 0 -4px; }
+.badge-row::-webkit-scrollbar { height: 6px; }
+.badge { 
+  display: flex; flex-direction: column; align-items: center; justify-content: center; 
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px; 
+  padding: 20px 16px; min-width: 130px; text-align: center; 
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; 
+  flex-shrink: 0;
+}
+.badge.locked { opacity: 0.4; filter: grayscale(1); }
+.badge:hover { transform: translateY(-4px); border-color: var(--border-3); box-shadow: var(--shadow-sm); }
+.badge-icon { font-size: 38px; margin-bottom: 12px; line-height: 1; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
+.badge-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; white-space: nowrap; }
+.badge-desc { font-size: 11px; color: var(--text-3); line-height: 1.3; }
+.badge-glow { position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 70%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.badge:not(.locked):hover .badge-glow { opacity: 1; }
+
 /* Subject leaderboard */
 .subj-board { display: flex; flex-direction: column; gap: 10px; }
 .subj-rank {
@@ -430,15 +463,19 @@ header {
   padding: 12px 16px;
   background: var(--surface-2); border: 1px solid var(--border);
   border-radius: var(--rsm); transition: all 0.2s;
+  position: relative; overflow: hidden;
 }
+.subj-rank::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: transparent; transition: all 0.2s; }
 .subj-rank:hover { border-color: var(--border-2); background: var(--surface-3); transform: translateX(4px); box-shadow: var(--shadow-sm); }
-.subj-rank-num { font-family: var(--mono); font-size: 13px; color: var(--text-3); width: 20px; text-align: right; flex-shrink: 0; }
-.subj-rank-num.top3 { color: var(--accent); font-weight: 600; font-size: 15px; }
-.subj-rank-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
-.subj-rank-name { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.subj-rank-bar-wrap { flex: 2; height: 6px; background: rgba(0,0,0,0.4); border-radius: 6px; overflow: hidden; }
-.subj-rank-bar-fill { height: 100%; border-radius: 6px; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-.subj-rank-val { font-family: var(--mono); font-size: 13px; color: var(--text-2); flex-shrink: 0; width: 70px; text-align: right; font-weight: 500; }
+.subj-rank:hover::before { background: currentColor; }
+.subj-rank-num { font-family: var(--mono); font-size: 13px; color: var(--text-3); width: 24px; text-align: right; flex-shrink: 0; }
+.subj-rank-num.top1 { font-size: 18px; filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.4)); }
+.subj-rank-num.top2 { font-size: 18px; filter: drop-shadow(0 0 6px rgba(161, 161, 170, 0.4)); }
+.subj-rank-num.top3 { font-size: 18px; filter: drop-shadow(0 0 6px rgba(180, 83, 9, 0.4)); }
+.subj-rank-name { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 8px; }
+.subj-rank-bar-wrap { flex: 2; height: 8px; background: rgba(0,0,0,0.4); border-radius: 8px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
+.subj-rank-bar-fill { height: 100%; border-radius: 8px; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+.subj-rank-val { font-family: var(--mono); font-size: 14px; color: var(--text); flex-shrink: 0; width: 70px; text-align: right; font-weight: 600; }
 .subj-rank-pct { font-size: 12px; color: var(--text-3); flex-shrink: 0; width: 36px; text-align: right; font-weight: 700; }
 
 /* Yearly comparison */
@@ -453,41 +490,46 @@ header {
   display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;
   min-width: 4px;
 }
-.yc-bar-fill.best { background: linear-gradient(90deg, rgba(59,130,246,0.6) 0%, var(--accent) 100%); box-shadow: 0 0 12px var(--accent-glow); }
+.yc-bar-fill.best { background: linear-gradient(90deg, rgba(59,130,246,0.4) 0%, var(--accent) 100%); box-shadow: 0 0 12px var(--accent-glow); }
 .yc-val { font-family: var(--mono); font-size: 13px; color: var(--text-2); width: 70px; text-align: right; flex-shrink: 0; }
 .yc-badge { font-size: 10px; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.05em; }
 
-/* Day-of-week chart */
-.dow-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; margin-top: 10px; }
+/* Enhanced Gradient Charts */
+.dow-chart { display: flex; align-items: flex-end; gap: 8px; height: 140px; padding: 0 8px; margin-top: 10px; }
 .dow-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
-.dow-bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 6px 6px 0 0; }
+.dow-bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; background: transparent; position: relative; }
+.dow-bar-outer::before { content: ''; position: absolute; inset: 0; border-radius: 6px 6px 0 0; background: rgba(0,0,0,0.2); }
 .dow-bar {
   width: 100%; border-radius: 6px 6px 0 0;
-  background: var(--surface-3);
+  background: linear-gradient(180deg, var(--surface-3) 0%, transparent 100%);
   transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s;
-  position: relative; min-height: 4px;
+  position: relative; min-height: 4px; z-index: 1;
 }
-.dow-bar.peak { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
-.dow-bar:hover { background: var(--text-3); }
-.dow-bar.peak:hover { background: var(--accent-hover); }
-.dow-label { font-size: 11px; color: var(--text-3); white-space: nowrap; font-weight: 600; }
+.dow-bar.peak { background: linear-gradient(180deg, var(--accent) 0%, transparent 100%); box-shadow: 0 -4px 16px var(--accent-glow); }
+.dow-bar:hover { background: linear-gradient(180deg, var(--text-3) 0%, transparent 100%); }
+.dow-bar.peak:hover { background: linear-gradient(180deg, var(--accent-hover) 0%, transparent 100%); }
+.dow-label { font-size: 11px; color: var(--text-3); white-space: nowrap; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 .dow-label.peak { color: var(--accent); font-weight: 700; }
 
-/* Historical Monthly Chart */
-.hist-chart-wrap {
-  overflow-x: auto; padding-bottom: 12px; margin-top: 10px;
-}
+.hist-chart-wrap { overflow-x: auto; padding-bottom: 12px; margin-top: 10px; }
 .hist-chart-wrap::-webkit-scrollbar { height: 6px; }
 .hist-chart-wrap::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 6px; }
 .hist-chart {
-  display: flex; align-items: flex-end; gap: 14px; height: 140px; 
+  display: flex; align-items: flex-end; gap: 14px; height: 160px; 
   min-width: max-content; padding: 0 4px;
 }
 .mt-col { flex: 0 0 44px; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
 .mt-val { font-family: var(--mono); font-size: 11px; color: var(--text-2); height: 14px; font-weight: 500; }
-.mt-bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 6px 6px 0 0; position: relative; }
-.mt-bar { width: 100%; border-radius: 6px 6px 0 0; background: var(--surface-3); transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1); min-height: 4px; }
-.mt-bar.peak { background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+.mt-bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; background: transparent; position: relative; }
+.mt-bar-outer::before { content: ''; position: absolute; inset: 0; border-radius: 6px 6px 0 0; background: rgba(0,0,0,0.2); }
+.mt-bar { 
+  width: 100%; border-radius: 6px 6px 0 0; 
+  background: linear-gradient(180deg, var(--surface-3) 0%, transparent 100%); 
+  transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1); min-height: 4px; z-index: 1; 
+}
+.mt-bar:hover { background: linear-gradient(180deg, var(--text-3) 0%, transparent 100%); }
+.mt-bar.peak { background: linear-gradient(180deg, var(--accent) 0%, transparent 100%); box-shadow: 0 -4px 16px var(--accent-glow); }
+.mt-bar.peak:hover { background: linear-gradient(180deg, var(--accent-hover) 0%, transparent 100%); }
 .mt-label { font-size: 11px; color: var(--text-3); font-weight: 600; text-align: center; line-height: 1.2; white-space: nowrap; }
 .mt-label.peak { color: var(--accent); font-weight: 700; }
 
@@ -759,7 +801,6 @@ header {
 }
 
 /* ── Firebase Auth & Sync UI ── */
-/* Google Sign-In Button (in preferences) */
 .google-signin-btn {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
   padding: 10px 14px;
@@ -772,7 +813,6 @@ header {
 .google-signin-btn:active { transform: translateY(0); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
 .google-logo { width: 18px; height: 18px; flex-shrink: 0; }
 
-/* Signed-in user card in preferences */
 .auth-user-card {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px; background: rgba(16,185,129,0.06);
@@ -790,7 +830,6 @@ header {
 }
 .auth-signout-btn:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4); }
 
-/* Floating sync indicator */
 .sync-indicator {
   position: fixed; bottom: 84px; right: 32px;
   display: flex; align-items: center; gap: 7px;
@@ -808,7 +847,6 @@ header {
 .sync-indicator.spinning svg { animation: spin 0.8s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* Sync toggle row in preferences */
 .pref-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 12px; background: var(--surface-2);
@@ -839,15 +877,11 @@ header {
 </style>
 </head>
 <body>
-<!-- Firebase SDK (compat mode for single-file simplicity) -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  🔥 FIREBASE CONFIG — Replace with your own project credentials
-//  Get these from: https://console.firebase.google.com → Project Settings
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyArRTPOI6KFwlHKcVfpBtLh3uyj38Oe0Ho",
   authDomain:        "study-tracker-v2-730dc.firebaseapp.com",
@@ -857,15 +891,14 @@ const FIREBASE_CONFIG = {
   appId:             "1:516534457566:web:23501c5970ca398e4f1e4f",
   measurementId:     "G-BKLWR9FVHT"
 };
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 let fbApp = null, fbAuth = null, fbDb = null, fbUser = null;
 let syncDebounceTimer = null;
-let fbUnsubscribe = null; // Holds the active Firestore real-time listener
+let fbUnsubscribe = null;
 
 function initFirebase() {
   try {
-    if (FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") return; // not configured yet
+    if (FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") return;
     fbApp  = firebase.initializeApp(FIREBASE_CONFIG);
     fbAuth = firebase.auth();
     fbDb   = firebase.firestore();
@@ -874,43 +907,30 @@ function initFirebase() {
       fbUser = user;
       updateAuthUI();
       if (user) {
-        startRealtimeSync(); // BUG FIX: use real-time listener instead of one-time pull
+        startRealtimeSync();
       } else {
-        // Clean up the listener when the user signs out
         if (fbUnsubscribe) { fbUnsubscribe(); fbUnsubscribe = null; }
       }
     });
   } catch(e) { console.warn('Firebase init failed:', e); }
 }
 
-// BUG FIX: Real-time listener — fires immediately on subscribe AND on every
-// future change made by any device, so all devices stay in sync automatically.
 function startRealtimeSync() {
   if (!fbUser || !fbDb) return;
-  // Tear down any existing listener before creating a new one
   if (fbUnsubscribe) { fbUnsubscribe(); fbUnsubscribe = null; }
 
   const docRef = fbDb.collection('users').doc(fbUser.uid).collection('studylog').doc('data');
 
   fbUnsubscribe = docRef.onSnapshot(doc => {
-    // Skip snapshots caused by this device's own pending write (not yet confirmed
-    // by server). We already have the correct local state; applying it again just
-    // causes a needless re-render.
     if (doc.metadata.hasPendingWrites) return;
 
     if (!doc.exists) {
-      // First time this account is used — push local data up to the cloud.
       pushToCloud();
       return;
     }
 
     const d = doc.data();
 
-    // ── TRUE SYNC: cloud is the single source of truth ──────────────────────
-    // pushToCloud() always writes the COMPLETE sessions array, so whatever is
-    // in Firestore right now IS the correct state across all devices.
-    // We NEVER re-add local sessions here — doing so is exactly what causes
-    // deleted sessions to "come back" on other devices.
     if (Array.isArray(d.sessions)) {
       sessions = [...d.sessions];
       sessions.sort((a, b) => b.date.localeCompare(a.date));
@@ -941,7 +961,6 @@ function startRealtimeSync() {
   });
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────
 function signInWithGoogle() {
   if (!fbAuth) { showSyncToast('⚠ Firebase not configured yet.', 'error'); return; }
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -989,16 +1008,10 @@ function updateAuthUI() {
       </button>
     `;
   }
-  // Update last sync info in settings
   renderLastSync();
 }
 
-// showAuthMenu no longer needed — auth is handled inline in preferences panel
-
-// ── Sync ──────────────────────────────────────────────────────────────
-function getSyncPreference() {
-  return localStorage.getItem('sl-auto-sync') !== 'false'; // default: on
-}
+function getSyncPreference() { return localStorage.getItem('sl-auto-sync') !== 'false'; }
 
 function setSyncPreference(val) {
   localStorage.setItem('sl-auto-sync', String(val));
@@ -1009,7 +1022,7 @@ function setSyncPreference(val) {
 function triggerAutoSync() {
   if (!getSyncPreference() || !fbUser) return;
   clearTimeout(syncDebounceTimer);
-  syncDebounceTimer = setTimeout(() => pushToCloud(), 500); // 500ms debounce — fast enough for real-time feel
+  syncDebounceTimer = setTimeout(() => pushToCloud(), 500);
 }
 
 async function manualSync() {
@@ -1035,15 +1048,12 @@ async function pushToCloud() {
     const now = new Date().toISOString();
     localStorage.setItem('sl-last-sync', now);
     setSyncBtnState('synced');
-    // Success is shown via the floating sync indicator — no toast needed
     renderLastSync();
   } catch(e) {
     setSyncBtnState('idle');
     showSyncToast('Sync failed: ' + e.message, 'error');
   }
 }
-
-
 
 function setSyncBtnState(state) {
   const ind = document.getElementById('sync-indicator');
@@ -1076,15 +1086,10 @@ function renderLastSync() {
   el.innerHTML = `Last synced: <span>${dateStr} at ${timeStr}</span>`;
 }
 
-// ── Sync Toast (separate from undo toast) ─────────────────────────────
 function showSyncToast(msg, type = 'info') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
-  const colorMap = {
-    success: 'var(--green)',
-    error:   'var(--red)',
-    info:    'var(--accent)'
-  };
+  const colorMap = { success: 'var(--green)', error: 'var(--red)', info: 'var(--accent)' };
   toast.className = 'toast';
   toast.style.borderLeftColor = colorMap[type] || 'var(--accent)';
   toast.style.borderLeftWidth = '3px';
@@ -1096,8 +1101,8 @@ function showSyncToast(msg, type = 'info') {
   setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 300); }, 4000);
 }
 </script>
-<div class="app">
 
+<div class="app">
   <!-- Header -->
   <header>
     <div class="logo">
@@ -1120,7 +1125,6 @@ function showSyncToast(msg, type = 'info') {
   <div class="body">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-      <!-- 1. Daily Goal (Moved to Top) -->
       <div>
         <div class="slabel">Daily Goal</div>
         <div class="goal-card">
@@ -1144,7 +1148,6 @@ function showSyncToast(msg, type = 'info') {
         </div>
       </div>
 
-      <!-- 2. Subjects -->
       <div>
         <div class="slabel">Subjects</div>
         <div class="subj-list" id="sb-subjects"></div>
@@ -1153,7 +1156,6 @@ function showSyncToast(msg, type = 'info') {
         </div>
       </div>
 
-      <!-- 3. Settings (Button toggle, Anchored to bottom) -->
       <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid var(--border);">
         <button class="settings-btn" id="settings-toggle-btn" onclick="toggleSettings()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1182,13 +1184,11 @@ function showSyncToast(msg, type = 'info') {
           </div>
           <div class="slabel" style="margin-top:16px">Data</div>
           <div style="display:flex; flex-direction:column; gap:8px;">
-            <!-- Auth section in preferences -->
             <div id="auth-pref-section"></div>
-            <!-- Sync section -->
             <div class="pref-row">
               <div class="pref-row-info">
                 <div class="pref-row-label">Auto-sync after editing</div>
-                <div class="pref-row-desc">Automatically push changes to the cloud when you finish editing</div>
+                <div class="pref-row-desc">Automatically push changes to the cloud</div>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" id="auto-sync-toggle" onchange="setSyncPreference(this.checked)">
@@ -1263,7 +1263,6 @@ function showSyncToast(msg, type = 'info') {
 
 <div id="toast-container" class="toast-container"></div>
 <div id="tip"></div>
-<!-- Floating sync indicator -->
 <div class="sync-indicator" id="sync-indicator">
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="sync-indicator-icon"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
   <span id="sync-indicator-text">Syncing…</span>
@@ -1280,11 +1279,9 @@ let sidebarCollapsed = JSON.parse(localStorage.getItem('sl-sidebar-collapsed') |
 let currentCalMonth = new Date().getMonth();
 let currentCalYear = new Date().getFullYear();
 
-// Undo System Variables
 let undoTimeout = null;
 let deletedSessionObj = null;
 
-// Modernized color palette for subjects (Professional variants)
 const COLORS = ['#3b82f6','#10b981','#8b5cf6','#ec4899','#f97316','#14b8a6','#f43f5e','#84cc16','#eab308','#6366f1'];
 const cmap = {}; let ci = 0;
 function sc(s) { const k = (s||'general').toLowerCase().trim(); if (!cmap[k]) cmap[k] = COLORS[ci++ % COLORS.length]; return cmap[k]; }
@@ -1296,7 +1293,6 @@ function localDate(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padSta
 function todayStr() { return localDate(new Date()); }
 function getSubjects() { return [...new Set(sessions.map(s => s.subject))].sort(); }
 
-// ── Settings Toggle ───────────────────────────────────────────────────────
 let settingsOpen = false;
 function toggleSettings() {
   settingsOpen = !settingsOpen;
@@ -1305,7 +1301,6 @@ function toggleSettings() {
   if (settingsOpen) {
     panel.style.display = 'block';
     btn.classList.add('open');
-    // Scroll sidebar to bottom to ensure settings are visible
     document.getElementById('sidebar').scrollTop = document.getElementById('sidebar').scrollHeight;
   } else {
     panel.style.display = 'none';
@@ -1313,7 +1308,6 @@ function toggleSettings() {
   }
 }
 
-// ── Custom Fonts ──────────────────────────────────────────────────────────
 function initFonts() {
   const saved = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
   if (saved) {
@@ -1333,7 +1327,6 @@ function applyCustomFonts() {
   localStorage.setItem('sl-v4-fonts', JSON.stringify(fonts));
   loadFonts(fonts);
   
-  // Quick visual feedback on the button
   const btn = document.querySelector('#settings-panel .vbtn');
   const oldText = btn.textContent;
   btn.textContent = '✓ Applied!';
@@ -1342,33 +1335,26 @@ function applyCustomFonts() {
 }
 
 function loadFonts(fonts) {
-  const families = [fonts.sans, fonts.serif, fonts.mono]
-    .filter(f => f) // Remove empty
-    .map(f => f.replace(/ /g, '+'));
-
+  const families = [fonts.sans, fonts.serif, fonts.mono].filter(f => f).map(f => f.replace(/ /g, '+'));
   if (families.length > 0) {
     const oldLink = document.getElementById('custom-google-fonts');
     if (oldLink) oldLink.remove();
     const link = document.createElement('link');
     link.id = 'custom-google-fonts';
     link.rel = 'stylesheet';
-    // Using simple Google Fonts API v1 structure for max arbitrary font compatability
     link.href = `https://fonts.googleapis.com/css?family=${families.join('|')}&display=swap`;
     document.head.appendChild(link);
   }
-
   if (fonts.sans) document.documentElement.style.setProperty('--sans', `'${fonts.sans}', system-ui, sans-serif`);
   if (fonts.serif) document.documentElement.style.setProperty('--serif', `'${fonts.serif}', Georgia, serif`);
   if (fonts.mono) document.documentElement.style.setProperty('--mono', `'${fonts.mono}', monospace`);
 }
 
-// ── Persist ───────────────────────────────────────────────────────────────
 function persist() {
   localStorage.setItem('sl-v4-sessions', JSON.stringify(sessions));
-  triggerAutoSync(); // auto-sync to cloud if enabled & signed in
+  triggerAutoSync();
 }
 
-// ── Sidebar collapse ──────────────────────────────────────────────────────
 function toggleSidebar() {
   sidebarCollapsed = !sidebarCollapsed;
   localStorage.setItem('sl-sidebar-collapsed', JSON.stringify(sidebarCollapsed));
@@ -1388,9 +1374,7 @@ function applySidebarState() {
   }
 }
 
-// ── Goal controls ─────────────────────────────────────────────────────────
 let goalRenderTimer = null, goalSavedTimer = null;
-
 function stepGoal(field, delta) {
   const el = document.getElementById('goal-' + field);
   const max = field === 'h' ? 23 : 59;
@@ -1398,7 +1382,6 @@ function stepGoal(field, delta) {
   el.value = Math.max(0, Math.min(max, v));
   onGoalInput();
 }
-
 function onGoalInput() {
   const h = Math.max(0, Math.min(23, parseInt(document.getElementById('goal-h').value) || 0));
   const m = Math.max(0, Math.min(59, parseInt(document.getElementById('goal-m').value) || 0));
@@ -1415,7 +1398,6 @@ function onGoalInput() {
     goalRenderTimer = setTimeout(() => render(), 350);
   }
 }
-
 function updateGoalDisplay() {
   const h = Math.floor(goalMins / 60), m = goalMins % 60;
   let html = '';
@@ -1425,7 +1407,6 @@ function updateGoalDisplay() {
   document.getElementById('goal-display').innerHTML = html;
 }
 
-// ── Scroll-wheel on number inputs ────────────────────────────────────────
 function wireWheel(id, min, max, step) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1437,23 +1418,16 @@ function wireWheel(id, min, max, step) {
     el.dispatchEvent(new Event('input', { bubbles: true }));
   }, { passive: false });
 }
-
-wireWheel('f-h',    0, 23, 1);
-wireWheel('f-m',    0, 59, 5);
-wireWheel('goal-h', 0, 23, 1);
-wireWheel('goal-m', 0, 59, 5);
-
+wireWheel('f-h', 0, 23, 1); wireWheel('f-m', 0, 59, 5); wireWheel('goal-h', 0, 23, 1); wireWheel('goal-m', 0, 59, 5);
 document.getElementById('goal-h').addEventListener('input', onGoalInput);
 document.getElementById('goal-m').addEventListener('input', onGoalInput);
 
-// ── Modal number field step buttons ──────────────────────────────────────
 function stepNF(id, delta, min, max) {
   const el = document.getElementById(id);
   let v = (parseInt(el.value) || 0) + delta;
   el.value = Math.max(min, Math.min(max, v));
 }
 
-// ── Autocomplete ──────────────────────────────────────────────────────────
 function acInput() {
   const val = document.getElementById('f-subj').value.trim().toLowerCase();
   const matches = val ? getSubjects().filter(s => s.toLowerCase().includes(val)) : getSubjects();
@@ -1465,11 +1439,9 @@ function acInput() {
 function acPick(s) { document.getElementById('f-subj').value = s; document.getElementById('ac-drop').classList.remove('show'); }
 function acBlur() { setTimeout(() => document.getElementById('ac-drop').classList.remove('show'), 150); }
 
-// ── Undo Notification ─────────────────────────────────────────────────────
 function showToast(msg, onUndo) {
   const container = document.getElementById('toast-container');
-  container.innerHTML = ''; // clear previous
-  
+  container.innerHTML = ''; 
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.innerHTML = `
@@ -1478,38 +1450,24 @@ function showToast(msg, onUndo) {
     <button class="toast-close" id="toast-close">×</button>
   `;
   container.appendChild(toast);
-
   if (undoTimeout) clearTimeout(undoTimeout);
-
-  const hide = () => {
-    toast.classList.add('hide');
-    setTimeout(() => toast.remove(), 300);
-  };
-
-  toast.querySelector('#toast-undo').onclick = () => {
-    if (onUndo) onUndo();
-    hide();
-  };
+  const hide = () => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 300); };
+  toast.querySelector('#toast-undo').onclick = () => { if (onUndo) onUndo(); hide(); };
   toast.querySelector('#toast-close').onclick = hide;
-
-  undoTimeout = setTimeout(hide, 6000); // 6 seconds before it goes away
+  undoTimeout = setTimeout(hide, 6000); 
 }
 
 function undoDelete() {
   if (deletedSessionObj) {
     sessions.push(deletedSessionObj);
     sessions.sort((a, b) => b.date.localeCompare(a.date));
-    persist();
-    render();
-    deletedSessionObj = null;
+    persist(); render(); deletedSessionObj = null;
   }
 }
 
-// ── Modal & Delete ────────────────────────────────────────────────────────
 function openModal(id, overrideDate) {
   editingId = (typeof id === 'number') ? id : null;
   const sess = editingId ? sessions.find(s => s.id === editingId) : null;
-  
   document.getElementById('modal-title').textContent = sess ? 'Edit Session' : 'Log a Study Session';
   document.getElementById('modal-save-btn').textContent = sess ? 'Save Changes' : 'Add Session';
   document.getElementById('f-date').value = sess ? sess.date : (overrideDate || todayStr());
@@ -1522,8 +1480,7 @@ function openModal(id, overrideDate) {
 }
 
 function closeModal(e) {
-  if (!e || e.target === document.getElementById('overlay'))
-    document.getElementById('overlay').classList.remove('show');
+  if (!e || e.target === document.getElementById('overlay')) document.getElementById('overlay').classList.remove('show');
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('overlay').classList.remove('show'); });
 
@@ -1552,7 +1509,6 @@ function saveSession() {
   persist();
   document.getElementById('overlay').classList.remove('show');
   
-  // Make sure we switch view to where the date was added
   const newDate = new Date(date + 'T12:00:00');
   viewYear = newDate.getFullYear();
   if (viewMode === 'calendar') {
@@ -1565,20 +1521,12 @@ function saveSession() {
 function deleteSession(id) {
   const idx = sessions.findIndex(s => s.id === id);
   if (idx === -1) return;
-  
-  // Store for potential undo
   deletedSessionObj = sessions[idx];
-  
-  // Remove from arrays and persist immediately
   sessions.splice(idx, 1);
-  persist(); 
-  render();
-  
-  // Show Toast
+  persist(); render();
   showToast(`Session deleted.`, undoDelete);
 }
 
-// ── Stats ─────────────────────────────────────────────────────────────────
 function calcStats() {
   const total = sessions.reduce((a, s) => a + s.mins, 0);
   const t = todayStr();
@@ -1589,18 +1537,16 @@ function calcStats() {
   const byDay = {}; sessions.forEach(s => { byDay[s.date] = (byDay[s.date]||0) + s.mins; });
   const best = Object.keys(byDay).length > 0 ? Math.max(...Object.values(byDay)) : 0;
   
-  // Robust Streak Calculation
   let streak = 0;
   const ds = new Set(sessions.map(s => s.date));
-  const dd = new Date();
-  dd.setDate(dd.getDate() - 1);
+  const dd = new Date(); dd.setDate(dd.getDate() - 1);
   const yest = localDate(dd);
 
-  let dObj = new Date(); // Start counting backward from today
+  let dObj = new Date(); 
   if (ds.has(t)) {
     while (ds.has(localDate(dObj))) { streak++; dObj.setDate(dObj.getDate() - 1); }
   } else if (ds.has(yest)) {
-    dObj.setDate(dObj.getDate() - 1); // Start counting from yesterday
+    dObj.setDate(dObj.getDate() - 1); 
     while (ds.has(localDate(dObj))) { streak++; dObj.setDate(dObj.getDate() - 1); }
   }
 
@@ -1608,7 +1554,6 @@ function calcStats() {
   return { total, week, today, month, streak, best, subjMap };
 }
 
-// ── All-Time Stats ────────────────────────────────────────────────────────
 function calcAllTimeStats() {
   if (!sessions.length) return null;
   const byDay = {}, byWeek = {}, byMonth = {};
@@ -1644,12 +1589,10 @@ function calcAllTimeStats() {
   const yearMap = {}; sessions.forEach(s => { const y = s.date.slice(0,4); yearMap[y] = (yearMap[y]||0) + s.mins; });
   const dowMap = [0,0,0,0,0,0,0]; sessions.forEach(s => { const d = new Date(s.date+'T12:00:00'); dowMap[d.getDay()] += s.mins; });
 
-  // Day span: distance between first and today for consistency calc
   const sortedDates = Object.keys(byDay).sort();
   const firstDate = sortedDates[0], lastDate = todayStr();
   const daySpan = firstDate ? Math.max(1, Math.round((new Date(lastDate+'T12:00:00') - new Date(firstDate+'T12:00:00')) / 86400000) + 1) : 1;
 
-  // Monthly breakdown across all years (avg by calendar month)
   const monthBuckets = Array(12).fill(0), monthCounts = Array(12).fill(0);
   Object.entries(byMonth).forEach(([mk, m]) => { const mo = parseInt(mk.split('-')[1]) - 1; monthBuckets[mo] += m; monthCounts[mo]++; });
   const monthlyAvgByMo = monthBuckets.map((t, i) => monthCounts[i] ? Math.round(t / monthCounts[i]) : 0);
@@ -1657,7 +1600,6 @@ function calcAllTimeStats() {
   return { total, daysStudied, avgPerDay, bestDayEntry, bestWeekEntry, bestMonthEntry, maxStreak, subjMap, yearMap, dowMap, daySpan, monthlyAvgByMo };
 }
 
-// ── Render ────────────────────────────────────────────────────────────────
 function render() {
   renderHeader(); renderNudge(); renderSidebar();
   renderYearBar(); renderCalendar(); renderHeatmap(); renderAllTime(); renderTimeline();
@@ -1665,8 +1607,6 @@ function render() {
 
 function renderHeader() {
   const { week, streak, today: todayMins } = calcStats();
-  
-  // If today isn't logged, but yesterday had a streak, it's at risk
   const ds = new Set(sessions.map(s => s.date));
   const atRisk = !ds.has(todayStr()) && streak > 0;
   const todayPct  = Math.min(100, goalMins > 0 ? Math.round(todayMins / goalMins * 100) : 0);
@@ -1675,9 +1615,7 @@ function renderHeader() {
 
   document.getElementById('hstats').innerHTML = `
     <div class="hstat">
-      <div class="hstat-icon today">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      </div>
+      <div class="hstat-icon today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
       <div class="hstat-text">
         <div class="lbl">Today</div>
         <div class="val" style="${goalHit?'color:var(--green)':''}">${fmt(todayMins)} <span style="font-size:12px;color:var(--text-3);font-family:var(--sans);font-weight:600">/ ${goalLabel}</span></div>
@@ -1685,22 +1623,12 @@ function renderHeader() {
       </div>
     </div>
     <div class="hstat">
-      <div class="hstat-icon week">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      </div>
-      <div class="hstat-text">
-        <div class="lbl">This Week</div>
-        <div class="val">${fmt(week)}</div>
-      </div>
+      <div class="hstat-icon week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="hstat-text"><div class="lbl">This Week</div><div class="val">${fmt(week)}</div></div>
     </div>
     <div class="hstat">
-      <div class="hstat-icon streak">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg>
-      </div>
-      <div class="hstat-text">
-        <div class="lbl">Streak</div>
-        <div class="val">${streak}<span style="font-size:11px;color:var(--text-3);font-family:var(--sans);font-weight:600;margin-left:2px">day${streak!==1?'s':''}</span>${atRisk?'<span class="streak-warn" title="Streak at risk!">⚠</span>':''}</div>
-      </div>
+      <div class="hstat-icon streak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg></div>
+      <div class="hstat-text"><div class="lbl">Streak</div><div class="val">${streak}<span style="font-size:11px;color:var(--text-3);font-family:var(--sans);font-weight:600;margin-left:2px">day${streak!==1?'s':''}</span>${atRisk?'<span class="streak-warn" title="Streak at risk!">⚠</span>':''}</div></div>
     </div>
   `;
 }
@@ -1712,7 +1640,6 @@ function renderNudge() {
 
 function renderSidebar() {
   const { subjMap } = calcStats();
-
   const sorted = Object.entries(subjMap).sort((a, b) => b[1] - a[1]);
   const maxM = sorted.length ? sorted[0][1] : 1;
   document.getElementById('sb-subjects').innerHTML = sorted.length
@@ -1731,6 +1658,9 @@ function renderSidebar() {
   updateGoalDisplay();
 }
 
+function toggleFilter(s) { filterSubj = filterSubj === s ? null : s; document.getElementById('clear-filter').style.display = filterSubj ? 'block' : 'none'; render(); }
+function clearFilter() { filterSubj = null; document.getElementById('clear-filter').style.display = 'none'; render(); }
+
 function renderYearBar() {
   const years = [...new Set(sessions.map(s => s.date.slice(0,4)))].sort((a,b) => b-a);
   if (!years.includes(String(new Date().getFullYear()))) years.unshift(String(new Date().getFullYear()));
@@ -1748,36 +1678,25 @@ function renderYearBar() {
 function setYear(y) { 
   viewYear = y; 
   if (viewMode === 'alltime') viewMode = 'timeline';
-  if (viewMode === 'calendar') {
-    currentCalYear = y;
-    currentCalMonth = 0; // jump to Jan of selected year
-  }
+  if (viewMode === 'calendar') { currentCalYear = y; currentCalMonth = 0; }
   render(); 
 }
 
 function setView(v) { 
   viewMode = v; 
   localStorage.setItem('sl-v4-view', v);
-  if (v === 'calendar') {
-    // default to today's month if jumping to calendar
-    currentCalYear = new Date().getFullYear();
-    currentCalMonth = new Date().getMonth();
-  }
+  if (v === 'calendar') { currentCalYear = new Date().getFullYear(); currentCalMonth = new Date().getMonth(); }
   render(); 
 }
 
-// ── Calendar View ─────────────────────────────────────────────────────────
 function renderCalendar() {
   if (viewMode !== 'calendar') { document.getElementById('calendar-area').innerHTML = ''; return; }
-
-  const y = currentCalYear;
-  const m = currentCalMonth;
+  const y = currentCalYear, m = currentCalMonth;
   const firstDay = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const daysInPrevMonth = new Date(y, m, 0).getDate();
 
-  const minsMap = {};
-  const subjsMap = {};
+  const minsMap = {}, subjsMap = {};
   sessions.forEach(s => {
     minsMap[s.date] = (minsMap[s.date] || 0) + s.mins;
     if(!subjsMap[s.date]) subjsMap[s.date] = new Set();
@@ -1785,37 +1704,20 @@ function renderCalendar() {
   });
 
   let cells = [];
-  for (let i = 0; i < firstDay; i++) {
-    cells.push({ day: daysInPrevMonth - firstDay + i + 1, faded: true });
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    cells.push({ day: i, faded: false, date: dStr });
-  }
+  for (let i = 0; i < firstDay; i++) cells.push({ day: daysInPrevMonth - firstDay + i + 1, faded: true });
+  for (let i = 1; i <= daysInMonth; i++) cells.push({ day: i, faded: false, date: `${y}-${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}` });
   let rem = cells.length % 7;
-  if (rem !== 0) {
-    let extra = 7 - rem;
-    for (let i = 1; i <= extra; i++) cells.push({ day: i, faded: true });
-  }
+  if (rem !== 0) for (let i = 1; i <= 7 - rem; i++) cells.push({ day: i, faded: true });
 
   const MN_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const monthName = MN_FULL[m];
-
-  // Find max mins for the current month to scale colors
   const monthMins = cells.filter(c => !c.faded).map(c => minsMap[c.date] || 0);
   const maxM = Math.max(...monthMins, goalMins || 120); 
 
   const gridHtml = cells.map(c => {
     if (c.faded) return `<div class="cal-cell faded"><div class="cal-date">${c.day}</div></div>`;
-    const mins = minsMap[c.date] || 0;
-    const isToday = c.date === todayStr();
-    const p = mins / maxM;
-    let lv = '';
-    if (mins > 0) {
-      lv = p < 0.25 ? 'l1' : p < 0.5 ? 'l2' : p < 0.75 ? 'l3' : 'l4';
-    }
+    const mins = minsMap[c.date] || 0, isToday = c.date === todayStr(), p = mins / maxM;
+    let lv = mins > 0 ? (p < 0.25 ? 'l1' : p < 0.5 ? 'l2' : p < 0.75 ? 'l3' : 'l4') : '';
     const dots = subjsMap[c.date] ? [...subjsMap[c.date]].map(s => `<div class="cal-dot" style="background:${sc(s)};color:${sc(s)}" title="${s}"></div>`).join('') : '';
-
     return `
       <div class="cal-cell ${lv} ${isToday ? 'today' : ''}" onclick="openModal(null, '${c.date}')" title="${mins ? fmt(mins) + ' logged' : 'Click to log a session'}">
         <div class="cal-date">${c.day} ${isToday ? '<span style="font-size:9px;color:var(--accent);margin-left:4px;vertical-align:top">TODAY</span>' : ''}</div>
@@ -1828,7 +1730,7 @@ function renderCalendar() {
   document.getElementById('calendar-area').innerHTML = `
     <div class="cal-wrap">
       <div class="cal-header">
-        <div class="cal-title">${monthName} ${y}</div>
+        <div class="cal-title">${MN_FULL[m]} ${y}</div>
         <div class="cal-nav">
           <button class="cal-btn" onclick="chgCal(-1)">← Prev</button>
           <button class="cal-btn" onclick="chgCal(0)">Today</button>
@@ -1848,7 +1750,7 @@ function chgCal(dir) {
     const now = new Date();
     currentCalMonth = now.getMonth();
     currentCalYear = now.getFullYear();
-    viewYear = currentCalYear; // sync year bar
+    viewYear = currentCalYear; 
   } else {
     currentCalMonth += dir;
     if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; viewYear = currentCalYear; }
@@ -1857,7 +1759,6 @@ function chgCal(dir) {
   render();
 }
 
-// ── Heatmap ───────────────────────────────────────────────────────────────
 function renderHeatmap() {
   if (viewMode !== 'heatmap') { document.getElementById('heatmap-area').innerHTML = ''; return; }
   const year = viewYear;
@@ -1879,9 +1780,7 @@ function renderHeatmap() {
     weeks.push(week);
   }
   
-  // Calculate month labels correctly aligned to columns
-  let monthLabelsHtml = '';
-  let currentMonth = -1;
+  let monthLabelsHtml = '', currentMonth = -1;
   weeks.forEach((w, i) => {
     const dObj = new Date(w[0].date + 'T12:00:00');
     if (w[0].inYear && dObj.getMonth() !== currentMonth) {
@@ -1943,7 +1842,7 @@ function renderHeatmap() {
     </div>`;
 }
 
-// ── All Time View ─────────────────────────────────────────────────────────
+// ── Redesigned All Time View ──
 function renderAllTime() {
   if (viewMode !== 'alltime') { document.getElementById('alltime-area').innerHTML = ''; return; }
   const at = calcAllTimeStats();
@@ -1984,37 +1883,40 @@ function renderAllTime() {
   const iconBook  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
   const consistencyPct = at.daySpan > 0 ? Math.round(at.daysStudied / at.daySpan * 100) : 0;
   
+  // Hero Bento Box Section
   const heroCards = `
-    <div class="at-hero">
-      <div class="at-card primary">
+    <div class="at-bento">
+      <div class="at-card primary wide">
         <div class="at-card-icon">${iconClock}</div>
-        <div class="at-card-label">Total Hours</div>
+        <div class="at-card-label">Total Hours Dedicated</div>
         <div class="at-card-val">${fmt(at.total)}</div>
-        <div class="at-card-sub">${at.daysStudied} days studied · ${sessions.length} sessions</div>
+        <div class="at-card-sub">${at.daysStudied} days studied across ${sessions.length} sessions</div>
       </div>
-      <div class="at-card green">
+      <div class="at-card green wide">
         <div class="at-card-icon">${iconFlame}</div>
-        <div class="at-card-label">Longest Streak</div>
+        <div class="at-card-label">Longest Continuous Streak</div>
         <div class="at-card-val">${at.maxStreak} <span style="font-size:16px;font-family:var(--sans);font-weight:400;color:var(--green)">days</span></div>
-        <div class="at-card-sub">consecutive study days</div>
+        <div class="at-card-sub">showing amazing persistence</div>
       </div>
-      <div class="at-card blue">
+      
+      <div class="at-card">
+        <div class="at-card-icon">${iconTarget}</div>
+        <div class="at-card-label">Consistency Rate</div>
+        <div class="at-card-val">${consistencyPct}<span style="font-size:16px;font-family:var(--sans);font-weight:400;color:var(--text-2)">%</span></div>
+        <div class="at-card-sub">${at.daysStudied} of ${at.daySpan} days tracked</div>
+      </div>
+      <div class="at-card">
+        <div class="at-card-icon">${iconBars}</div>
+        <div class="at-card-label">Avg / Study Day</div>
+        <div class="at-card-val">${fmt(at.avgPerDay)}</div>
+        <div class="at-card-sub">per active study day</div>
+      </div>
+      
+      <div class="at-card">
         <div class="at-card-icon">${iconCal}</div>
         <div class="at-card-label">Best Day Ever</div>
         <div class="at-card-val">${fmt(at.bestDayEntry[1])}</div>
         <div class="at-card-sub">${fmtDate(at.bestDayEntry[0])}</div>
-      </div>
-      <div class="at-card purple">
-        <div class="at-card-icon">${iconCalOk}</div>
-        <div class="at-card-label">Best Month Ever</div>
-        <div class="at-card-val">${fmt(at.bestMonthEntry[1])}</div>
-        <div class="at-card-sub">${fmtMonth(at.bestMonthEntry[0])}</div>
-      </div>
-      <div class="at-card">
-        <div class="at-card-icon">${iconBars}</div>
-        <div class="at-card-label">Avg per Study Day</div>
-        <div class="at-card-val">${fmt(at.avgPerDay)}</div>
-        <div class="at-card-sub">per active study day</div>
       </div>
       <div class="at-card">
         <div class="at-card-icon">${iconStar}</div>
@@ -2023,35 +1925,62 @@ function renderAllTime() {
         <div class="at-card-sub">${fmtWeek(at.bestWeekEntry[0])}</div>
       </div>
       <div class="at-card">
-        <div class="at-card-icon">${iconTarget}</div>
-        <div class="at-card-label">Consistency</div>
-        <div class="at-card-val">${consistencyPct}<span style="font-size:16px;font-family:var(--sans);font-weight:400;color:var(--text-2)">%</span></div>
-        <div class="at-card-sub">${at.daysStudied} of ${at.daySpan} days tracked</div>
+        <div class="at-card-icon">${iconCalOk}</div>
+        <div class="at-card-label">Best Month Ever</div>
+        <div class="at-card-val">${fmt(at.bestMonthEntry[1])}</div>
+        <div class="at-card-sub">${fmtMonth(at.bestMonthEntry[0])}</div>
       </div>
       <div class="at-card">
         <div class="at-card-icon">${iconBook}</div>
-        <div class="at-card-label">Subjects Studied</div>
+        <div class="at-card-label">Subjects</div>
         <div class="at-card-val">${Object.keys(at.subjMap).length}</div>
         <div class="at-card-sub">unique subjects logged</div>
       </div>
     </div>`;
 
+  // Badges & Achievements System
+  const badges = [
+    { id: 'h10', icon: '🥉', title: 'Bronze Scholar', desc: '10+ hours studied', req: at.total >= 600 },
+    { id: 'h50', icon: '🥈', title: 'Silver Scholar', desc: '50+ hours studied', req: at.total >= 3000 },
+    { id: 'h100', icon: '🥇', title: 'Gold Scholar', desc: '100+ hours studied', req: at.total >= 6000 },
+    { id: 's7', icon: '🔥', title: 'On Fire', desc: '7+ day streak', req: at.maxStreak >= 7 },
+    { id: 's30', icon: '☄️', title: 'Unstoppable', desc: '30+ day streak', req: at.maxStreak >= 30 },
+    { id: 'sub3', icon: '📚', title: 'Polymath', desc: '3+ subjects logged', req: Object.keys(at.subjMap).length >= 3 }
+  ];
+
+  const badgesHtml = `
+    <div class="at-section" style="padding: 24px;">
+      <div class="at-section-title" style="margin-bottom: 16px;">Milestones & Achievements</div>
+      <div class="badge-row">
+        ${badges.map(b => `
+          <div class="badge ${b.req ? 'unlocked' : 'locked'}">
+            ${b.req ? '<div class="badge-glow"></div>' : ''}
+            <div class="badge-icon">${b.icon}</div>
+            <div class="badge-title">${b.title}</div>
+            <div class="badge-desc">${b.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  // Subject Leaderboard with Medals
   const sortedSubj = Object.entries(at.subjMap).sort((a,b)=>b[1]-a[1]);
   const maxSubjM = sortedSubj.length ? sortedSubj[0][1] : 1;
   const totalForPct = at.total || 1;
   const subjBoard = sortedSubj.length ? `
     <div class="subj-board">
       ${sortedSubj.map(([s,m],i) => `
-        <div class="subj-rank">
-          <div class="subj-rank-num ${i<3?'top3':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)}</div>
-          <div class="subj-rank-dot" style="background:${sc(s)}; color:${sc(s)}"></div>
-          <div class="subj-rank-name">${s}</div>
+        <div class="subj-rank" style="color: ${sc(s)}">
+          <div class="subj-rank-num ${i<3?'top'+(i+1):''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)}</div>
+          <div class="subj-rank-name" style="color:var(--text)">${s}</div>
           <div class="subj-rank-bar-wrap"><div class="subj-rank-bar-fill" style="width:${Math.round(m/maxSubjM*100)}%;background:${sc(s)}"></div></div>
           <div class="subj-rank-val">${fmt(m)}</div>
           <div class="subj-rank-pct">${Math.round(m/totalForPct*100)}%</div>
         </div>`).join('')}
     </div>` : '<div style="color:var(--text-3);font-size:13px;font-style:italic">No subjects yet</div>';
 
+  // Year Compare
   const yearEntries = Object.entries(at.yearMap).sort((a,b)=>b[0]-a[0]);
   const maxYearM = yearEntries.length ? Math.max(...yearEntries.map(e=>e[1])) : 1;
   const bestYear = yearEntries.length ? yearEntries.reduce((a,e)=>e[1]>a[1]?e:a,['',0])[0] : '';
@@ -2068,33 +1997,33 @@ function renderAllTime() {
         </div>`).join('')}
     </div>` : '<div style="color:var(--text-3);font-size:13px">—</div>';
 
+  // Enhanced Day of Week Chart
   const maxDow = Math.max(...at.dowMap, 1);
   const peakDow = at.dowMap.indexOf(Math.max(...at.dowMap));
   const dowChart = `
     <div class="dow-chart">
       ${at.dowMap.map((m,i) => `
         <div class="dow-col">
-          <div class="dow-bar-outer">
+          <div class="dow-bar-outer" title="${DOW[i]}: ${fmt(m)}">
             <div class="dow-bar ${i===peakDow?'peak':''}" style="height:${Math.round(m/maxDow*100)}%"></div>
           </div>
-          <div class="dow-label ${i===peakDow?'peak':''}">${DOW[i]}</div>
+          <div class="dow-label ${i===peakDow?'peak':''}">${DOW[i].substring(0,3)}</div>
         </div>`).join('')}
     </div>`;
 
-  // Calculate chronological monthly history (All Time Totals)
+  // Enhanced Monthly History
   const sortedSessions = [...sessions].sort((a,b)=>a.date.localeCompare(b.date));
   let historyHtml = '<div style="color:var(--text-3);font-size:13px;font-style:italic">Not enough data to display history</div>';
   
   if (sortedSessions.length > 0) {
     const firstDate = new Date(sortedSessions[0].date+'T12:00:00');
-    const lastDate = new Date(); // end at current month
+    const lastDate = new Date(); 
     const historyMonths = [];
     let curr = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
     const endMonth = new Date(lastDate.getFullYear(), lastDate.getMonth(), 1);
 
     while (curr <= endMonth) {
-      const y = curr.getFullYear();
-      const m = curr.getMonth() + 1;
+      const y = curr.getFullYear(), m = curr.getMonth() + 1;
       const mk = `${y}-${String(m).padStart(2,'0')}`;
       historyMonths.push({ mk, label: `${MN_FULL[curr.getMonth()].substring(0,3)} '${String(y).slice(2)}`, mins: 0 });
       curr.setMonth(curr.getMonth() + 1);
@@ -2115,7 +2044,7 @@ function renderAllTime() {
           ${historyMonths.map(h => `
             <div class="mt-col">
               <div class="mt-val">${h.mins > 0 ? fmt(h.mins) : ''}</div>
-              <div class="mt-bar-outer">
+              <div class="mt-bar-outer" title="${h.label}: ${fmt(h.mins)}">
                 <div class="mt-bar ${h.mk === peakHistMk && h.mins > 0 ? 'peak' : ''}" style="height:${h.mins ? Math.max(4, Math.round(h.mins/maxHistM*100)) + '%' : '4px'}"></div>
               </div>
               <div class="mt-label ${h.mk === peakHistMk && h.mins > 0 ? 'peak' : ''}">${h.label}</div>
@@ -2124,18 +2053,21 @@ function renderAllTime() {
       </div>`;
   }
 
-  // Monthly History is now placed on top of Yearly overview
   area.innerHTML = `
     <div class="alltime-wrap">
       ${heroCards}
+      ${badgesHtml}
+      
       <div class="at-section">
         <div class="at-section-title">Subject Leaderboard</div>
         ${subjBoard}
       </div>
+      
       <div class="at-section">
         <div class="at-section-title">Monthly History (All Time) <span style="font-size:12px;font-family:var(--sans);font-style:normal;font-weight:600;color:var(--text-3);margin-left:4px">total hours studied per month</span></div>
         ${historyHtml}
       </div>
+      
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:24px;margin-bottom:24px">
         <div class="at-section" style="margin-bottom:0">
           <div class="at-section-title">Year by Year</div>
@@ -2210,41 +2142,24 @@ function renderTimeline() {
   document.getElementById('timeline').innerHTML = html;
 }
 
-// ── Tooltip ───────────────────────────────────────────────────────────────
 function showTip(e, date, mins) {
   const t = document.getElementById('tip');
   const d = new Date(date+'T12:00:00');
   const label = d.toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
   t.textContent = mins ? `${label}  ·  ${fmt(mins)}` : `${label}  ·  no sessions`;
-  
-  // Center tip on cursor with dynamic offset
   t.style.display = 'block'; 
-  
-  // Get exact bounding rect of the hovered cell to place tooltip exactly above it
   const rect = e.target.getBoundingClientRect();
   const leftPos = rect.left + rect.width / 2;
   const topPos = rect.top - 8;
-  
-  // Protect against edge overflow slightly
   t.style.left = Math.max(40, Math.min(window.innerWidth - 40, leftPos)) + 'px'; 
   t.style.top = topPos + 'px';
 }
 function hideTip() { document.getElementById('tip').style.display = 'none'; }
 
-// ── Export / Import ───────────────────────────────────────────────────────
 function exportData() {
   const fonts = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
   const view = localStorage.getItem('sl-v4-view') || 'timeline';
-  
-  const d = JSON.stringify({
-    sessions, 
-    goal: goalMins, 
-    fonts: fonts,
-    view: view,
-    sidebarCollapsed: sidebarCollapsed,
-    version: 5
-  }, null, 2);
-  
+  const d = JSON.stringify({ sessions, goal: goalMins, fonts: fonts, view: view, sidebarCollapsed: sidebarCollapsed, version: 5 }, null, 2);
   const a = document.createElement('a'); 
   a.href = 'data:application/json,'+encodeURIComponent(d);
   a.download = 'studylog-backup-'+todayStr()+'.json'; 
@@ -2259,12 +2174,8 @@ function handleImport(e) {
   r.onload = ev => {
     try {
       const d = JSON.parse(ev.target.result);
-      
-      // Import sessions & goals
       if (Array.isArray(d.sessions)) { sessions = d.sessions; persist(); }
       if (d.goal) { goalMins = d.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
-      
-      // Import Settings
       if (d.fonts) {
         localStorage.setItem('sl-v4-fonts', JSON.stringify(d.fonts));
         document.getElementById('font-sans').value = d.fonts.sans || '';
@@ -2272,16 +2183,12 @@ function handleImport(e) {
         document.getElementById('font-mono').value = d.fonts.mono || '';
         loadFonts(d.fonts);
       }
-      if (d.view) {
-        viewMode = d.view;
-        localStorage.setItem('sl-v4-view', d.view);
-      }
+      if (d.view) { viewMode = d.view; localStorage.setItem('sl-v4-view', d.view); }
       if (d.sidebarCollapsed !== undefined) {
         sidebarCollapsed = d.sidebarCollapsed;
         localStorage.setItem('sl-sidebar-collapsed', JSON.stringify(sidebarCollapsed));
         applySidebarState();
       }
-
       sessions.forEach(s => sc(s.subject)); 
       render();
     } catch(err) { alert("Could not read file — make sure it's a StudyLog JSON export."); }
@@ -2289,14 +2196,11 @@ function handleImport(e) {
   r.readAsText(f); e.target.value = '';
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
+// Init
 initFonts();
 applySidebarState();
 render();
-
-// Init Firebase sync
 initFirebase();
-// Init auto-sync toggle state
 const _syncToggle = document.getElementById('auto-sync-toggle');
 if (_syncToggle) _syncToggle.checked = getSyncPreference();
 renderLastSync();
