@@ -1,581 +1,1068 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finish Timer — When do I finish watching?</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1a1e25;
+    --border: #252a34;
+    --accent: #c8a96e;
+    --accent2: #7eb8a4;
+    --text: #e8e2d5;
+    --text-muted: #5a6070;
+    --text-dim: #8a8f9a;
+    --red: #e07070;
+  }
 
-    <!-- Favicon -->
-    <link rel="icon" href="icon.svg" type="image/svg+xml">
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  <!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#09090b">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Finish Timer">
-<link rel="apple-touch-icon" href="icon-180.png">
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="/dist/output.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <style>
-        :root {
-            --bg-base: #09090b;
-            --card-bg: rgba(24, 24, 27, 0.6);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --input-bg: rgba(9, 9, 11, 0.7);
-            --input-border: rgba(255, 255, 255, 0.05);
-            --accent: #6366f1;
-        }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.6;
+  }
 
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-base);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f4f4f5;
-            font-variant-numeric: tabular-nums;
-            overflow-x: hidden;
-        }
+  header {
+    padding: 1.1rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 1.2rem;
+    flex-shrink: 0;
+  }
 
-        .ambient-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: -1;
-            background: 
-                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
-            filter: blur(60px);
-        }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
 
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(32px);
-            -webkit-backdrop-filter: blur(32px);
-            border: 1px solid var(--card-border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        }
+  header span {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
 
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
+  /* RESIZABLE LAYOUT */
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
 
-        .input-group label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: #a1a1aa;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-        @media (min-width: 640px) {
-            .input-group label {
-                font-size: 0.875rem;
-                margin-bottom: 1rem;
-            }
-        }
+  .panel-left {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    width: 46%;
+    min-width: 280px;
+    max-width: 75%;
+  }
 
-        input {
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            color: #ffffff;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-        }
+  .panel-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--surface);
+    min-width: 240px;
+  }
 
-        input::placeholder {
-            color: #71717a;
-            font-weight: 500;
-        }
+  .resizer {
+    width: 5px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    z-index: 10;
+  }
 
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: rgba(24, 24, 27, 0.9);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0,0,0,0.2);
-            transform: translateY(-2px);
-        }
+  .resizer:hover, .resizer.dragging { background: var(--accent2); }
 
-        /* Input invalid state — only shows after touched */
-        input.input-invalid {
-            border-color: rgba(239, 68, 68, 0.5);
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), inset 0 2px 4px rgba(0,0,0,0.2);
-        }
+  /* PANEL HEADER */
+  .panel-header {
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
 
-        .result-box-primary {
-            background: rgba(9, 9, 11, 0.4); 
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
+  .panel-title {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
 
-        #progressFill {
-            position: absolute;
-            top: 0; 
-            left: 0; 
-            height: 100%;
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, rgba(99, 102, 241, 0.25) 100%);
-            box-shadow: 2px 0 16px rgba(99, 102, 241, 0.2);
-            z-index: 0;
-            width: 0%;
-        }
+  .tab-row { display: flex; gap: 0.2rem; }
 
-        .result-box-secondary {
-            background: rgba(9, 9, 11, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: inset 0 4px 20px rgba(0,0,0,0.4);
-        }
+  .tab-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    padding: 0.28rem 0.65rem;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
 
-        .animate-fade-in {
-            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+  .tab-btn.active { background: var(--surface2); border-color: var(--border); color: var(--accent); }
+  .tab-btn:hover:not(.active) { color: var(--text-dim); border-color: var(--border); }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+  /* VIEWS */
+  .view { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+  .view.active { display: flex; }
 
-        .btn-base {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-idle {
-            background: #ffffff;
-            color: #000000;
-            box-shadow: 0 4px 14px 0 rgba(255, 255, 255, 0.1);
-        }
-        .btn-idle:hover {
-            background: #f4f4f5;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
-        }
-        
-        .btn-live {
-            background: #10b981;
-            color: #ffffff;
-            box-shadow: 0 0 24px rgba(16, 185, 129, 0.3);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        .btn-live:hover {
-            background: #059669;
-            transform: translateY(-2px);
-        }
+  /* SESSIONS LIST */
+  .sessions-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.8rem 0.9rem;
+  }
 
-        .btn-paused {
-            background: #f59e0b;
-            color: #ffffff;
-            box-shadow: 0 0 24px rgba(245, 158, 11, 0.3);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        .btn-paused:hover {
-            background: #d97706;
-            transform: translateY(-2px);
-        }
+  .sessions-list::-webkit-scrollbar { width: 3px; }
+  .sessions-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-        /* Disabled state — before inputs are filled */
-        .btn-ready-disabled {
-            background: rgba(39, 39, 42, 0.7);
-            color: #52525b;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        .btn-ready-disabled:hover {
-            transform: none;
-            box-shadow: none;
-            background: rgba(39, 39, 42, 0.7);
-        }
+  /* ── SESSION CARD (new design) ── */
+  .session-card {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.18s, box-shadow 0.18s;
+    animation: slideIn 0.16s ease;
+    position: relative;
+  }
 
-        /* Reset button */
-        .btn-reset {
-            background: rgba(39, 39, 42, 0.8);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: #a1a1aa;
-        }
-        .btn-reset:hover {
-            background: rgba(63, 63, 70, 0.9);
-            color: #f4f4f5;
-            transform: translateY(-2px);
-            border-color: rgba(255,255,255,0.15);
-        }
-        .btn-reset:hover .reset-icon {
-            transform: rotate(-180deg);
-        }
-        .reset-icon {
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+  .session-card:hover { border-color: #303848; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
 
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .tracking-dot {
-            animation: pulse-ring 2s infinite;
-        }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-        /* Completion Overlay */
-        #completionOverlay {
-            background: rgba(9, 9, 11, 0.93);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-        }
-        @keyframes overlayIn {
-            from { opacity: 0; transform: scale(0.97) translateY(10px); }
-            to   { opacity: 1; transform: scale(1)    translateY(0); }
-        }
-        .overlay-in {
-            animation: overlayIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes drawCircle {
-            to { stroke-dashoffset: 0; }
-        }
-        @keyframes drawCheck {
-            to { stroke-dashoffset: 45; }
-        }
-        .stat-card {
-            background: rgba(24, 24, 27, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .stat-label {
-            font-size: 0.6rem;
-            font-weight: 700;
-            color: #52525b;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            margin-bottom: 0.4rem;
-        }
-        .stat-value {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #f4f4f5;
-            line-height: 1.2;
-        }
+  /* Date section */
+  .sc-date-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    position: relative;
+    height: 100%;
+  }
 
-        /* Custom speed preset dropdown */
-        .custom-select-wrapper {
-            position: relative;
-        }
-        .custom-select-trigger {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.4rem;
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            color: #a1a1aa;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            padding: 1rem 0.75rem 1rem 0.9rem;
-            border-radius: 0.75rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-            white-space: nowrap;
-        }
-        @media (min-width: 640px) {
-            .custom-select-trigger {
-                border-radius: 1rem;
-                padding: 1rem 1rem 1rem 1.1rem;
-            }
-        }
-        .custom-select-trigger:hover,
-        .custom-select-trigger[aria-expanded="true"] {
-            border-color: var(--accent);
-            background: rgba(24, 24, 27, 0.9);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0,0,0,0.2);
-            color: #f4f4f5;
-        }
-        .custom-select-trigger:focus-visible {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .custom-select-arrow {
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            flex-shrink: 0;
-            color: #71717a;
-        }
-        .custom-select-trigger[aria-expanded="true"] .custom-select-arrow {
-            transform: rotate(180deg);
-            color: var(--accent);
-        }
-        .custom-select-panel {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            right: 0;
-            background: #111113;
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            border-radius: 0.85rem;
-            overflow-y: auto;
-            max-height: 220px;
-            z-index: 50;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.08);
-            animation: dropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(99,102,241,0.3) transparent;
-        }
-        .custom-select-panel::-webkit-scrollbar { width: 4px; }
-        .custom-select-panel::-webkit-scrollbar-track { background: transparent; }
-        .custom-select-panel::-webkit-scrollbar-thumb {
-            background: rgba(99,102,241,0.3);
-            border-radius: 99px;
-        }
-        @keyframes dropdownIn {
-            from { opacity: 0; transform: translateY(-6px) scale(0.98); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .custom-select-option {
-            padding: 0.7rem 1.1rem;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #a1a1aa;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
-        .custom-select-option:last-child { border-bottom: none; }
-        .custom-select-option:hover,
-        .custom-select-option:focus {
-            background: rgba(99, 102, 241, 0.15);
-            color: #f4f4f5;
-            outline: none;
-        }
-        .custom-select-option[aria-selected="true"] {
-            color: var(--accent);
-            background: rgba(99, 102, 241, 0.08);
-        }
+  .sc-date-icon {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
 
-        /* Copy finish time button */
-        .copy-hover-group .copy-btn {
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s, color 0.2s, transform 0.15s;
-        }
-        .copy-hover-group:hover .copy-btn {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        @media (max-width: 639px) {
-            .copy-hover-group .copy-btn {
-                opacity: 1;
-                pointer-events: auto;
-            }
-        }
+  .sc-date {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    outline: none;
+    cursor: pointer;
+    width: 116px;
+    padding: 1rem 0;
+    letter-spacing: 0.02em;
+  }
 
-        /* Validation hint */
-        #validationHint {
-            min-height: 1.25rem;
-            transition: opacity 0.2s ease;
-        }
-    </style>
+  /* Hide the native calendar picker icon */
+  .sc-date::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .sc-date::-webkit-inner-spin-button,
+  .sc-date::-webkit-clear-button { display: none; }
+
+  .sc-date:focus { color: var(--text); }
+
+  /* Subject section */
+  .sc-subject {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.96rem;
+    padding: 1rem 1.2rem;
+    outline: none;
+    min-width: 0;
+  }
+
+  .sc-subject::placeholder { color: var(--text-muted); opacity: 0.5; }
+
+  .sc-subject:focus {
+    background: rgba(200,169,110,0.03);
+  }
+
+  /* Time section (hr + min dual spinners) */
+  .sc-time-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0 1rem 0 0.75rem;
+    border-left: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .sc-spinner-group {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    position: relative;
+  }
+
+  .sc-spinner-group::after {
+    content: '';
+    position: absolute;
+    inset: 4px 0;
+    border-radius: 3px;
+    background: transparent;
+    transition: background 0.15s;
+    pointer-events: none;
+  }
+
+  .sc-spinner-group:hover::after {
+    background: rgba(200,169,110,0.07);
+  }
+
+  .sc-time-sep {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 0 0.1rem;
+    user-select: none;
+  }
+
+  .sc-hr-input, .sc-min-input {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.08rem;
+    font-weight: 500;
+    text-align: right;
+    outline: none;
+    padding: 1rem 0;
+    cursor: ns-resize;
+    user-select: none;
+  }
+
+  .sc-hr-input  { width: 38px; }
+  .sc-min-input { width: 28px; }
+
+  /* Remove native spinners */
+  .sc-hr-input::-webkit-inner-spin-button,
+  .sc-hr-input::-webkit-outer-spin-button,
+  .sc-min-input::-webkit-inner-spin-button,
+  .sc-min-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .sc-hr-input, .sc-min-input { -moz-appearance: textfield; }
+
+  .sc-hr-input:focus, .sc-min-input:focus { color: var(--accent); }
+
+  .sc-time-unit {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  /* Scroll hint flash on the card */
+  .session-card.scroll-flash { border-color: rgba(200,169,110,0.35); }
+
+  /* Delete button */
+  .del-btn {
+    background: none;
+    border: none;
+    border-left: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0 0.85rem;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    opacity: 0;
+    flex-shrink: 0;
+  }
+
+  .session-card:hover .del-btn { opacity: 1; }
+  .del-btn:hover { color: var(--red); background: rgba(224,112,112,0.06); border-left-color: rgba(224,112,112,0.2); }
+
+  .add-session-btn {
+    margin: 0.2rem 0.7rem 0.7rem;
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .add-session-btn:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(126,184,164,0.04); }
+
+  /* JSON VIEW */
+  #json-view { flex: 1; overflow: hidden; display: none; flex-direction: column; }
+  #json-view.active { display: flex; }
+
+  #json-editor {
+    flex: 1;
+    background: var(--surface);
+    border: none;
+    color: #a8d0c0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    line-height: 1.75;
+    padding: 1.1rem 1.3rem;
+    resize: none;
+    outline: none;
+    overflow-y: auto;
+  }
+
+  .json-actions {
+    padding: 0.65rem 0.9rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.4rem;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .error-msg {
+    margin: 0.4rem 0.8rem;
+    padding: 0.45rem 0.7rem;
+    background: rgba(224,112,112,0.08);
+    border: 1px solid rgba(224,112,112,0.25);
+    border-radius: 4px;
+    font-size: 0.65rem;
+    color: var(--red);
+    display: none;
+    flex-shrink: 0;
+  }
+
+  /* IMPORT VIEW */
+  #import-view {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.2rem;
+    gap: 0.85rem;
+    overflow-y: auto;
+    justify-content: center;
+  }
+
+  #import-view.active { display: flex; }
+
+  .import-zone {
+    border: 1px dashed var(--accent);
+    border-radius: 10px;
+    padding: 2.2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(200,169,110,0.03);
+    flex-shrink: 0;
+  }
+
+  .import-zone:hover, .import-zone.drag-over {
+    border-color: var(--accent2);
+    background: rgba(126,184,164,0.06);
+  }
+
+  .import-zone .iz-icon { font-size: 2rem; margin-bottom: 0.7rem; }
+
+  .import-zone .iz-primary {
+    font-size: 0.8rem;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+  }
+
+  .import-zone .iz-sub {
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .import-divider {
+    text-align: center;
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .import-divider::before, .import-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 28px);
+    height: 1px;
+    background: var(--border);
+  }
+
+  .import-divider::before { left: 0; }
+  .import-divider::after  { right: 0; }
+
+  .paste-zone {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .paste-zone textarea {
+    background: transparent;
+    border: none;
+    color: #a8d0c0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    padding: 0.9rem 1rem;
+    resize: none;
+    outline: none;
+    height: 100px;
+  }
+
+  .paste-zone textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+  .paste-footer {
+    padding: 0.5rem 0.8rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  #file-input { display: none; }
+
+  /* BUTTONS */
+  .btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    padding: 0.38rem 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { border-color: var(--accent); color: var(--accent); }
+  .btn.primary:hover { background: rgba(200,169,110,0.08); }
+  .btn.green { border-color: var(--accent2); color: var(--accent2); }
+  .btn.green:hover { background: rgba(126,184,164,0.08); }
+
+  /* Reactive copy */
+  #copy-btn { transition: all 0.2s; }
+  #copy-btn.copied {
+    border-color: var(--accent2) !important;
+    color: var(--accent2) !important;
+    background: rgba(126,184,164,0.1) !important;
+    pointer-events: none;
+  }
+
+  /* OUTPUT PANEL */
+  .output-header {
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .output-meta { display: flex; gap: 1.1rem; align-items: center; }
+  .stat { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.08em; }
+  .stat span { color: var(--accent); font-weight: 500; }
+
+  .output-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.3rem;
+  }
+
+  .output-area::-webkit-scrollbar { width: 3px; }
+  .output-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .output-block { margin-bottom: 1.8rem; }
+
+  .out-month {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .out-date {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+    margin-top: 0.9rem;
+    font-weight: 500;
+  }
+
+  .out-session { font-size: 0.88rem; padding: 0.15rem 0 0.15rem 0.5rem; }
+  .out-session .subj { color: var(--accent2); }
+  .out-session .arr  { color: var(--text-muted); margin: 0 0.3rem; }
+
+  .raw-output {
+    flex: 1;
+    background: var(--bg);
+    border: none;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    line-height: 2;
+    padding: 1.3rem;
+    resize: none;
+    outline: none;
+    display: none;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .empty-state .icon { font-size: 2rem; opacity: 0.35; }
+  .empty-state .label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .empty-state .sub   { font-size: 0.6rem; opacity: 0.55; letter-spacing: 0.04em; }
+
+  .out-tabs { display: flex; gap: 0.2rem; }
+</style>
 </head>
-<body class="p-4 sm:p-6">
+<body>
 
-    <div class="ambient-bg"></div>
+<header>
+  <h1>Study Journal</h1>
+  <span>obsidian export tool</span>
+</header>
 
-    <div class="glass-card w-full max-w-2xl rounded-3xl md:rounded-[2.5rem] p-6 sm:p-10 md:p-14 relative z-10 mx-auto">
+<div class="layout">
 
-        <!-- Subtle corner reset — visible while tracking or paused -->
-        <button id="cornerResetBtn" onclick="resetSystem()" title="Reset"
-            class="hidden absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-xl items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all duration-200 active:scale-95">
-            <svg class="reset-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                <path d="M3 3v5h5"/>
-            </svg>
-        </button>
-
-        <!-- Completion overlay -->
-        <div id="completionOverlay" class="hidden absolute inset-0 rounded-3xl md:rounded-[2.5rem] z-20 flex flex-col items-center justify-center p-8 sm:p-12 text-center">
-            <!-- Animated checkmark -->
-            <div class="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-7">
-                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-                    <circle id="checkCircle" cx="40" cy="40" r="36"
-                        stroke="#10b981" stroke-width="2.5" fill="rgba(16,185,129,0.07)"
-                        stroke-dasharray="226" stroke-dashoffset="226"
-                        stroke-linecap="round"
-                        style="transform-origin:center; transform:rotate(-90deg)"/>
-                    <path id="checkMark" d="M24 41L35 52L57 28"
-                        stroke="#10b981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
-                        fill="none" stroke-dasharray="50" stroke-dashoffset="0"/>
-                </svg>
-            </div>
-
-            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-1">All done</h2>
-            <p id="overlayTagline" class="text-zinc-500 text-sm sm:text-base mb-8 sm:mb-10 font-medium">Here's how your session went</p>
-
-            <!-- Stats: 2×2 grid -->
-            <div class="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-xs sm:max-w-sm mb-8 sm:mb-10">
-                <div class="stat-card rounded-2xl p-3 sm:p-4">
-                    <p class="stat-label">Watched</p>
-                    <p id="statDuration" class="stat-value">—</p>
-                </div>
-                <div class="stat-card rounded-2xl p-3 sm:p-4">
-                    <p class="stat-label">Speed</p>
-                    <p id="statSpeed" class="stat-value">—</p>
-                </div>
-                <div class="stat-card rounded-2xl p-3 sm:p-4">
-                    <p class="stat-label">Time saved</p>
-                    <p id="statSaved" class="stat-value">—</p>
-                </div>
-                <div class="stat-card rounded-2xl p-3 sm:p-4">
-                    <p class="stat-label">Finished at</p>
-                    <p id="statFinishedAt" class="stat-value">—</p>
-                </div>
-            </div>
-
-            <button id="overlayTrackAnotherBtn" onclick="resetSystem()" class="btn-base btn-idle font-bold py-4 px-10 rounded-2xl text-base sm:text-lg uppercase tracking-widest">
-                Track another
-            </button>
-        </div>
-
-        <header class="mb-8 md:mb-12 text-center">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-2 sm:mb-4">Finish Timer</h1>
-            <p class="text-zinc-400 text-base sm:text-xl font-light">Calculate exactly when you'll finish watching.</p>
-        </header>
-
-        <div class="space-y-8 md:space-y-10">
-            <!-- Time Inputs -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
-                <div class="input-group">
-                    <label>Current Progress</label>
-                    <div class="flex gap-2 sm:gap-4">
-                        <input type="number" id="currH" placeholder="H" aria-label="Current hours" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0">
-                        <input type="number" id="currM" placeholder="M" aria-label="Current minutes" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
-                        <input type="number" id="currS" placeholder="S" aria-label="Current seconds" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label>Total Duration</label>
-                    <div class="flex gap-2 sm:gap-4">
-                        <input type="number" id="totalH" placeholder="H" aria-label="Total hours" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0">
-                        <input type="number" id="totalM" placeholder="M" aria-label="Total minutes" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
-                        <input type="number" id="totalS" placeholder="S" aria-label="Total seconds" class="w-full py-3 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl text-center font-semibold text-lg sm:text-2xl" min="0" max="59">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Speed and Calculate -->
-            <div class="input-group w-full">
-                <label>Playback Speed (x)</label>
-                <div class="flex gap-2 sm:gap-3 items-stretch">
-
-                    <!-- Speed input -->
-                    <input type="number" id="speed" step="0.05" value="1.00"
-                        class="w-16 sm:w-28 shrink-0 py-4 sm:py-5 px-2 sm:px-4 rounded-xl sm:rounded-2xl font-semibold text-lg sm:text-2xl text-center"
-                        min="0.1" aria-label="Playback speed multiplier">
-
-                    <!-- Preset dropdown -->
-                    <div class="custom-select-wrapper shrink-0" id="speedPresetWrapper">
-                        <button type="button" class="custom-select-trigger" id="speedPresetTrigger"
-                            onclick="toggleSpeedDropdown()" aria-haspopup="listbox" aria-expanded="false"
-                            aria-label="Speed preset">
-                            <span id="speedPresetLabel">Preset</span>
-                            <svg class="custom-select-arrow w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                        </button>
-                        <div class="custom-select-panel hidden" id="speedPresetPanel" role="listbox" aria-label="Speed presets">
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="0.75" onclick="applySpeedPreset('0.75')">0.75×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="1"    onclick="applySpeedPreset('1')">1×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="1.25" onclick="applySpeedPreset('1.25')">1.25×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="1.5"  onclick="applySpeedPreset('1.5')">1.5×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="1.75" onclick="applySpeedPreset('1.75')">1.75×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="2"    onclick="applySpeedPreset('2')">2×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="2.5"  onclick="applySpeedPreset('2.5')">2.5×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="3"    onclick="applySpeedPreset('3')">3×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="3.5"  onclick="applySpeedPreset('3.5')">3.5×</div>
-                            <div class="custom-select-option" role="option" aria-selected="false" tabindex="-1" data-value="4"    onclick="applySpeedPreset('4')">4×</div>
-                        </div>
-                    </div>
-
-                    <!-- Button fills remaining space -->
-                    <button id="calcBtn" onclick="toggleLiveSystem()"
-                        class="btn-base btn-ready-disabled flex-1 min-w-0 font-bold py-4 sm:py-5 px-2 sm:px-8 rounded-xl sm:rounded-2xl transform active:scale-95 text-xs sm:text-xl uppercase tracking-widest"
-                        disabled aria-disabled="true">
-                        Start Tracking
-                    </button>
-
-                    <!-- Reset button — only visible when finished -->
-                    <button id="resetBtn" onclick="resetSystem()" title="Reset"
-                        class="btn-base btn-reset hidden items-center justify-center rounded-xl sm:rounded-2xl py-4 px-4 sm:py-5 sm:px-5 active:scale-95 shrink-0">
-                        <svg class="reset-icon w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                            <path d="M3 3v5h5"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Inline validation hint — appears only after interaction -->
-                <p id="validationHint" class="text-xs text-zinc-500 mt-3 pl-0.5" aria-live="polite"></p>
-            </div>
-
-            <!-- Results Section -->
-            <div id="results" class="hidden space-y-4 sm:space-y-6 animate-fade-in pt-4 sm:pt-6" aria-live="polite" aria-atomic="false">
-                
-                <div class="result-box-primary p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem]">
-                    <!-- Background Progress Fill -->
-                    <div id="progressFill"></div>
-                    
-                    <!-- Content Wrapper -->
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-2 sm:mb-3">
-                            <p class="text-[10px] sm:text-xs text-indigo-400 font-bold uppercase tracking-[0.2em]">Time Remaining</p>
-                            <!-- Dynamic Live Badge -->
-                            <div class="flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 sm:px-3 py-1 rounded-full hidden border" id="liveBadge">
-                                <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full" id="liveDot"></span> 
-                                <span id="liveText">Tracking</span>
-                            </div>
-                        </div>
-                        <h2 id="remainingDisplay" role="status" aria-label="Time remaining" class="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">h</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">m</span> 0<span class="text-indigo-300 text-2xl sm:text-3xl font-medium">s</span></h2>
-                        <div class="flex items-center justify-between gap-4 mt-2">
-                            <p class="text-sm sm:text-base text-zinc-400 font-medium">Watching at <span id="speedLabel" class="text-white font-bold">1.0</span>x speed</p>
-                            <p id="savedTimeRow" class="hidden text-sm sm:text-base font-medium text-right whitespace-nowrap">
-                                <span id="savedTimeDisplay" class="text-emerald-400 font-bold"></span><span class="text-zinc-500"> saved in total</span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="result-box-secondary p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] relative copy-hover-group">
-                    <!-- Copy finish time -->
-                    <button id="copyBtn" onclick="copyFinishTime()" title="Copy finish time"
-                        class="copy-btn absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-white/10 active:scale-90">
-                        <svg id="copyIcon" class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                    </button>
-                    <p class="text-[10px] sm:text-xs text-zinc-500 font-bold uppercase tracking-[0.2em] mb-2 sm:mb-3">Target Arrival Time</p>
-                    <h2 id="finishClockDisplay" class="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight">--:-- --</h2>
-                    <div class="flex items-center gap-3 mt-2 sm:mt-3">
-                        <div class="h-px w-6 bg-zinc-700"></div>
-                        <p id="finishDateLabel" class="text-sm sm:text-base text-zinc-400 italic font-medium">Today</p>
-                    </div>
-                </div>
-                
-            </div>
-        </div>
-
-        <footer class="mt-12 sm:mt-16 text-center text-[10px] sm:text-xs text-zinc-600 uppercase tracking-[0.3em] font-bold">
-             Made with ♥️ by Tamim
-        </footer>
+  <!-- LEFT PANEL -->
+  <div class="panel-left" id="panel-left">
+    <div class="panel-header">
+      <span class="panel-title">Input</span>
+      <div class="tab-row">
+        <button class="tab-btn" onclick="switchLeft('sessions',this)">Sessions</button>
+        <button class="tab-btn" onclick="switchLeft('json',this)">JSON</button>
+        <button class="tab-btn active" onclick="switchLeft('import',this)">Import</button>
+      </div>
     </div>
 
-    <script src="main.js" defer></script>
+    <!-- Sessions -->
+    <div id="sessions-view" class="view">
+      <div class="sessions-list" id="sessions-list"></div>
+      <button class="add-session-btn" onclick="addSession()">+ add session</button>
+    </div>
+
+    <!-- JSON editor -->
+    <div id="json-view">
+      <textarea id="json-editor" spellcheck="false" oninput="onJsonEdit()"></textarea>
+      <div id="json-error" class="error-msg"></div>
+      <div class="json-actions">
+        <button class="btn primary" onclick="applyJson()">Apply JSON</button>
+        <button class="btn" onclick="syncJsonFromSessions()">Sync from sessions</button>
+      </div>
+    </div>
+
+    <!-- Import -->
+    <div id="import-view" class="view active">
+      <div class="import-zone" id="drop-zone"
+           onclick="document.getElementById('file-input').click()"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <div class="iz-icon">📂</div>
+        <div class="iz-primary">Drop your tracker .json here</div>
+        <div class="iz-sub">or click to browse files</div>
+      </div>
+
+      <div class="import-divider">or paste json</div>
+
+      <div class="paste-zone">
+        <textarea id="paste-input" placeholder='{ "sessions": [...], "goal": 120 }' spellcheck="false"></textarea>
+        <div class="paste-footer">
+          <button class="btn primary" onclick="applyPaste()">Load JSON</button>
+        </div>
+      </div>
+
+      <input type="file" id="file-input" accept=".json" onchange="loadFile(event)">
+    </div>
+  </div>
+
+  <!-- RESIZER -->
+  <div class="resizer" id="resizer"></div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel-right">
+    <div class="output-header">
+      <span class="panel-title">Markdown Output</span>
+      <div style="display:flex;align-items:center;gap:0.9rem;">
+        <div class="output-meta">
+          <div class="stat">Sessions <span id="stat-sessions">0</span></div>
+          <div class="stat">Total <span id="stat-total">—</span></div>
+        </div>
+        <div class="out-tabs">
+          <button class="tab-btn active" id="out-tab-pretty" onclick="switchOutput('pretty')">Preview</button>
+          <button class="tab-btn" id="out-tab-raw" onclick="switchOutput('raw')">Raw</button>
+        </div>
+        <button class="btn green" id="copy-btn" onclick="copyOutput()">
+          <svg id="copy-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-7A1.5 1.5 0 0 0 1 3.5v7A1.5 1.5 0 0 0 2.5 12H4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span id="copy-label">Copy</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="output-area" id="output-pretty"></div>
+    <textarea class="raw-output" id="output-raw" readonly spellcheck="false"></textarea>
+  </div>
+</div>
+
+<script>
+  let state = { sessions: [], goal: 120 };
+  let outputMode = 'pretty';
+  let leftMode = 'import';
+
+  // ── TABS ─────────────────────────────────────────────────
+  function switchLeft(tab, btn) {
+    leftMode = tab;
+    document.querySelectorAll('.panel-left .tab-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    document.getElementById('sessions-view').classList.remove('active');
+    const jv = document.getElementById('json-view');
+    jv.style.display = 'none';
+    jv.classList.remove('active');
+    document.getElementById('import-view').classList.remove('active');
+
+    if (tab === 'sessions') {
+      document.getElementById('sessions-view').classList.add('active');
+    } else if (tab === 'json') {
+      jv.style.display = 'flex';
+      jv.classList.add('active');
+      syncJsonFromSessions();
+    } else {
+      document.getElementById('import-view').classList.add('active');
+    }
+  }
+
+  function switchOutput(mode) {
+    outputMode = mode;
+    document.getElementById('out-tab-pretty').classList.toggle('active', mode === 'pretty');
+    document.getElementById('out-tab-raw').classList.toggle('active', mode === 'raw');
+    document.getElementById('output-pretty').style.display = mode === 'pretty' ? 'block' : 'none';
+    document.getElementById('output-raw').style.display    = mode === 'raw'    ? 'block' : 'none';
+  }
+
+  // ── TIME FORMAT ──────────────────────────────────────────
+  function fmtMins(mins) {
+    if (mins < 60) return `${mins} m`;
+    const h = Math.floor(mins / 60), m = mins % 60;
+    return m === 0 ? `${h} h` : `${h} h ${m} m`;
+  }
+
+  // ── RENDER SESSIONS ──────────────────────────────────────
+  function renderSessions() {
+    const list = document.getElementById('sessions-list');
+    if (!state.sessions.length) {
+      list.innerHTML = `<div class="empty-state">
+        <div class="icon">📂</div>
+        <div class="label">No sessions yet</div>
+        <div class="sub">Switch to Import tab to load your tracker JSON</div>
+      </div>`;
+      return;
+    }
+    list.innerHTML = state.sessions
+      .sort((a,b) => new Date(b.date) - new Date(a.date))
+      .map(s => `
+        <div class="session-card">
+          <div class="sc-date-wrap">
+            <svg class="sc-date-icon" width="11" height="11" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1.5" y="3" width="13" height="11.5" rx="2" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M5 1.5V4M11 1.5V4M1.5 7H14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            <input type="date" class="sc-date" value="${s.date}" onchange="updateSession(${s.id},'date',this.value)">
+          </div>
+          <input type="text" class="sc-subject" value="${esc(s.subject)}" placeholder="Subject" onchange="updateSession(${s.id},'subject',this.value)">
+          <div class="sc-time-wrap">
+            <div class="sc-spinner-group">
+              <input type="number" class="sc-hr-input" id="hr-${s.id}" value="${Math.floor(s.mins/60)}" min="0" max="99"
+                onchange="commitTime(${s.id})"
+                onwheel="scrollTime(event,${s.id},'hr')"
+                onfocus="this.select()">
+              <span class="sc-time-unit">hr</span>
+            </div>
+            <span class="sc-time-sep">:</span>
+            <div class="sc-spinner-group">
+              <input type="number" class="sc-min-input" id="min-${s.id}" value="${String(s.mins%60).padStart(2,'0')}" min="0" max="59"
+                onchange="commitTime(${s.id})"
+                onwheel="scrollTime(event,${s.id},'min')"
+                onfocus="this.select()">
+              <span class="sc-time-unit">min</span>
+            </div>
+          </div>
+          <button class="del-btn" onclick="deleteSession(${s.id})" title="Delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 3h6M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 11v5M14 11v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>`).join('');
+    renderOutput();
+    updateStats();
+  }
+
+  function esc(t) {
+    return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── TIME SPINNER HELPERS ────────────────────────────────
+  function scrollTime(e, id, field) {
+    e.preventDefault();
+    const hrEl  = document.getElementById('hr-'  + id);
+    const minEl = document.getElementById('min-' + id);
+    if (!hrEl || !minEl) return;
+
+    const delta = e.deltaY < 0 ? 1 : -1;   // scroll up = increase
+
+    if (field === 'hr') {
+      let v = Math.max(0, Math.min(99, (+hrEl.value || 0) + delta));
+      hrEl.value = v;
+    } else {
+      let v = (+minEl.value || 0) + delta;
+      if (v > 59) {
+        v = 0;
+        hrEl.value = Math.min(99, (+hrEl.value || 0) + 1);
+      } else if (v < 0) {
+        v = 59;
+        hrEl.value = Math.max(0, (+hrEl.value || 0) - 1);
+      }
+      minEl.value = String(v).padStart(2, '0');
+    }
+    commitTime(id);
+
+    // brief flash on card
+    const card = hrEl.closest('.session-card');
+    if (card) {
+      card.classList.add('scroll-flash');
+      clearTimeout(card._flashTimer);
+      card._flashTimer = setTimeout(() => card.classList.remove('scroll-flash'), 300);
+    }
+  }
+
+  function commitTime(id) {
+    const hrEl  = document.getElementById('hr-'  + id);
+    const minEl = document.getElementById('min-' + id);
+    if (!hrEl || !minEl) return;
+    const totalMins = Math.max(1, (+hrEl.value || 0) * 60 + (+minEl.value || 0));
+    updateSession(id, 'mins', totalMins);
+    // keep display in sync (pad minutes)
+    minEl.value = String(totalMins % 60).padStart(2, '0');
+    hrEl.value  = Math.floor(totalMins / 60);
+  }
+
+  
+  function addSession() {
+    const today = new Date().toISOString().split('T')[0];
+    state.sessions.push({ id: Date.now(), date: today, subject: 'Subject', mins: 60, note: '' });
+    renderSessions();
+  }
+
+  function updateSession(id, field, value) {
+    const s = state.sessions.find(s => s.id === id);
+    if (s) s[field] = value;
+    renderOutput();
+    updateStats();
+    if (leftMode === 'json') syncJsonFromSessions();
+  }
+
+  function deleteSession(id) {
+    state.sessions = state.sessions.filter(s => s.id !== id);
+    renderSessions();
+  }
+
+  // ── GENERATE MARKDOWN ────────────────────────────────────
+  function generateMarkdown() {
+    if (!state.sessions.length) return '';
+    const byMonth = {};
+    for (const s of state.sessions) {
+      const d  = new Date(s.date + 'T00:00:00');
+      const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      if (!byMonth[mk]) byMonth[mk] = {};
+      if (!byMonth[mk][s.date]) byMonth[mk][s.date] = {};
+      byMonth[mk][s.date][s.subject] = (byMonth[mk][s.date][s.subject] || 0) + s.mins;
+    }
+    const lines = [];
+    for (const mk of Object.keys(byMonth).sort((a,b) => b.localeCompare(a))) {
+      const [yr, mo] = mk.split('-');
+      const name = new Date(+yr,+mo-1,1).toLocaleString('en-US',{month:'long'});
+      lines.push(`## ${name} ${yr}`, '');
+      for (const date of Object.keys(byMonth[mk]).sort()) {
+        const [y,m,dd] = date.split('-');
+        lines.push(`${dd}/${m}/${y}`);
+        for (const [subj, mins] of Object.entries(byMonth[mk][date]))
+          lines.push(`- ${subj} ⟶ ${fmtMins(mins)}`);
+        lines.push('');
+      }
+    }
+    return lines.join('\n').trim();
+  }
+
+  // ── RENDER OUTPUT ────────────────────────────────────────
+  function renderOutput() {
+    const md = generateMarkdown();
+    document.getElementById('output-raw').value = md;
+    const pretty = document.getElementById('output-pretty');
+
+    if (!md) {
+      pretty.innerHTML = `<div class="empty-state">
+        <div class="icon">✦</div>
+        <div class="label">Import your tracker .json</div>
+        <div class="sub">Your Obsidian markdown will appear here</div>
+      </div>`;
+      return;
+    }
+
+    const byMonth = {};
+    for (const s of state.sessions) {
+      const d  = new Date(s.date + 'T00:00:00');
+      const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      if (!byMonth[mk]) byMonth[mk] = {};
+      if (!byMonth[mk][s.date]) byMonth[mk][s.date] = {};
+      byMonth[mk][s.date][s.subject] = (byMonth[mk][s.date][s.subject] || 0) + s.mins;
+    }
+
+    let html = '';
+    for (const mk of Object.keys(byMonth).sort((a,b) => b.localeCompare(a))) {
+      const [yr, mo] = mk.split('-');
+      const name = new Date(+yr,+mo-1,1).toLocaleString('en-US',{month:'long'});
+      html += `<div class="output-block"><div class="out-month">## ${name} ${yr}</div>`;
+      for (const date of Object.keys(byMonth[mk]).sort()) {
+        const [y,m,dd] = date.split('-');
+        html += `<div class="out-date">${dd}/${m}/${y}</div>`;
+        for (const [subj,mins] of Object.entries(byMonth[mk][date]))
+          html += `<div class="out-session"><span class="subj">${esc(subj)}</span><span class="arr"> ⟶ </span><span class="dur">${fmtMins(mins)}</span></div>`;
+      }
+      html += '</div>';
+    }
+    pretty.innerHTML = html;
+  }
+
+  // ── STATS ────────────────────────────────────────────────
+  function updateStats() {
+    const total = state.sessions.reduce((a,s) => a + s.mins, 0);
+    document.getElementById('stat-sessions').textContent = state.sessions.length;
+    document.getElementById('stat-total').textContent = state.sessions.length ? fmtMins(total) : '—';
+  }
+
+  // ── COPY (reactive) ──────────────────────────────────────
+  let copyTimer = null;
+
+  function copyOutput() {
+    const md = generateMarkdown();
+    if (!md) return;
+    navigator.clipboard.writeText(md).then(() => {
+      const btn   = document.getElementById('copy-btn');
+      const label = document.getElementById('copy-label');
+      const icon  = document.getElementById('copy-icon');
+
+      btn.classList.add('copied');
+      label.textContent = 'Copied!';
+      icon.innerHTML = `<polyline points="2,9 6,13 14,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => {
+        btn.classList.remove('copied');
+        label.textContent = 'Copy';
+        icon.innerHTML = `<rect x="5" y="5" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-7A1.5 1.5 0 0 0 1 3.5v7A1.5 1.5 0 0 0 2.5 12H4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`;
+      }, 2200);
+    });
+  }
+
+  // ── JSON EDITOR ──────────────────────────────────────────
+  function syncJsonFromSessions() {
+    document.getElementById('json-editor').value =
+      JSON.stringify({ sessions: state.sessions, goal: state.goal }, null, 2);
+    document.getElementById('json-error').style.display = 'none';
+  }
+
+  function onJsonEdit() {
+    try { JSON.parse(document.getElementById('json-editor').value);
+          document.getElementById('json-error').style.display = 'none'; } catch(e) {}
+  }
+
+  function applyJson() {
+    const err = document.getElementById('json-error');
+    try { loadData(JSON.parse(document.getElementById('json-editor').value)); err.style.display='none'; }
+    catch(e) { err.textContent = 'Invalid JSON: ' + e.message; err.style.display='block'; }
+  }
+
+  function applyPaste() {
+    const raw = document.getElementById('paste-input').value.trim();
+    if (!raw) return;
+    try { loadData(JSON.parse(raw)); document.getElementById('paste-input').value = ''; }
+    catch(e) { alert('Invalid JSON: ' + e.message); }
+  }
+
+  // ── LOAD DATA ────────────────────────────────────────────
+  function loadData(data) {
+    if (data.sessions && Array.isArray(data.sessions)) {
+      state.sessions = data.sessions.map(s => ({
+        ...s,
+        id:      s.id || Date.now() + Math.random(),
+        mins:    +s.mins || 0,
+        subject: s.subject || 'Unknown',
+        date:    s.date || new Date().toISOString().split('T')[0],
+        note:    s.note || ''
+      }));
+    }
+    if (data.goal) state.goal = data.goal;
+    renderSessions();
+    switchLeft('sessions', document.querySelector('.panel-left .tab-btn'));
+  }
+
+  // ── FILE IMPORT ──────────────────────────────────────────
+  function loadFile(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = ev => { try { loadData(JSON.parse(ev.target.result)); }
+                       catch(err) { alert('Could not parse JSON: ' + err.message); } };
+    r.readAsText(file);
+    e.target.value = '';
+  }
+
+  function onDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+  function onDragLeave()  { document.getElementById('drop-zone').classList.remove('drag-over'); }
+
+  function onDrop(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = ev => { try { loadData(JSON.parse(ev.target.result)); }
+                       catch(err) { alert('Invalid JSON: ' + err.message); } };
+    r.readAsText(file);
+  }
+
+  // ── RESIZABLE PANELS ─────────────────────────────────────
+  (function() {
+    const resizer = document.getElementById('resizer');
+    const panelL  = document.getElementById('panel-left');
+    const layout  = document.querySelector('.layout');
+    let dragging  = false, startX, startW;
+
+    resizer.addEventListener('mousedown', e => {
+      dragging = true; startX = e.clientX;
+      startW   = panelL.getBoundingClientRect().width;
+      resizer.classList.add('dragging');
+      document.body.style.cursor     = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const total = layout.getBoundingClientRect().width;
+      const newW  = Math.min(Math.max(startW + e.clientX - startX, 280), total - 245);
+      panelL.style.width = newW + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      resizer.classList.remove('dragging');
+      document.body.style.cursor = document.body.style.userSelect = '';
+    });
+  })();
+
+  // ── INIT ─────────────────────────────────────────────────
+  renderOutput();
+  updateStats();
+  document.getElementById('output-pretty').style.display = 'block';
+  document.getElementById('output-raw').style.display    = 'none';
+</script>
 </body>
 </html>
