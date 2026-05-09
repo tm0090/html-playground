@@ -6,7 +6,7 @@
 <title>StudyLog</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Default Fonts (will be overridden if user applies custom fonts) -->
+<!-- Default Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" id="default-google-fonts">
 <style>
 :root {
@@ -20,8 +20,8 @@
   --border-3: rgba(255, 255, 255, 0.20);
   
   /* Refined Accent Colors - Professional Blue Theme */
-  --accent: #3b82f6; /* Blue 500 */
-  --accent-hover: #2563eb; /* Blue 600 */
+  --accent: #3b82f6; 
+  --accent-hover: #2563eb; 
   --accent-dim: rgba(59, 130, 246, 0.12);
   --accent-glow: rgba(59, 130, 246, 0.25);
   
@@ -255,6 +255,7 @@ header {
 .data-btn-text { display: flex; flex-direction: column; gap: 2px; }
 .data-btn-label { font-size: 13px; font-weight: 700; color: var(--text); font-family: var(--sans); }
 .data-btn-desc { font-size: 11px; color: var(--text-3); font-family: var(--sans); font-weight: 500; }
+
 .goal-card {
   background: linear-gradient(145deg, var(--surface-2) 0%, var(--surface) 100%);
   border: 1px solid var(--border);
@@ -297,45 +298,6 @@ header {
 .goal-saved { font-size: 11px; font-weight: 600; color: var(--green); text-align: center; margin-top: 6px; height: 16px; transition: opacity 0.3s; opacity: 0; }
 .goal-saved.show { opacity: 1; }
 
-/* Per-day goals grid */
-.daily-goals-grid { display: flex; flex-direction: column; gap: 5px; }
-.dg-row {
-  display: flex; align-items: center; gap: 6px;
-  padding: 5px 6px; border-radius: 8px;
-  transition: background 0.15s;
-}
-.dg-row:hover { background: var(--surface-3); }
-.dg-row.today-row { background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.25); }
-.dg-day {
-  font-size: 11px; font-weight: 700; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.08em; width: 28px; flex-shrink: 0;
-}
-.dg-row.today-row .dg-day { color: var(--accent); }
-.dg-inputs { display: flex; align-items: center; gap: 3px; flex: 1; }
-.dg-unit-wrap {
-  display: flex; align-items: center;
-  background: var(--bg); border: 1px solid var(--border-2);
-  border-radius: 6px; overflow: hidden; transition: all 0.15s;
-}
-.dg-unit-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
-.dg-step {
-  width: 20px; height: 26px; background: transparent; border: none;
-  color: var(--text-3); cursor: pointer; font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.1s; flex-shrink: 0; user-select: none; line-height: 1;
-}
-.dg-step:hover { color: var(--text); background: var(--surface-3); }
-.dg-inp {
-  width: 28px; height: 26px; padding: 0; background: transparent; border: none;
-  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
-  color: var(--text); font-family: var(--mono); font-size: 12px; font-weight: 500;
-  outline: none; text-align: center;
-}
-.dg-inp:focus { color: var(--accent); }
-.dg-sep { font-size: 10px; font-weight: 600; color: var(--text-3); font-family: var(--sans); }
-.dg-display { font-family: var(--mono); font-size: 11px; color: var(--text-2); margin-left: auto; white-space: nowrap; }
-.dg-row.today-row .dg-display { color: var(--accent); font-weight: 600; }
-
 /* ── Content ── */
 .content { flex: 1; overflow-y: auto; padding: 32px 40px; position: relative; }
 .year-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
@@ -363,8 +325,151 @@ header {
 .vbtn.on { background: var(--surface-3); color: var(--text); box-shadow: var(--shadow-sm); }
 .vbtn:hover:not(.on) { color: var(--text); background: var(--surface-2); }
 
-/* ── Calendar View ── */
+/* ── NEW ALL TIME DASHBOARD (HIERARCHY-DRIVEN) ── */
+.at-dash {
+  display: flex; flex-direction: column; gap: 32px;
+  padding-bottom: 40px; animation: fadeIn 0.5s ease;
+}
+
+/* 1. Hero Achievement Section */
+.at-hero {
+  display: flex; align-items: center; justify-content: space-between; gap: 40px;
+  padding: 48px; background: linear-gradient(135deg, var(--surface-2) 0%, var(--bg) 100%);
+  border-radius: 24px; border: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  position: relative; overflow: hidden; flex-wrap: wrap;
+}
+.at-hero::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 600px; height: 600px;
+  background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 65%);
+  transform: translate(30%, -30%); pointer-events: none;
+}
+.at-hero-main { flex: 1; min-width: 300px; z-index: 1; }
+.at-hero-lbl { font-family: var(--serif); font-size: 22px; font-style: italic; color: var(--text-2); margin-bottom: 12px; }
+.at-hero-val { 
+  font-family: var(--mono); font-size: 80px; font-weight: 600; line-height: 1; 
+  color: var(--text); letter-spacing: -0.04em; margin-bottom: 32px; 
+  text-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; align-items: baseline; gap: 12px; 
+}
+.at-hero-val span { font-family: var(--sans); font-size: 24px; font-weight: 500; color: var(--accent); letter-spacing: 0; text-shadow: none; }
+.at-hero-stats { display: flex; gap: 40px; flex-wrap: wrap; }
+.at-hstat { display: flex; flex-direction: column; gap: 6px; }
+.at-hstat-val { font-family: var(--mono); font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; }
+.at-hstat-lbl { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* Hero Insights (Floating Right) */
+.at-hero-insights { flex: 0 1 360px; display: flex; flex-direction: column; gap: 12px; z-index: 1; }
+.at-insight-pill { 
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border-2); 
+  padding: 16px; border-radius: 16px; display: flex; align-items: flex-start; gap: 14px; 
+  backdrop-filter: blur(10px); transition: all 0.2s;
+}
+.at-insight-pill:hover { background: rgba(255,255,255,0.05); border-color: var(--border-3); transform: translateX(-4px); }
+.at-insight-icon { font-size: 22px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+.at-insight-text { font-size: 13px; color: var(--text-2); line-height: 1.5; font-weight: 500; }
+.at-insight-text strong { color: var(--text); font-weight: 700; }
+
+/* Panel Layout System */
+.at-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+.at-grid-wide { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+@media (max-width: 1100px) { .at-grid-wide { grid-template-columns: 1fr; } }
+
+.at-panel { 
+  background: var(--surface); border-radius: 20px; padding: 32px; 
+  border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+  display: flex; flex-direction: column; 
+}
+.at-panel-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px; gap: 16px; flex-wrap: wrap; }
+.at-panel-ttl { font-family: var(--serif); font-size: 24px; font-style: italic; color: var(--text); }
+.at-panel-sub { font-size: 13px; color: var(--text-3); font-weight: 500; text-align: right; }
+
+/* 2. Monthly History Timeline (Full Width Panel) */
+.at-hist-wrap { overflow-x: auto; padding-bottom: 8px; margin-top: auto; }
+.at-hist-wrap::-webkit-scrollbar { height: 6px; }
+.at-hist-wrap::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 6px; }
+.at-hist-chart { display: flex; align-items: flex-end; gap: 16px; height: 180px; min-width: max-content; padding: 0 4px; }
+.at-hist-col { flex: 0 0 48px; display: flex; flex-direction: column; align-items: center; gap: 10px; height: 100%; }
+.at-hist-val { font-family: var(--mono); font-size: 12px; color: var(--text-2); font-weight: 600; height: 16px; }
+.at-hist-bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; position: relative; }
+.at-hist-bar-wrap::before { content: ''; position: absolute; inset: 0; border-radius: 8px 8px 0 0; background: rgba(0,0,0,0.15); }
+.at-hist-bar { 
+  width: 100%; border-radius: 8px 8px 0 0; 
+  background: linear-gradient(180deg, var(--surface-3) 0%, transparent 100%); 
+  transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1); min-height: 4px; z-index: 1; 
+}
+.at-hist-bar:hover { background: linear-gradient(180deg, var(--text-3) 0%, transparent 100%); }
+.at-hist-bar.peak { background: linear-gradient(180deg, var(--accent) 0%, transparent 100%); box-shadow: 0 -4px 20px var(--accent-glow); }
+.at-hist-bar.peak:hover { background: linear-gradient(180deg, var(--accent-hover) 0%, transparent 100%); }
+.at-hist-lbl { font-size: 11px; color: var(--text-3); font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
+.at-hist-lbl.peak { color: var(--accent); font-weight: 700; }
+
+/* 3. Clean Subject Leaderboard */
+.at-subj-list { display: flex; flex-direction: column; gap: 8px; }
+.at-subj-row { 
+  display: flex; align-items: center; gap: 16px; padding: 12px 16px; 
+  border-radius: 12px; transition: all 0.2s; background: rgba(255,255,255,0.01);
+}
+.at-subj-row:hover { background: var(--surface-2); transform: translateX(4px); }
+.at-subj-rank { font-family: var(--mono); font-size: 14px; color: var(--text-3); width: 20px; font-weight: 600; text-align: right; }
+.at-subj-rank.top { font-size: 18px; }
+.at-subj-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.at-subj-bar-bg { flex: 2; height: 6px; background: rgba(0,0,0,0.3); border-radius: 6px; overflow: hidden; }
+.at-subj-bar-fill { height: 100%; border-radius: 6px; transition: width 0.8s ease; }
+.at-subj-val { font-family: var(--mono); font-size: 14px; color: var(--text); width: 64px; text-align: right; font-weight: 600; }
+
+/* 4. Personal Records */
+.at-records { display: flex; flex-direction: column; gap: 20px; height: 100%; justify-content: space-around; }
+.at-rec-row { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; border-bottom: 1px solid var(--border-2); }
+.at-rec-row:last-child { border-bottom: none; padding-bottom: 0; }
+.at-rec-left { display: flex; flex-direction: column; gap: 6px; }
+.at-rec-lbl { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; }
+.at-rec-date { font-size: 14px; font-weight: 600; color: var(--text-2); }
+.at-rec-val { font-family: var(--mono); font-size: 32px; font-weight: 600; color: var(--accent); line-height: 1; letter-spacing: -0.02em; }
+
+/* 5. Patterns (DOW & Duration) embedded in panels */
+.at-pattern-wrap { display: flex; flex-direction: column; gap: 32px; height: 100%; }
+.at-pattern-sec { display: flex; flex-direction: column; flex: 1; }
+.at-pattern-lbl { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+
+/* Enhance existing charts to fit in panels */
+.dow-chart { display: flex; align-items: flex-end; gap: 10px; height: 120px; flex: 1; }
+.dur-hist { display: flex; align-items: flex-end; gap: 12px; height: 120px; flex: 1; }
+
+/* 6. Goals Progress Rings Panel */
+.at-rings-wrap { display: flex; gap: 24px; justify-content: space-around; align-items: center; height: 100%; }
+.at-ring-box { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.at-ring-svg { position: relative; width: 100px; height: 100px; }
+.at-ring-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--text); }
+.at-ring-ttl { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; }
+.at-ring-sub { font-size: 12px; color: var(--text-3); font-weight: 500; }
+
+/* 7. Milestones (Badges) */
+.at-badges { display: flex; flex-wrap: wrap; gap: 16px; }
+.at-badge { 
+  flex: 1; min-width: 120px; background: rgba(255,255,255,0.02); 
+  border: 1px solid var(--border); border-radius: 16px; padding: 20px 12px; 
+  text-align: center; display: flex; flex-direction: column; align-items: center; 
+  transition: all 0.2s; position: relative;
+}
+.at-badge.locked { opacity: 0.3; filter: grayscale(1); }
+.at-badge:not(.locked):hover { transform: translateY(-3px); border-color: var(--border-3); background: var(--surface-2); box-shadow: var(--shadow-sm); }
+.at-badge-icon { font-size: 32px; margin-bottom: 12px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
+.at-badge-ttl { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; white-space: nowrap; }
+.at-badge-desc { font-size: 11px; color: var(--text-3); line-height: 1.3; }
+
+/* 8. Yearly Comparison */
+.year-compare { display: flex; flex-direction: column; gap: 18px; justify-content: center; height: 100%; }
+.yc-row { display: flex; align-items: center; gap: 16px; }
+.yc-label { font-family: var(--mono); font-size: 14px; color: var(--text-2); width: 42px; flex-shrink: 0; font-weight: 600; }
+.yc-bar-wrap { flex: 1; height: 8px; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+.yc-bar-fill { height: 100%; border-radius: 8px; background: var(--surface-3); transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); min-width: 4px; }
+.yc-bar-fill.best { background: linear-gradient(90deg, rgba(59,130,246,0.5) 0%, var(--accent) 100%); box-shadow: 0 0 12px var(--accent-glow); }
+.yc-val { font-family: var(--mono); font-size: 14px; color: var(--text); width: 70px; text-align: right; flex-shrink: 0; font-weight: 600; }
+.yc-badge { font-size: 10px; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.05em; width: 40px; text-align: center; }
+
+/* ── Rest of existing CSS... ── */
 .cal-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px 28px; margin-bottom: 32px; box-shadow: var(--shadow-sm); animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
 .cal-title { font-family: var(--serif); font-size: 24px; font-style: italic; color: var(--text); }
 .cal-nav { display: flex; gap: 8px; }
@@ -386,13 +491,11 @@ header {
 .cal-cell.l3 { background: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.4); }
 .cal-cell.l4 { background: rgba(59, 130, 246, 0.4); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-dim); }
 
-/* ── Heatmap ── */
+/* Heatmap */
 .heatmap-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r); padding: 24px 28px; margin-bottom: 32px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s;
-  animation: fadeIn 0.3s ease;
+  box-shadow: var(--shadow-sm); transition: all 0.3s; animation: fadeIn 0.3s ease;
 }
 .heatmap-card:hover { border-color: var(--border-2); box-shadow: var(--shadow); }
 .hmap-title { font-family: var(--serif); font-size: 22px; margin-bottom: 20px; font-style: italic; color: var(--text); letter-spacing: -0.01em; }
@@ -405,10 +508,8 @@ header {
 .hmap-grid { display: flex; gap: 4px; }
 .hmap-col { display: flex; flex-direction: column; gap: 4px; }
 .hcell {
-  width: 14px; height: 14px; border-radius: 3px;
-  background: var(--surface-3); cursor: pointer;
-  transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s; flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.02);
+  width: 14px; height: 14px; border-radius: 3px; background: var(--surface-3); cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.02);
 }
 .hcell:hover { transform: scale(1.4); z-index: 5; position: relative; box-shadow: 0 0 8px currentColor; border-color: transparent; }
 .hcell.faded { opacity: 0.1; }
@@ -416,17 +517,11 @@ header {
 .hcell.l2 { background: rgba(59, 130, 246, 0.55); border-color: transparent; }
 .hcell.l3 { background: rgba(59, 130, 246, 0.8); border-color: transparent; }
 .hcell.l4 { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); border-color: transparent; }
-.hmap-foot {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);
-  flex-wrap: wrap; gap: 16px;
-}
+.hmap-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 16px; }
 .hmap-ystats { display: flex; gap: 24px; flex-wrap: wrap; }
 .ystat { font-size: 12px; font-weight: 600; color: var(--text-2); }
 .ystat strong { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); display: block; margin-bottom: 2px; }
 .hmap-legend { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-2); font-weight: 600; }
-
-/* Heatmap subject breakdown */
 .hmap-subj-section { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px; }
 .hmap-subj-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 14px; }
 .hmap-subj-breakdown { display: flex; flex-direction: column; gap: 8px; }
@@ -437,503 +532,142 @@ header {
 .hmap-subj-bar-fill { height: 100%; border-radius: 5px; transition: width 0.7s cubic-bezier(0.16,1,0.3,1); }
 .hmap-subj-val { font-family: var(--mono); font-size: 12px; color: var(--text-2); width: 60px; text-align: right; flex-shrink: 0; }
 
-/* ── All Time View Enhancements ── */
-.alltime-wrap { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Bento Grid */
-.at-bento {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
-}
-@media (min-width: 768px) {
-  .at-card.wide { grid-column: span 2; }
-}
-
-.at-card {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r); padding: 20px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 4px 12px rgba(0,0,0,0.1);
-  display: flex; flex-direction: column; justify-content: center;
-}
-.at-card:hover { border-color: var(--border-3); transform: translateY(-3px); box-shadow: var(--shadow); }
-
-/* Themed Hero Cards */
-.at-card.primary {
-  background: linear-gradient(145deg, rgba(59, 130, 246, 0.1) 0%, var(--surface-2) 100%);
-  border-color: rgba(59, 130, 246, 0.2);
-}
-.at-card.primary:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 8px 32px var(--accent-dim); }
-.at-card.primary .at-card-icon { background: rgba(59, 130, 246, 0.15); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.15); }
-
-.at-card.green {
-  background: linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, var(--surface-2) 100%);
-  border-color: rgba(16, 185, 129, 0.2);
-}
-.at-card.green:hover { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 8px 32px var(--green-dim); }
-.at-card.green .at-card-icon { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.15); }
-
-.at-card-icon {
-  margin-bottom: 16px; width: 38px; height: 38px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--surface-3); color: var(--text-2);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-  transition: all 0.3s ease;
-}
-.at-card-icon svg { width: 18px; height: 18px; }
-
-.at-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
-.at-card-val { font-family: var(--mono); font-size: 32px; font-weight: 600; color: var(--text); line-height: 1; letter-spacing: -0.02em; }
-.at-card-sub { font-size: 12px; font-weight: 600; color: var(--text-2); margin-top: 8px; line-height: 1.4; }
-
-.at-section { margin-bottom: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; box-shadow: var(--shadow-sm); }
-.at-section-title {
-  font-family: var(--serif); font-size: 20px; font-style: italic;
-  margin-bottom: 20px; color: var(--text);
-  display: flex; align-items: center; gap: 12px;
-}
-.at-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-/* Badges System */
-.badge-row { display: flex; gap: 16px; overflow-x: auto; padding: 4px 4px 16px 4px; margin: 0 -4px; }
-.badge-row::-webkit-scrollbar { height: 6px; }
-.badge { 
-  display: flex; flex-direction: column; align-items: center; justify-content: center; 
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px; 
-  padding: 20px 16px; min-width: 130px; text-align: center; 
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; 
-  flex-shrink: 0;
-}
-.badge.locked { opacity: 0.4; filter: grayscale(1); }
-.badge:hover { transform: translateY(-4px); border-color: var(--border-3); box-shadow: var(--shadow-sm); }
-.badge-icon { font-size: 38px; margin-bottom: 12px; line-height: 1; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
-.badge-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; white-space: nowrap; }
-.badge-desc { font-size: 11px; color: var(--text-3); line-height: 1.3; }
-.badge-glow { position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 70%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
-.badge:not(.locked):hover .badge-glow { opacity: 1; }
-
-/* Subject leaderboard */
-.subj-board { display: flex; flex-direction: column; gap: 10px; }
-.subj-rank {
-  display: flex; align-items: center; gap: 16px;
-  padding: 12px 16px;
-  background: var(--surface-2); border: 1px solid var(--border);
-  border-radius: var(--rsm); transition: all 0.2s;
-  position: relative; overflow: hidden;
-}
-.subj-rank::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: transparent; transition: all 0.2s; }
-.subj-rank:hover { border-color: var(--border-2); background: var(--surface-3); transform: translateX(4px); box-shadow: var(--shadow-sm); }
-.subj-rank:hover::before { background: currentColor; }
-.subj-rank-num { font-family: var(--mono); font-size: 13px; color: var(--text-3); width: 24px; text-align: right; flex-shrink: 0; }
-.subj-rank-num.top1 { font-size: 18px; filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.4)); }
-.subj-rank-num.top2 { font-size: 18px; filter: drop-shadow(0 0 6px rgba(161, 161, 170, 0.4)); }
-.subj-rank-num.top3 { font-size: 18px; filter: drop-shadow(0 0 6px rgba(180, 83, 9, 0.4)); }
-.subj-rank-name { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 8px; }
-.subj-rank-bar-wrap { flex: 2; height: 8px; background: rgba(0,0,0,0.4); border-radius: 8px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
-.subj-rank-bar-fill { height: 100%; border-radius: 8px; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-.subj-rank-val { font-family: var(--mono); font-size: 14px; color: var(--text); flex-shrink: 0; width: 70px; text-align: right; font-weight: 600; }
-.subj-rank-pct { font-size: 12px; color: var(--text-3); flex-shrink: 0; width: 36px; text-align: right; font-weight: 700; }
-
-/* Yearly comparison */
-.year-compare { display: flex; flex-direction: column; gap: 12px; }
-.yc-row { display: flex; align-items: center; gap: 16px; }
-.yc-label { font-family: var(--mono); font-size: 13px; color: var(--text-2); width: 42px; flex-shrink: 0; font-weight: 500; }
-.yc-bar-wrap { flex: 1; height: 24px; background: rgba(0,0,0,0.3); border-radius: 6px; overflow: hidden; position: relative; }
-.yc-bar-fill {
-  height: 100%; border-radius: 6px;
-  background: linear-gradient(90deg, var(--surface-3) 0%, var(--border-3) 100%);
-  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;
-  min-width: 4px;
-}
-.yc-bar-fill.best { background: linear-gradient(90deg, rgba(59,130,246,0.4) 0%, var(--accent) 100%); box-shadow: 0 0 12px var(--accent-glow); }
-.yc-val { font-family: var(--mono); font-size: 13px; color: var(--text-2); width: 70px; text-align: right; flex-shrink: 0; }
-.yc-badge { font-size: 10px; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.05em; }
-
-/* Enhanced Gradient Charts */
-.dow-chart { display: flex; align-items: flex-end; gap: 8px; height: 140px; padding: 0 8px; margin-top: 10px; }
-.dow-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
-.dow-bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; background: transparent; position: relative; }
-.dow-bar-outer::before { content: ''; position: absolute; inset: 0; border-radius: 6px 6px 0 0; background: rgba(0,0,0,0.2); }
-.dow-bar {
-  width: 100%; border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, var(--surface-3) 0%, transparent 100%);
-  transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s;
-  position: relative; min-height: 4px; z-index: 1;
-}
-.dow-bar.peak { background: linear-gradient(180deg, var(--accent) 0%, transparent 100%); box-shadow: 0 -4px 16px var(--accent-glow); }
-.dow-bar:hover { background: linear-gradient(180deg, var(--text-3) 0%, transparent 100%); }
-.dow-bar.peak:hover { background: linear-gradient(180deg, var(--accent-hover) 0%, transparent 100%); }
-.dow-label { font-size: 11px; color: var(--text-3); white-space: nowrap; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.dow-label.peak { color: var(--accent); font-weight: 700; }
-
-.hist-chart-wrap { overflow-x: auto; padding-bottom: 12px; margin-top: 10px; }
-.hist-chart-wrap::-webkit-scrollbar { height: 6px; }
-.hist-chart-wrap::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 6px; }
-.hist-chart {
-  display: flex; align-items: flex-end; gap: 14px; height: 160px; 
-  min-width: max-content; padding: 0 4px;
-}
-.mt-col { flex: 0 0 44px; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
-.mt-val { font-family: var(--mono); font-size: 11px; color: var(--text-2); height: 14px; font-weight: 500; }
-.mt-bar-outer { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; background: transparent; position: relative; }
-.mt-bar-outer::before { content: ''; position: absolute; inset: 0; border-radius: 6px 6px 0 0; background: rgba(0,0,0,0.2); }
-.mt-bar { 
-  width: 100%; border-radius: 6px 6px 0 0; 
-  background: linear-gradient(180deg, var(--surface-3) 0%, transparent 100%); 
-  transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1); min-height: 4px; z-index: 1; 
-}
-.mt-bar:hover { background: linear-gradient(180deg, var(--text-3) 0%, transparent 100%); }
-.mt-bar.peak { background: linear-gradient(180deg, var(--accent) 0%, transparent 100%); box-shadow: 0 -4px 16px var(--accent-glow); }
-.mt-bar.peak:hover { background: linear-gradient(180deg, var(--accent-hover) 0%, transparent 100%); }
-.mt-label { font-size: 11px; color: var(--text-3); font-weight: 600; text-align: center; line-height: 1.2; white-space: nowrap; }
-.mt-label.peak { color: var(--accent); font-weight: 700; }
-
-/* ── Timeline Revamp ── */
+/* Timeline */
 .mgroup { margin-bottom: 36px; animation: fadeIn 0.3s ease; }
-.mhead {
-  display: flex; align-items: baseline; gap: 12px;
-  padding-bottom: 12px; margin-bottom: 16px;
-}
+.mhead { display: flex; align-items: baseline; gap: 12px; padding-bottom: 12px; margin-bottom: 16px; }
 .mtitle { font-family: var(--serif); font-size: 28px; font-style: italic; color: var(--text); }
 .mtotal { font-family: var(--mono); font-size: 14px; color: var(--text-2); background: var(--surface-2); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); }
-
-/* The Timeline UI */
-.timeline-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  padding-bottom: 20px;
-}
-.timeline-container::before {
-  content: ''; position: absolute;
-  top: 20px; bottom: 0; left: 18px; /* Base vertical line */
-  width: 2px; background: var(--border-2);
-  z-index: 1;
-}
-.day-wrapper {
-  position: relative;
-  padding-left: 48px;
-}
-.day-node {
-  position: absolute;
-  left: 13px; /* Centers 12px node on 18px line */
-  top: 24px;
-  width: 12px; height: 12px;
-  background: var(--surface-2);
-  border: 2px solid var(--border-3);
-  border-radius: 50%;
-  z-index: 2;
-  transition: all 0.3s;
-}
-.day-node.hit {
-  background: var(--green); border-color: var(--green);
-  box-shadow: 0 0 10px rgba(16,185,129,0.4);
-}
-.day-wrapper::before {
-  /* The branch connector */
-  content: ''; position: absolute;
-  left: 24px; top: 29px;
-  width: 24px; height: 2px;
-  background: var(--border-2); z-index: 1;
-}
-.day-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 18px 22px; 
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  position: relative;
-}
-.day-card:hover {
-  border-color: var(--border-2);
-  box-shadow: var(--shadow);
-  transform: translateX(4px);
-  background: var(--surface-2);
-}
+.timeline-container { position: relative; display: flex; flex-direction: column; gap: 28px; padding-bottom: 20px; }
+.timeline-container::before { content: ''; position: absolute; top: 20px; bottom: 0; left: 18px; width: 2px; background: var(--border-2); z-index: 1; }
+.day-wrapper { position: relative; padding-left: 48px; }
+.day-node { position: absolute; left: 13px; top: 24px; width: 12px; height: 12px; background: var(--surface-2); border: 2px solid var(--border-3); border-radius: 50%; z-index: 2; transition: all 0.3s; }
+.day-node.hit { background: var(--green); border-color: var(--green); box-shadow: 0 0 10px rgba(16,185,129,0.4); }
+.day-wrapper::before { content: ''; position: absolute; left: 24px; top: 29px; width: 24px; height: 2px; background: var(--border-2); z-index: 1; }
+.day-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 18px 22px; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: relative; }
+.day-card:hover { border-color: var(--border-2); box-shadow: var(--shadow); transform: translateX(4px); background: var(--surface-2); }
 .dhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .ddate { font-size: 16px; font-weight: 700; color: var(--text); }
 .ddate .dow { color: var(--text-3); font-weight: 600; margin-right: 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-.dtoday {
-  font-size: 10px; color: #fff; font-weight: 800; letter-spacing: 0.1em;
-  margin-left: 8px; vertical-align: middle;
-  background: var(--accent); padding: 2px 6px; border-radius: 4px;
-}
+.dtoday { font-size: 10px; color: #fff; font-weight: 800; letter-spacing: 0.1em; margin-left: 8px; vertical-align: middle; background: var(--accent); padding: 2px 6px; border-radius: 4px; }
 .dtime { font-family: var(--mono); font-size: 14px; color: var(--text-2); font-weight: 500; }
 .dtime.hit { color: var(--green); }
 .prog { height: 4px; border-radius: 4px; background: rgba(0,0,0,0.4); margin-bottom: 12px; overflow: hidden; }
 .pfill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
 .pfill.hit { background: var(--green); box-shadow: 0 0 8px var(--green-dim); }
-
-/* Improved Session Rows */
-.srow {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  padding: 12px 0; border-top: 1px solid var(--border);
-  font-size: 14px; gap: 12px;
-}
+.srow { display: flex; align-items: flex-start; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--border); font-size: 14px; gap: 12px; }
 .srow:last-child { padding-bottom: 0; }
 .srow-l { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
 .srow-dot { margin-top: 6px; flex-shrink: 0; }
 .srow-info { flex: 1; min-width: 0; }
 .srow-subj { line-height: 1.4; font-weight: 600; font-size: 15px; }
-.srow-note {
-  font-size: 13px; color: var(--text-2); margin-top: 8px; line-height: 1.5; word-break: break-word;
-  padding: 6px 10px; background: rgba(255,255,255,0.02);
-  border-left: 2px solid var(--border-3);
-  border-radius: 0 6px 6px 0;
-}
+.srow-note { font-size: 13px; color: var(--text-2); margin-top: 8px; line-height: 1.5; word-break: break-word; padding: 6px 10px; background: rgba(255,255,255,0.02); border-left: 2px solid var(--border-3); border-radius: 0 6px 6px 0; }
 .srow-r { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .smins { font-family: var(--mono); font-size: 13px; color: var(--text-2); font-weight: 500; margin-right: 8px; }
-.sdel, .sedit {
-  background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; font-size: 12px;
-  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-  border-radius: 6px; line-height: 1; transition: all 0.2s; color: var(--text-2);
-}
+.sdel, .sedit { background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; font-size: 12px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; line-height: 1; transition: all 0.2s; color: var(--text-2); }
 .sedit:hover { color: var(--text); background: var(--surface-3); border-color: var(--border-3); }
 .sdel:hover { color: var(--red); background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); }
 
-/* ── Empty ── */
+/* Empty State */
 .empty { text-align: center; padding: 80px 24px; background: var(--surface); border: 1px dashed var(--border-2); border-radius: var(--r); }
 .empty-icon { font-family: var(--serif); font-size: 46px; color: var(--text-3); font-style: italic; margin-bottom: 12px; }
 .empty p { font-size: 14px; color: var(--text-3); margin-top: 8px; font-weight: 500; }
 
-/* ── Modal ── */
-.overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6); z-index: 200;
-  align-items: center; justify-content: center;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-}
+/* Modal */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .overlay.show { display: flex; animation: fadeIn 0.2s ease; }
-.modal {
-  background: var(--surface);
-  border: 1px solid var(--border-2);
-  border-radius: 24px; padding: 32px;
-  width: 440px; max-width: 92vw;
-  animation: modalUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--shadow-lg);
-  position: relative; overflow: hidden;
-}
-.modal::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-}
+.modal { background: var(--surface); border: 1px solid var(--border-2); border-radius: 24px; padding: 32px; width: 440px; max-width: 92vw; animation: modalUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: var(--shadow-lg); position: relative; overflow: hidden; }
+.modal::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
 @keyframes modalUp { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .modal-ttl { font-family: var(--serif); font-size: 26px; margin-bottom: 24px; font-style: italic; color: var(--text); }
 .field { margin-bottom: 16px; }
-.field label {
-  display: block; font-size: 11px; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--text-2); margin-bottom: 8px;
-}
-.field input[type=text], .field input[type=date], .field textarea {
-  width: 100%; padding: 12px 14px;
-  background: var(--bg); border: 1px solid var(--border-2);
-  border-radius: var(--rsm); color: var(--text);
-  font-family: var(--sans); font-size: 14px; outline: none; font-weight: 500;
-  transition: all 0.2s;
-}
-.field input[type=text]:focus, .field input[type=date]:focus, .field textarea:focus {
-  border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim);
-}
+.field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
+.field input[type=text], .field input[type=date], .field textarea { width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border-2); border-radius: var(--rsm); color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; font-weight: 500; transition: all 0.2s; }
+.field input[type=text]:focus, .field input[type=date]:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
 .field input::placeholder, .field textarea::placeholder { color: var(--text-3); }
 .field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 .field-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-.num-field {
-  display: flex; align-items: center;
-  background: var(--bg); border: 1px solid var(--border-2);
-  border-radius: var(--rsm); overflow: hidden;
-  transition: all 0.2s;
-}
+.num-field { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border-2); border-radius: var(--rsm); overflow: hidden; transition: all 0.2s; }
 .num-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
 .num-field:hover { border-color: var(--border-3); }
-.nf-btn {
-  width: 36px; height: 44px; background: transparent; border: none;
-  color: var(--text-2); cursor: pointer; font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s; flex-shrink: 0; user-select: none;
-}
+.nf-btn { width: 36px; height: 44px; background: transparent; border: none; color: var(--text-2); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; user-select: none; }
 .nf-btn:hover { color: var(--text); background: var(--surface-3); }
 .nf-btn:active { background: var(--surface-2); }
-.nf-inp {
-  flex: 1; min-width: 0; padding: 0; height: 44px;
-  background: transparent; border: none;
-  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
-  color: var(--text); font-family: var(--mono);
-  font-size: 18px; font-weight: 500; outline: none;
-  text-align: center; cursor: ns-resize;
-}
+.nf-inp { flex: 1; min-width: 0; padding: 0; height: 44px; background: transparent; border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 18px; font-weight: 500; outline: none; text-align: center; cursor: ns-resize; }
 .nf-inp:focus { color: var(--accent); }
-
 .modal-btns { display: flex; gap: 12px; margin-top: 24px; }
-.btn-p {
-  flex: 1; padding: 12px; background: var(--accent);
-  color: #fff; border: none; border-radius: var(--rsm);
-  font-family: var(--sans); font-size: 14px; font-weight: 700;
-  cursor: pointer; transition: all 0.2s;
-}
+.btn-p { flex: 1; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--rsm); font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
 .btn-p:hover { background: var(--accent-hover); box-shadow: 0 4px 16px var(--accent-glow); transform: translateY(-1px); }
-.btn-c {
-  padding: 12px 20px; background: var(--surface-3); color: var(--text);
-  border: 1px solid var(--border); border-radius: var(--rsm);
-  font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
-  transition: all 0.2s;
-}
+.btn-c { padding: 12px 20px; background: var(--surface-3); color: var(--text); border: 1px solid var(--border); border-radius: var(--rsm); font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .btn-c:hover { background: var(--surface-2); border-color: var(--border-2); }
 
-/* ── Autocomplete ── */
+/* Autocomplete */
 .ac-wrap { position: relative; }
-.ac-drop {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-  background: var(--surface-2); border: 1px solid var(--border-2);
-  border-radius: var(--rsm); z-index: 300; overflow: hidden;
-  display: none; box-shadow: var(--shadow-lg);
-}
+.ac-drop { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--rsm); z-index: 300; overflow: hidden; display: none; box-shadow: var(--shadow-lg); }
 .ac-drop.show { display: block; animation: fadeIn 0.2s ease; }
-.ac-item {
-  padding: 10px 14px; font-size: 14px; cursor: pointer; font-weight: 500;
-  transition: background 0.15s; display: flex; align-items: center; gap: 10px;
-}
+.ac-item { padding: 10px 14px; font-size: 14px; cursor: pointer; font-weight: 500; transition: background 0.15s; display: flex; align-items: center; gap: 10px; }
 .ac-item:hover { background: var(--surface-3); }
 .ac-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px currentColor; }
 
-/* ── Tooltip ── */
-#tip {
-  position: fixed; background: rgba(24, 24, 27, 0.95);
-  border: 1px solid var(--border-2); border-radius: 8px;
-  padding: 8px 12px; font-size: 12px; font-family: var(--sans); font-weight: 600;
-  pointer-events: none; z-index: 500; white-space: nowrap;
-  display: none; color: var(--text);
-  box-shadow: var(--shadow); backdrop-filter: blur(4px);
-  transform: translate(-50%, -100%); margin-top: -8px;
-}
-#tip::after {
-  content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px;
-  border-width: 5px; border-style: solid; border-color: var(--border-2) transparent transparent transparent;
-}
-
-/* ── Streak warning ── */
-.streak-warn {
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 10px; color: var(--red); font-weight: 700;
-  vertical-align: middle; margin-left: 6px;
-  background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.2);
-}
-
-/* ── Toast Notification ── */
-.toast-container {
-  position: fixed; bottom: 32px; right: 32px;
-  display: flex; flex-direction: column; gap: 10px;
-  z-index: 1000; pointer-events: none;
-}
-.toast {
-  background: var(--surface-2); border: 1px solid var(--border-2);
-  border-radius: var(--rsm); padding: 12px 16px;
-  display: flex; align-items: center; gap: 14px;
-  box-shadow: var(--shadow-lg); pointer-events: auto;
-  color: var(--text); font-size: 14px; font-weight: 500;
-  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  transition: all 0.3s ease;
-}
+/* Tooltip & Toasts */
+#tip { position: fixed; background: rgba(24, 24, 27, 0.95); border: 1px solid var(--border-2); border-radius: 8px; padding: 8px 12px; font-size: 12px; font-family: var(--sans); font-weight: 600; pointer-events: none; z-index: 500; white-space: nowrap; display: none; color: var(--text); box-shadow: var(--shadow); backdrop-filter: blur(4px); transform: translate(-50%, -100%); margin-top: -8px; }
+#tip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: var(--border-2) transparent transparent transparent; }
+.streak-warn { display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: var(--red); font-weight: 700; vertical-align: middle; margin-left: 6px; background: rgba(239,68,68,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.2); }
+.toast-container { position: fixed; bottom: 32px; right: 32px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; pointer-events: none; }
+.toast { background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--rsm); padding: 12px 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-lg); pointer-events: auto; color: var(--text); font-size: 14px; font-weight: 500; animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); transition: all 0.3s ease; }
 .toast.hide { opacity: 0; transform: translateY(20px) scale(0.95); }
-.toast-btn {
-  background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); 
-  color: var(--accent); font-weight: 600; cursor: pointer; font-size: 13px; 
-  font-family: var(--sans); padding: 6px 12px; border-radius: 6px; 
-  transition: all 0.2s;
-}
+.toast-btn { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: var(--accent); font-weight: 600; cursor: pointer; font-size: 13px; font-family: var(--sans); padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
 .toast-btn:hover { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.3); transform: translateY(-1px); }
 .toast-btn:active { transform: translateY(0); }
-.toast-close {
-  color: var(--text-3); background: transparent; border: none;
-  cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;
-  width: 24px; height: 24px; border-radius: 4px; transition: all 0.2s;
-}
+.toast-close { color: var(--text-3); background: transparent; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 4px; transition: all 0.2s; }
 .toast-close:hover { color: var(--text); background: var(--surface-3); }
-@keyframes toastIn {
-  from { opacity: 0; transform: translateY(20px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
+@keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-/* ── Firebase Auth & Sync UI ── */
-.google-signin-btn {
-  width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 10px 14px;
-  background: #fff; border: 1px solid #dadce0; border-radius: var(--rsm);
-  color: #3c4043; font-family: 'Roboto', var(--sans); font-size: 14px; font-weight: 500;
-  cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-  letter-spacing: 0.01em;
-}
+/* Firebase UI */
+.google-signin-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 14px; background: #fff; border: 1px solid #dadce0; border-radius: var(--rsm); color: #3c4043; font-family: 'Roboto', var(--sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.12); letter-spacing: 0.01em; }
 .google-signin-btn:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,0.18); transform: translateY(-1px); border-color: #c6c6c6; }
-.google-signin-btn:active { transform: translateY(0); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
 .google-logo { width: 18px; height: 18px; flex-shrink: 0; }
-
-.auth-user-card {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; background: rgba(16,185,129,0.06);
-  border: 1px solid rgba(16,185,129,0.2); border-radius: var(--rsm);
-  margin-bottom: 8px;
-}
+.auth-user-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-radius: var(--rsm); margin-bottom: 8px; }
 .auth-user-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(16,185,129,0.3); }
 .auth-user-info { flex: 1; min-width: 0; }
 .auth-user-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .auth-user-email { font-size: 10px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.auth-signout-btn {
-  background: none; border: 1px solid rgba(239,68,68,0.25); border-radius: 6px;
-  color: var(--red); font-family: var(--sans); font-size: 11px; font-weight: 600;
-  padding: 4px 8px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; white-space: nowrap;
-}
+.auth-signout-btn { background: none; border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; color: var(--red); font-family: var(--sans); font-size: 11px; font-weight: 600; padding: 4px 8px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; white-space: nowrap; }
 .auth-signout-btn:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4); }
-
-.sync-indicator {
-  position: fixed; bottom: 84px; right: 32px;
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 12px; background: var(--surface-2);
-  border: 1px solid var(--border-2); border-radius: 20px;
-  font-size: 12px; font-weight: 600; color: var(--text-2);
-  box-shadow: var(--shadow); z-index: 900;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  transform: translateY(6px);
-}
+.sync-indicator { position: fixed; bottom: 84px; right: 32px; display: flex; align-items: center; gap: 7px; padding: 7px 12px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--text-2); box-shadow: var(--shadow); z-index: 900; opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; transform: translateY(6px); }
 .sync-indicator.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
 .sync-indicator.synced { color: var(--green); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); }
 .sync-indicator svg { flex-shrink: 0; }
 .sync-indicator.spinning svg { animation: spin 0.8s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-.pref-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; background: var(--surface-2);
-  border: 1px solid var(--border); border-radius: var(--rsm);
-  margin-bottom: 8px;
-}
+.pref-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--rsm); margin-bottom: 8px; }
 .pref-row-info { display: flex; flex-direction: column; gap: 2px; }
 .pref-row-label { font-size: 13px; font-weight: 600; color: var(--text); }
 .pref-row-desc { font-size: 11px; color: var(--text-3); }
 .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
-.toggle-track {
-  position: absolute; inset: 0; background: var(--surface-3); border-radius: 20px;
-  border: 1px solid var(--border-2); cursor: pointer; transition: all 0.25s;
-}
-.toggle-track::after {
-  content: ''; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
-  width: 14px; height: 14px; background: var(--text-3); border-radius: 50%; transition: all 0.25s;
-}
+.toggle-track { position: absolute; inset: 0; background: var(--surface-3); border-radius: 20px; border: 1px solid var(--border-2); cursor: pointer; transition: all 0.25s; }
+.toggle-track::after { content: ''; position: absolute; left: 2px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; background: var(--text-3); border-radius: 50%; transition: all 0.25s; }
 .toggle-switch input:checked + .toggle-track { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.4); }
 .toggle-switch input:checked + .toggle-track::after { left: calc(100% - 16px); background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
-
-.sync-status-row {
-  font-size: 11px; color: var(--text-3); text-align: center;
-  padding: 6px 0; font-weight: 500;
-}
+.sync-status-row { font-size: 11px; color: var(--text-3); text-align: center; padding: 6px 0; font-weight: 500; }
 .sync-status-row span { color: var(--text-2); }
+
+/* Subject Budgets in Sidebar */
+.budget-list { display: flex; flex-direction: column; gap: 6px; }
+.budget-item { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--rsm); padding: 8px 10px; transition: all 0.2s; }
+.budget-item:hover { border-color: var(--border-2); }
+.budget-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.budget-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.budget-name { font-size: 12px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.budget-inp-wrap { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.budget-inp { width: 38px; height: 24px; background: var(--bg); border: 1px solid var(--border-2); border-radius: 5px; color: var(--text); font-family: var(--mono); font-size: 12px; font-weight: 500; outline: none; text-align: center; padding: 0; transition: border-color 0.2s; }
+.budget-inp:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.budget-unit { font-size: 10px; font-weight: 600; color: var(--text-3); }
+.budget-bar-wrap { height: 3px; background: rgba(0,0,0,0.35); border-radius: 3px; overflow: hidden; }
+.budget-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+.budget-status { font-family: var(--mono); font-size: 10px; color: var(--text-3); text-align: right; margin-top: 3px; }
+.budget-empty { font-size: 12px; color: var(--text-3); text-align: center; padding: 8px 0; }
+
 </style>
 </head>
 <body>
@@ -948,8 +682,7 @@ const FIREBASE_CONFIG = {
   projectId:         "study-tracker-v2-730dc",
   storageBucket:     "study-tracker-v2-730dc.firebasestorage.app",
   messagingSenderId: "516534457566",
-  appId:             "1:516534457566:web:23501c5970ca398e4f1e4f",
-  measurementId:     "G-BKLWR9FVHT"
+  appId:             "1:516534457566:web:23501c5970ca398e4f1e4f"
 };
 
 let fbApp = null, fbAuth = null, fbDb = null, fbUser = null;
@@ -1240,16 +973,15 @@ function showSyncToast(msg, type = 'info') {
         </div>
       </div>
 
+      <div class="slabel">Subject Budgets <span style="font-size:10px;color:var(--text-3);font-weight:500;text-transform:none;letter-spacing:0;font-family:var(--sans)">— weekly hours</span></div>
+      <div class="budget-list" id="subj-budgets-list"></div>
+
       <div>
         <div class="slabel">Data</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <button class="data-btn export-btn" onclick="exportData()">
             <span class="data-btn-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </span>
             <span class="data-btn-text">
               <span class="data-btn-label">Export Backup</span>
@@ -1258,11 +990,7 @@ function showSyncToast(msg, type = 'info') {
           </button>
           <button class="data-btn import-btn" onclick="importData()">
             <span class="data-btn-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </span>
             <span class="data-btn-text">
               <span class="data-btn-label">Import Backup</span>
@@ -1274,10 +1002,7 @@ function showSyncToast(msg, type = 'info') {
 
       <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid var(--border);">
         <button class="settings-btn" id="settings-toggle-btn" onclick="toggleSettings()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           Preferences
         </button>
         
@@ -1596,9 +1321,6 @@ function clearTodayGoal() {
   goalRenderTimer = setTimeout(() => render(), 350);
 }
 
-// stubs so old refs don't error
-function stepDayGoal() {} function onDayGoalInput() {} function wireWheelDg() {}
-
 function wireWheel(id, min, max, step) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1734,7 +1456,6 @@ function calcStats() {
   const best = Object.keys(byDay).length > 0 ? Math.max(...Object.values(byDay)) : 0;
   
   let streak = 0;
-  // Only days with ≥90 mins (1h30m) count toward streak
   const qualifiedDaySet = new Set(
     Object.entries(byDay).filter(([,m]) => m >= 90).map(([d]) => d)
   );
@@ -1792,22 +1513,18 @@ function calcAllTimeStats() {
   const firstDate = sortedDates[0], lastDate = todayStr();
   const daySpan = firstDate ? Math.max(1, Math.round((new Date(lastDate+'T12:00:00') - new Date(firstDate+'T12:00:00')) / 86400000) + 1) : 1;
 
-  const monthBuckets = Array(12).fill(0), monthCounts = Array(12).fill(0);
-  Object.entries(byMonth).forEach(([mk, m]) => { const mo = parseInt(mk.split('-')[1]) - 1; monthBuckets[mo] += m; monthCounts[mo]++; });
-  const monthlyAvgByMo = monthBuckets.map((t, i) => monthCounts[i] ? Math.round(t / monthCounts[i]) : 0);
-
-  return { total, daysStudied, avgPerDay, bestDayEntry, bestWeekEntry, bestMonthEntry, maxStreak, subjMap, yearMap, dowMap, daySpan, monthlyAvgByMo };
+  return { total, daysStudied, avgPerDay, bestDayEntry, bestWeekEntry, bestMonthEntry, maxStreak, subjMap, yearMap, dowMap, daySpan, byMonth };
 }
 
 function render() {
   renderHeader(); renderNudge(); renderSidebar();
   renderYearBar(); renderCalendar(); renderHeatmap(); renderAllTime(); renderTimeline();
+  renderBudgetsInPlace();
 }
 
 function renderHeader() {
   const { week, streak, today: todayMins } = calcStats();
   const todayGoal = getTodayGoal();
-  // Streak at risk if today hasn't hit ≥90m yet and we have an active streak
   const todayTotal = sessions.filter(s => s.date === todayStr()).reduce((a,s)=>a+s.mins,0);
   const atRisk = todayTotal < 90 && streak > 0;
   const todayPct  = Math.min(100, todayGoal > 0 ? Math.round(todayMins / todayGoal * 100) : 0);
@@ -1840,7 +1557,6 @@ function renderNudge() {
 }
 
 function renderSidebar() {
-  // Restore default goal inputs and today's override UI
   document.getElementById('goal-h').value = Math.floor(goalMins / 60);
   document.getElementById('goal-m').value = goalMins % 60;
   updateGoalDisplay();
@@ -2041,13 +1757,19 @@ function renderHeatmap() {
     </div>`;
 }
 
-// ── Redesigned All Time View ──
+// ── REDESIGNED ALL TIME VIEW ──
 function renderAllTime() {
   if (viewMode !== 'alltime') { document.getElementById('alltime-area').innerHTML = ''; return; }
   const at = calcAllTimeStats();
   const area = document.getElementById('alltime-area');
+  
   if (!at || !sessions.length) {
-    area.innerHTML = `<div class="empty"><div class="empty-icon">✦</div><div style="font-size:16px;color:var(--text);font-weight:600">No data yet</div><p>Start logging sessions to see your all-time bests.</p></div>`;
+    area.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">✦</div>
+        <div style="font-size:16px;color:var(--text);font-weight:600">No data yet</div>
+        <p>Start logging sessions to see your all-time achievements.</p>
+      </div>`;
     return;
   }
 
@@ -2057,8 +1779,7 @@ function renderAllTime() {
 
   function fmtDate(ds) {
     if (!ds) return '—';
-    const d = new Date(ds+'T12:00:00');
-    return d.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'});
+    return new Date(ds+'T12:00:00').toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'});
   }
   function fmtMonth(mk) {
     if (!mk) return '—';
@@ -2072,73 +1793,239 @@ function renderAllTime() {
     return `${d.toLocaleDateString('en',{month:'short',day:'numeric'})} – ${end.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}`;
   }
 
-  const iconClock = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
-  const iconFlame = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg>`;
-  const iconCal   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
-  const iconCalOk = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>`;
-  const iconBars  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>`;
-  const iconStar  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-  const iconTarget= `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`;
-  const iconBook  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
-  const consistencyPct = at.daySpan > 0 ? Math.round(at.daysStudied / at.daySpan * 100) : 0;
+  // 1. Hero Section Construction
+  const { streak } = calcStats(); // current streak
+  const insights = generateInsights().slice(0, 3); // Top 3 insights
   
-  // Hero Bento Box Section
-  const heroCards = `
-    <div class="at-bento">
-      <div class="at-card primary wide">
-        <div class="at-card-icon">${iconClock}</div>
-        <div class="at-card-label">Total Hours Dedicated</div>
-        <div class="at-card-val">${fmt(at.total)}</div>
-        <div class="at-card-sub">${at.daysStudied} days studied across ${sessions.length} sessions</div>
+  const heroHtml = `
+    <div class="at-hero">
+      <div class="at-hero-main">
+        <div class="at-hero-lbl">Lifetime Dedicated Focus</div>
+        <div class="at-hero-val">${fmt(at.total).replace('h', '<span>h</span>').replace('m', '<span>m</span>')}</div>
+        <div class="at-hero-stats">
+          <div class="at-hstat">
+            <div class="at-hstat-val">${at.daysStudied}</div>
+            <div class="at-hstat-lbl">Active Days</div>
+          </div>
+          <div class="at-hstat">
+            <div class="at-hstat-val">${fmt(at.avgPerDay)}</div>
+            <div class="at-hstat-lbl">Avg / Study Day</div>
+          </div>
+          <div class="at-hstat">
+            <div class="at-hstat-val" style="color:var(--green)">${streak} <span style="font-size:16px;color:var(--text-3);font-weight:500;font-family:var(--sans)">days</span></div>
+            <div class="at-hstat-lbl">Current Streak</div>
+          </div>
+        </div>
       </div>
-      <div class="at-card green wide">
-        <div class="at-card-icon">${iconFlame}</div>
-        <div class="at-card-label">Longest Continuous Streak</div>
-        <div class="at-card-val">${at.maxStreak} <span style="font-size:16px;font-family:var(--sans);font-weight:400;color:var(--green)">days</span></div>
-        <div class="at-card-sub">showing amazing persistence</div>
-      </div>
-      
-      <div class="at-card">
-        <div class="at-card-icon">${iconTarget}</div>
-        <div class="at-card-label">Consistency Rate</div>
-        <div class="at-card-val">${consistencyPct}<span style="font-size:16px;font-family:var(--sans);font-weight:400;color:var(--text-2)">%</span></div>
-        <div class="at-card-sub">${at.daysStudied} of ${at.daySpan} days tracked</div>
-      </div>
-      <div class="at-card">
-        <div class="at-card-icon">${iconBars}</div>
-        <div class="at-card-label">Avg / Study Day</div>
-        <div class="at-card-val">${fmt(at.avgPerDay)}</div>
-        <div class="at-card-sub">per active study day</div>
-      </div>
-      
-      <div class="at-card">
-        <div class="at-card-icon">${iconCal}</div>
-        <div class="at-card-label">Best Day Ever</div>
-        <div class="at-card-val">${fmt(at.bestDayEntry[1])}</div>
-        <div class="at-card-sub">${fmtDate(at.bestDayEntry[0])}</div>
-      </div>
-      <div class="at-card">
-        <div class="at-card-icon">${iconStar}</div>
-        <div class="at-card-label">Best Week Ever</div>
-        <div class="at-card-val">${fmt(at.bestWeekEntry[1])}</div>
-        <div class="at-card-sub">${fmtWeek(at.bestWeekEntry[0])}</div>
-      </div>
-      <div class="at-card">
-        <div class="at-card-icon">${iconCalOk}</div>
-        <div class="at-card-label">Best Month Ever</div>
-        <div class="at-card-val">${fmt(at.bestMonthEntry[1])}</div>
-        <div class="at-card-sub">${fmtMonth(at.bestMonthEntry[0])}</div>
-      </div>
-      <div class="at-card">
-        <div class="at-card-icon">${iconBook}</div>
-        <div class="at-card-label">Subjects</div>
-        <div class="at-card-val">${Object.keys(at.subjMap).length}</div>
-        <div class="at-card-sub">unique subjects logged</div>
+      <div class="at-hero-insights">
+        ${insights.map(ins => `
+          <div class="at-insight-pill">
+            <div class="at-insight-icon">${ins.icon}</div>
+            <div class="at-insight-text">${ins.text}</div>
+          </div>
+        `).join('')}
       </div>
     </div>`;
 
-  // Badges & Achievements System
-  const badges = [
+  // 2. Timeline (Monthly History) Panel
+  const sortedSessions = [...sessions].sort((a,b)=>a.date.localeCompare(b.date));
+  const firstDate = new Date(sortedSessions[0].date+'T12:00:00');
+  const lastDate = new Date(); 
+  const historyMonths = [];
+  let curr = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+  const endMonth = new Date(lastDate.getFullYear(), lastDate.getMonth(), 1);
+
+  while (curr <= endMonth) {
+    const y = curr.getFullYear(), m = curr.getMonth() + 1;
+    const mk = `${y}-${String(m).padStart(2,'0')}`;
+    historyMonths.push({ mk, label: `${MN[curr.getMonth()]} '${String(y).slice(2)}`, mins: 0 });
+    curr.setMonth(curr.getMonth() + 1);
+  }
+  
+  Object.entries(at.byMonth).forEach(([mk, mins]) => {
+    const hm = historyMonths.find(x => x.mk === mk);
+    if(hm) hm.mins += mins;
+  });
+
+  const maxHistM = Math.max(...historyMonths.map(h => h.mins), 1);
+  const peakHistMk = historyMonths.reduce((max, h) => h.mins > max.mins ? h : max, historyMonths[0])?.mk;
+
+  const historyHtml = `
+    <div class="at-panel">
+      <div class="at-panel-head" style="margin-bottom: 8px;">
+        <div class="at-panel-ttl">The Journey</div>
+        <div class="at-panel-sub">Total hours logged per month</div>
+      </div>
+      <div class="at-hist-wrap">
+        <div class="at-hist-chart">
+          ${historyMonths.map(h => `
+            <div class="at-hist-col">
+              <div class="at-hist-val">${h.mins > 0 ? fmt(h.mins) : ''}</div>
+              <div class="at-hist-bar-wrap" title="${h.label}: ${fmt(h.mins)}">
+                <div class="at-hist-bar ${h.mk === peakHistMk && h.mins > 0 ? 'peak' : ''}" style="height:${h.mins ? Math.max(4, Math.round(h.mins/maxHistM*100)) + '%' : '4px'}"></div>
+              </div>
+              <div class="at-hist-lbl ${h.mk === peakHistMk && h.mins > 0 ? 'peak' : ''}">${h.label}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+
+  // 3. Subjects Leaderboard Panel
+  const sortedSubj = Object.entries(at.subjMap).sort((a,b)=>b[1]-a[1]);
+  const maxSubjM = sortedSubj.length ? sortedSubj[0][1] : 1;
+  const subjectsHtml = `
+    <div class="at-panel">
+      <div class="at-panel-head">
+        <div class="at-panel-ttl">Top Subjects</div>
+        <div class="at-panel-sub">${Object.keys(at.subjMap).length} subjects logged</div>
+      </div>
+      <div class="at-subj-list">
+        ${sortedSubj.slice(0, 7).map(([s,m],i) => `
+          <div class="at-subj-row">
+            <div class="at-subj-rank ${i<3?'top':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)}</div>
+            <div class="at-subj-name">${s}</div>
+            <div class="at-subj-bar-bg"><div class="at-subj-bar-fill" style="width:${Math.round(m/maxSubjM*100)}%;background:${sc(s)}"></div></div>
+            <div class="at-subj-val">${fmt(m)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+
+  // 4. Patterns (Habits) Panel
+  const maxDow = Math.max(...at.dowMap, 1);
+  const peakDow = at.dowMap.indexOf(Math.max(...at.dowMap));
+  const dowHtml = `
+    <div class="dow-chart">
+      ${at.dowMap.map((m,i) => `
+        <div class="at-hist-col" style="flex:1">
+          <div class="at-hist-bar-wrap" title="${DOW[i]}: ${fmt(m)}">
+            <div class="at-hist-bar ${i===peakDow?'peak':''}" style="height:${Math.round(m/maxDow*100)}%"></div>
+          </div>
+          <div class="at-hist-lbl ${i===peakDow?'peak':''}">${DOW[i].substring(0,3)}</div>
+        </div>`).join('')}
+    </div>`;
+
+  const buckets = [{l:'<30m', min:0, max:30}, {l:'30–60m', min:30, max:60}, {l:'1–2h', min:60, max:120}, {l:'2–3h', min:120, max:180}, {l:'>3h', min:180, max:Infinity}];
+  const counts = buckets.map(b => sessions.filter(s => s.mins >= b.min && s.mins < b.max).length);
+  const maxCount = Math.max(...counts, 1);
+  const peakIdx = counts.indexOf(Math.max(...counts));
+  const durHtml = `
+    <div class="dur-hist">
+      ${buckets.map((b, i) => {
+        const hPct = counts[i] > 0 ? Math.max(8, Math.round(counts[i]/maxCount*100)) : 4;
+        const isPeak = i === peakIdx && counts[i] > 0;
+        return `
+          <div class="at-hist-col" style="flex:1">
+            <div class="at-hist-val" style="font-size:10px">${counts[i] > 0 ? counts[i] : ''}</div>
+            <div class="at-hist-bar-wrap">
+              <div class="at-hist-bar ${isPeak?'peak':''}" style="height:${hPct}%"></div>
+            </div>
+            <div class="at-hist-lbl ${isPeak?'peak':''}">${b.l}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
+
+  const patternsHtml = `
+    <div class="at-panel">
+      <div class="at-panel-head">
+        <div class="at-panel-ttl">Study Patterns</div>
+        <div class="at-panel-sub">When & how you work</div>
+      </div>
+      <div class="at-pattern-wrap">
+        <div class="at-pattern-sec">
+          <div class="at-pattern-lbl">Most Active Day</div>
+          ${dowHtml}
+        </div>
+        <div class="at-pattern-sec">
+          <div class="at-pattern-lbl">Session Lengths</div>
+          ${durHtml}
+        </div>
+      </div>
+    </div>`;
+
+  // 5. Personal Records Panel
+  const recordsHtml = `
+    <div class="at-panel">
+      <div class="at-panel-head">
+        <div class="at-panel-ttl">Personal Records</div>
+        <div class="at-panel-sub">Your biggest pushes</div>
+      </div>
+      <div class="at-records">
+        <div class="at-rec-row">
+          <div class="at-rec-left">
+            <div class="at-rec-lbl">Best Day Ever</div>
+            <div class="at-rec-date">${fmtDate(at.bestDayEntry[0])}</div>
+          </div>
+          <div class="at-rec-val">${fmt(at.bestDayEntry[1])}</div>
+        </div>
+        <div class="at-rec-row">
+          <div class="at-rec-left">
+            <div class="at-rec-lbl">Best Week Ever</div>
+            <div class="at-rec-date">${fmtWeek(at.bestWeekEntry[0])}</div>
+          </div>
+          <div class="at-rec-val">${fmt(at.bestWeekEntry[1])}</div>
+        </div>
+        <div class="at-rec-row">
+          <div class="at-rec-left">
+            <div class="at-rec-lbl">Best Month Ever</div>
+            <div class="at-rec-date">${fmtMonth(at.bestMonthEntry[0])}</div>
+          </div>
+          <div class="at-rec-val">${fmt(at.bestMonthEntry[1])}</div>
+        </div>
+      </div>
+    </div>`;
+
+  // 6. Current Goals Panel
+  const t = todayStr();
+  const weekStart = localDate(new Date(Date.now() - 6 * 86400000));
+  const monthKey = t.slice(0, 7);
+  const weekMins  = sessions.filter(s => s.date >= weekStart).reduce((a,s)=>a+s.mins, 0);
+  const monthMins = sessions.filter(s => s.date.startsWith(monthKey)).reduce((a,s)=>a+s.mins, 0);
+  const weekGoal  = goalMins * 7;
+  const now = new Date();
+  const monthGoal = goalMins * new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const weekPct  = weekGoal > 0 ? Math.min(100, Math.round(weekMins/weekGoal*100)) : 0;
+  const monthPct = monthGoal > 0 ? Math.min(100, Math.round(monthMins/monthGoal*100)) : 0;
+  const C = 2 * Math.PI * 44;
+
+  const mkRing = (pct, hit) => `
+    <svg class="at-ring-svg" viewBox="0 0 100 100" style="transform:rotate(-90deg)">
+      <circle cx="50" cy="50" r="44" fill="none" stroke="var(--surface-3)" stroke-width="8"/>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="${hit?'var(--green)':'var(--accent)'}" stroke-width="8" stroke-dasharray="${((pct/100)*C).toFixed(2)} ${C.toFixed(2)}" stroke-linecap="round" ${pct>0?`style="filter:drop-shadow(0 0 6px ${hit?'rgba(16,185,129,0.5)':'var(--accent-glow)'})"`:''}/>
+    </svg>`;
+
+  const goalsHtml = `
+    <div class="at-panel">
+      <div class="at-panel-head">
+        <div class="at-panel-ttl">Current Goals</div>
+        <div class="at-panel-sub">Pacing against targets</div>
+      </div>
+      <div class="at-rings-wrap">
+        <div class="at-ring-box">
+          <div style="position:relative">
+            ${mkRing(weekPct, weekMins >= weekGoal)}
+            <div class="at-ring-center" style="${weekMins>=weekGoal?'color:var(--green)':''}">${weekPct}%</div>
+          </div>
+          <div>
+            <div class="at-ring-ttl">This Week</div>
+            <div class="at-ring-sub">${fmt(weekMins)} / ${fmt(weekGoal)}</div>
+          </div>
+        </div>
+        <div class="at-ring-box">
+          <div style="position:relative">
+            ${mkRing(monthPct, monthMins >= monthGoal)}
+            <div class="at-ring-center" style="${monthMins>=monthGoal?'color:var(--green)':''}">${monthPct}%</div>
+          </div>
+          <div>
+            <div class="at-ring-ttl">This Month</div>
+            <div class="at-ring-sub">${fmt(monthMins)} / ${fmt(monthGoal)}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // 7. Badges Panel
+  const badgesData = [
     { id: 'h10', icon: '🥉', title: 'Bronze Scholar', desc: '10+ hours studied', req: at.total >= 600 },
     { id: 'h50', icon: '🥈', title: 'Silver Scholar', desc: '50+ hours studied', req: at.total >= 3000 },
     { id: 'h100', icon: '🥇', title: 'Gold Scholar', desc: '100+ hours studied', req: at.total >= 6000 },
@@ -2146,136 +2033,69 @@ function renderAllTime() {
     { id: 's30', icon: '☄️', title: 'Unstoppable', desc: '30+ day streak', req: at.maxStreak >= 30 },
     { id: 'sub3', icon: '📚', title: 'Polymath', desc: '3+ subjects logged', req: Object.keys(at.subjMap).length >= 3 }
   ];
+  const unlockedCount = badgesData.filter(b=>b.req).length;
 
   const badgesHtml = `
-    <div class="at-section" style="padding: 24px;">
-      <div class="at-section-title" style="margin-bottom: 16px;">Milestones & Achievements</div>
-      <div class="badge-row">
-        ${badges.map(b => `
-          <div class="badge ${b.req ? 'unlocked' : 'locked'}">
-            ${b.req ? '<div class="badge-glow"></div>' : ''}
-            <div class="badge-icon">${b.icon}</div>
-            <div class="badge-title">${b.title}</div>
-            <div class="badge-desc">${b.desc}</div>
+    <div class="at-panel">
+      <div class="at-panel-head">
+        <div class="at-panel-ttl">Milestones</div>
+        <div class="at-panel-sub">${unlockedCount} / ${badgesData.length} unlocked</div>
+      </div>
+      <div class="at-badges">
+        ${badgesData.map(b => `
+          <div class="at-badge ${b.req ? '' : 'locked'}">
+            <div class="at-badge-icon">${b.icon}</div>
+            <div class="at-badge-ttl">${b.title}</div>
+            <div class="at-badge-desc">${b.desc}</div>
           </div>
         `).join('')}
       </div>
-    </div>
-  `;
+    </div>`;
 
-  // Subject Leaderboard with Medals
-  const sortedSubj = Object.entries(at.subjMap).sort((a,b)=>b[1]-a[1]);
-  const maxSubjM = sortedSubj.length ? sortedSubj[0][1] : 1;
-  const totalForPct = at.total || 1;
-  const subjBoard = sortedSubj.length ? `
-    <div class="subj-board">
-      ${sortedSubj.map(([s,m],i) => `
-        <div class="subj-rank" style="color: ${sc(s)}">
-          <div class="subj-rank-num ${i<3?'top'+(i+1):''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)}</div>
-          <div class="subj-rank-name" style="color:var(--text)">${s}</div>
-          <div class="subj-rank-bar-wrap"><div class="subj-rank-bar-fill" style="width:${Math.round(m/maxSubjM*100)}%;background:${sc(s)}"></div></div>
-          <div class="subj-rank-val">${fmt(m)}</div>
-          <div class="subj-rank-pct">${Math.round(m/totalForPct*100)}%</div>
-        </div>`).join('')}
-    </div>` : '<div style="color:var(--text-3);font-size:13px;font-style:italic">No subjects yet</div>';
-
-  // Year Compare
+  // 8. Yearly Comparison Panel
   const yearEntries = Object.entries(at.yearMap).sort((a,b)=>b[0]-a[0]);
   const maxYearM = yearEntries.length ? Math.max(...yearEntries.map(e=>e[1])) : 1;
   const bestYear = yearEntries.length ? yearEntries.reduce((a,e)=>e[1]>a[1]?e:a,['',0])[0] : '';
-  const yearCompare = yearEntries.length ? `
-    <div class="year-compare">
-      ${yearEntries.map(([y,m]) => `
-        <div class="yc-row">
-          <div class="yc-label">${y}</div>
-          <div class="yc-bar-wrap">
-            <div class="yc-bar-fill ${y===bestYear?'best':''}" style="width:${Math.round(m/maxYearM*100)}%"></div>
-          </div>
-          <div class="yc-val">${fmt(m)}</div>
-          ${y===bestYear?'<div class="yc-badge">BEST</div>':'<div style="width:40px"></div>'}
-        </div>`).join('')}
-    </div>` : '<div style="color:var(--text-3);font-size:13px">—</div>';
-
-  // Enhanced Day of Week Chart
-  const maxDow = Math.max(...at.dowMap, 1);
-  const peakDow = at.dowMap.indexOf(Math.max(...at.dowMap));
-  const dowChart = `
-    <div class="dow-chart">
-      ${at.dowMap.map((m,i) => `
-        <div class="dow-col">
-          <div class="dow-bar-outer" title="${DOW[i]}: ${fmt(m)}">
-            <div class="dow-bar ${i===peakDow?'peak':''}" style="height:${Math.round(m/maxDow*100)}%"></div>
-          </div>
-          <div class="dow-label ${i===peakDow?'peak':''}">${DOW[i].substring(0,3)}</div>
-        </div>`).join('')}
-    </div>`;
-
-  // Enhanced Monthly History
-  const sortedSessions = [...sessions].sort((a,b)=>a.date.localeCompare(b.date));
-  let historyHtml = '<div style="color:var(--text-3);font-size:13px;font-style:italic">Not enough data to display history</div>';
-  
-  if (sortedSessions.length > 0) {
-    const firstDate = new Date(sortedSessions[0].date+'T12:00:00');
-    const lastDate = new Date(); 
-    const historyMonths = [];
-    let curr = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
-    const endMonth = new Date(lastDate.getFullYear(), lastDate.getMonth(), 1);
-
-    while (curr <= endMonth) {
-      const y = curr.getFullYear(), m = curr.getMonth() + 1;
-      const mk = `${y}-${String(m).padStart(2,'0')}`;
-      historyMonths.push({ mk, label: `${MN_FULL[curr.getMonth()].substring(0,3)} '${String(y).slice(2)}`, mins: 0 });
-      curr.setMonth(curr.getMonth() + 1);
-    }
-    
-    sessions.forEach(s => {
-      const mk = s.date.slice(0,7);
-      const hm = historyMonths.find(x => x.mk === mk);
-      if(hm) hm.mins += s.mins;
-    });
-
-    const maxHistM = Math.max(...historyMonths.map(h => h.mins), 1);
-    const peakHistMk = historyMonths.reduce((max, h) => h.mins > max.mins ? h : max, historyMonths[0])?.mk;
-
-    historyHtml = `
-      <div class="hist-chart-wrap">
-        <div class="hist-chart">
-          ${historyMonths.map(h => `
-            <div class="mt-col">
-              <div class="mt-val">${h.mins > 0 ? fmt(h.mins) : ''}</div>
-              <div class="mt-bar-outer" title="${h.label}: ${fmt(h.mins)}">
-                <div class="mt-bar ${h.mk === peakHistMk && h.mins > 0 ? 'peak' : ''}" style="height:${h.mins ? Math.max(4, Math.round(h.mins/maxHistM*100)) + '%' : '4px'}"></div>
-              </div>
-              <div class="mt-label ${h.mk === peakHistMk && h.mins > 0 ? 'peak' : ''}">${h.label}</div>
-            </div>`).join('')}
-        </div>
-      </div>`;
-  }
+  const yearHtml = yearEntries.length ? `
+    <div class="at-panel">
+      <div class="at-panel-head">
+        <div class="at-panel-ttl">Year by Year</div>
+        <div class="at-panel-sub">Long-term consistency</div>
+      </div>
+      <div class="year-compare">
+        ${yearEntries.map(([y,m]) => `
+          <div class="yc-row">
+            <div class="yc-label">${y}</div>
+            <div class="yc-bar-wrap">
+              <div class="yc-bar-fill ${y===bestYear?'best':''}" style="width:${Math.round(m/maxYearM*100)}%"></div>
+            </div>
+            <div class="yc-val">${fmt(m)}</div>
+            ${y===bestYear?'<div class="yc-badge">BEST</div>':'<div style="width:40px"></div>'}
+          </div>`).join('')}
+      </div>
+    </div>` : '';
 
   area.innerHTML = `
-    <div class="alltime-wrap">
-      ${heroCards}
-      ${badgesHtml}
+    <div class="at-dash">
+      ${heroHtml}
+      ${historyHtml}
       
-      <div class="at-section">
-        <div class="at-section-title">Subject Leaderboard</div>
-        ${subjBoard}
+      <div class="at-grid-wide">
+        ${subjectsHtml}
+        ${patternsHtml}
       </div>
       
-      <div class="at-section">
-        <div class="at-section-title">Monthly History (All Time) <span style="font-size:12px;font-family:var(--sans);font-style:normal;font-weight:600;color:var(--text-3);margin-left:4px">total hours studied per month</span></div>
-        ${historyHtml}
+      <div class="at-grid">
+        ${recordsHtml}
+        ${goalsHtml}
       </div>
       
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:24px;margin-bottom:24px">
-        <div class="at-section" style="margin-bottom:0">
-          <div class="at-section-title">Year by Year</div>
-          ${yearCompare}
-        </div>
-        <div class="at-section" style="margin-bottom:0">
-          <div class="at-section-title">Most Active Day</div>
-          ${dowChart}
-        </div>
+      <div class="at-grid" style="grid-template-columns: 1fr;">
+        ${badgesHtml}
+      </div>
+
+      <div class="at-grid" style="grid-template-columns: 1fr;">
+        ${yearHtml}
       </div>
     </div>`;
 }
@@ -2398,6 +2218,122 @@ function handleImport(e) {
     } catch(err) { alert("Could not read file — make sure it's a StudyLog JSON export."); }
   };
   r.readAsText(f); e.target.value = '';
+}
+
+// ── Smart Insights (rule-based) ─────────────────────────────────────────────
+function generateInsights() {
+  if (sessions.length < 3) return [];
+  const insights = [];
+  const t = todayStr();
+  const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  const byDay = {};
+  sessions.forEach(s => { byDay[s.date] = (byDay[s.date]||0) + s.mins; });
+  const allDates = Object.keys(byDay).sort();
+  const totalMins = sessions.reduce((a,s)=>a+s.mins,0);
+  const daysStudied = allDates.length;
+
+  const dowTotals = [0,0,0,0,0,0,0], dowCounts = [0,0,0,0,0,0,0];
+  Object.entries(byDay).forEach(([d,m]) => {
+    const dow = new Date(d+'T12:00:00').getDay();
+    dowTotals[dow] += m; dowCounts[dow]++;
+  });
+  const dowAvg = dowTotals.map((t,i) => dowCounts[i] ? Math.round(t/dowCounts[i]) : 0);
+  const peakDow = dowAvg.indexOf(Math.max(...dowAvg));
+  if (dowAvg[peakDow] > 0) {
+    insights.push({
+      icon: '📅', text: `You average <strong>${fmt(dowAvg[peakDow])}</strong> on ${DOW[peakDow]}s — your most productive day.`
+    });
+  }
+
+  const wdMins = [1,2,3,4,5].reduce((a,i)=>a+dowTotals[i],0);
+  const weMins = [0,6].reduce((a,i)=>a+dowTotals[i],0);
+  const wdSess = [1,2,3,4,5].reduce((a,i)=>a+dowCounts[i],0);
+  const weSess = [0,6].reduce((a,i)=>a+dowCounts[i],0);
+  const wdAvgDay = wdSess > 0 ? Math.round(wdMins/wdSess) : 0;
+  const weAvgDay = weSess > 0 ? Math.round(weMins/weSess) : 0;
+  if (wdAvgDay > 0 && weAvgDay > 0) {
+    const more = wdAvgDay > weAvgDay ? `weekdays (<strong>${fmt(wdAvgDay)}</strong> avg)` : `weekends (<strong>${fmt(weAvgDay)}</strong> avg)`;
+    insights.push({
+      icon: '⚖️', text: `You study more on ${more} per session.`
+    });
+  }
+
+  const twoWeeksAgo = localDate(new Date(Date.now() - 14*86400000));
+  const recentSubjs = new Set(sessions.filter(s=>s.date>=twoWeeksAgo).map(s=>s.subject));
+  const allSubjs    = new Set(sessions.map(s=>s.subject));
+  const neglected   = [...allSubjs].filter(s => !recentSubjs.has(s));
+  if (neglected.length > 0) {
+    const s = neglected[0];
+    const lastDate = sessions.filter(x=>x.subject===s).map(x=>x.date).sort().pop();
+    const daysAgo = Math.round((new Date(t+'T12:00:00') - new Date(lastDate+'T12:00:00')) / 86400000);
+    insights.push({
+      icon: '⚠️', text: `You haven't studied <strong>${s}</strong> in <strong>${daysAgo} days</strong>.`
+    });
+  }
+
+  const thirtyAgo = localDate(new Date(Date.now() - 29*86400000));
+  const studiedLast30 = new Set(sessions.filter(s=>s.date>=thirtyAgo).map(s=>s.date)).size;
+  const consistency = Math.round(studiedLast30/30*100);
+  insights.push({
+    icon: consistency >= 70 ? '🔥' : consistency >= 40 ? '📊' : '💡',
+    text: `You studied on <strong>${studiedLast30} of the last 30 days</strong> (${consistency}% consistency).`
+  });
+
+  return insights;
+}
+
+// ── Subject Time Budgets ─────────────────────────────────────────────────────
+function getSubjectBudgets() {
+  return JSON.parse(localStorage.getItem('sl-subj-budgets') || '{}');
+}
+function saveSubjectBudget(subj, hrs) {
+  const b = getSubjectBudgets();
+  if (!hrs || hrs <= 0) { delete b[subj]; } else { b[subj] = parseFloat(hrs); }
+  localStorage.setItem('sl-subj-budgets', JSON.stringify(b));
+}
+function getWeeklySubjMins(subj) {
+  const w7 = localDate(new Date(Date.now() - 6 * 86400000));
+  return sessions.filter(s => s.subject === subj && s.date >= w7).reduce((a,s)=>a+s.mins, 0);
+}
+function renderSubjectBudgets() {
+  const subjects = getSubjects();
+  const budgets  = getSubjectBudgets();
+  if (!subjects.length) return '<div class="budget-empty">No subjects logged yet.</div>';
+  return subjects.map(subj => {
+    const color      = sc(subj);
+    const budgetHrs  = budgets[subj] || 0;
+    const actualMins = getWeeklySubjMins(subj);
+    const budgetMins = budgetHrs * 60;
+    const pct  = budgetMins > 0 ? Math.min(100, Math.round(actualMins / budgetMins * 100)) : 0;
+    const hit  = budgetMins > 0 && actualMins >= budgetMins;
+    const barColor = hit ? 'var(--green)' : color;
+    const safeSubj = subj.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `
+      <div class="budget-item">
+        <div class="budget-top">
+          <div class="budget-dot" style="background:${color}"></div>
+          <div class="budget-name" title="${subj}">${subj}</div>
+          <div class="budget-inp-wrap">
+            <input class="budget-inp" type="number" min="0" max="99" step="0.5"
+              value="${budgetHrs > 0 ? budgetHrs : ''}" placeholder="—"
+              title="Weekly hour budget"
+              onchange="saveSubjectBudget('${safeSubj}', parseFloat(this.value)||0); renderBudgetsInPlace();">
+            <span class="budget-unit">hr/wk</span>
+          </div>
+        </div>
+        ${budgetMins > 0 ? `
+          <div class="budget-bar-wrap">
+            <div class="budget-bar-fill" style="width:${pct}%;background:${barColor}${hit?';box-shadow:0 0 5px rgba(16,185,129,0.4)':''}"></div>
+          </div>
+          <div class="budget-status">${fmt(actualMins)} / ${fmt(budgetMins)}${hit ? ' ✓' : ''}</div>
+        ` : ''}
+      </div>`;
+  }).join('');
+}
+function renderBudgetsInPlace() {
+  const el = document.getElementById('subj-budgets-list');
+  if (el) el.innerHTML = renderSubjectBudgets();
 }
 
 // Init
