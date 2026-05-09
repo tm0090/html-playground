@@ -233,7 +233,28 @@ header {
 .settings-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-2); }
 .settings-btn.open { background: var(--surface-3); color: var(--text); border-color: var(--border-3); box-shadow: var(--shadow-sm); }
 
-/* ── Goal card ── */
+/* ── Data buttons (export/import) ── */
+.data-btn {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 12px 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--rsm); cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  text-align: left;
+}
+.data-btn:hover { background: var(--surface-3); border-color: var(--border-2); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.data-btn:active { transform: translateY(0); }
+.data-btn-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.export-btn .data-btn-icon { background: rgba(59,130,246,0.12); color: var(--accent); border: 1px solid rgba(59,130,246,0.2); }
+.import-btn .data-btn-icon { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.export-btn:hover .data-btn-icon { background: rgba(59,130,246,0.2); }
+.import-btn:hover .data-btn-icon { background: rgba(16,185,129,0.2); }
+.data-btn-text { display: flex; flex-direction: column; gap: 2px; }
+.data-btn-label { font-size: 13px; font-weight: 700; color: var(--text); font-family: var(--sans); }
+.data-btn-desc { font-size: 11px; color: var(--text-3); font-family: var(--sans); font-weight: 500; }
 .goal-card {
   background: linear-gradient(145deg, var(--surface-2) 0%, var(--surface) 100%);
   border: 1px solid var(--border);
@@ -275,6 +296,45 @@ header {
 .goal-hint { font-size: 10px; color: var(--text-3); text-align: center; margin-top: 12px; letter-spacing: 0.02em; }
 .goal-saved { font-size: 11px; font-weight: 600; color: var(--green); text-align: center; margin-top: 6px; height: 16px; transition: opacity 0.3s; opacity: 0; }
 .goal-saved.show { opacity: 1; }
+
+/* Per-day goals grid */
+.daily-goals-grid { display: flex; flex-direction: column; gap: 5px; }
+.dg-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 6px; border-radius: 8px;
+  transition: background 0.15s;
+}
+.dg-row:hover { background: var(--surface-3); }
+.dg-row.today-row { background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.25); }
+.dg-day {
+  font-size: 11px; font-weight: 700; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.08em; width: 28px; flex-shrink: 0;
+}
+.dg-row.today-row .dg-day { color: var(--accent); }
+.dg-inputs { display: flex; align-items: center; gap: 3px; flex: 1; }
+.dg-unit-wrap {
+  display: flex; align-items: center;
+  background: var(--bg); border: 1px solid var(--border-2);
+  border-radius: 6px; overflow: hidden; transition: all 0.15s;
+}
+.dg-unit-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.dg-step {
+  width: 20px; height: 26px; background: transparent; border: none;
+  color: var(--text-3); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s; flex-shrink: 0; user-select: none; line-height: 1;
+}
+.dg-step:hover { color: var(--text); background: var(--surface-3); }
+.dg-inp {
+  width: 28px; height: 26px; padding: 0; background: transparent; border: none;
+  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 12px; font-weight: 500;
+  outline: none; text-align: center;
+}
+.dg-inp:focus { color: var(--accent); }
+.dg-sep { font-size: 10px; font-weight: 600; color: var(--text-3); font-family: var(--sans); }
+.dg-display { font-family: var(--mono); font-size: 11px; color: var(--text-2); margin-left: auto; white-space: nowrap; }
+.dg-row.today-row .dg-display { color: var(--accent); font-weight: 600; }
 
 /* ── Content ── */
 .content { flex: 1; overflow-y: auto; padding: 32px 40px; position: relative; }
@@ -938,6 +998,10 @@ function startRealtimeSync() {
     }
 
     if (d.goal) { goalMins = d.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
+    if (d.todayOverride && d.todayOverride.date === todayStr()) {
+      todayOverride = d.todayOverride;
+      localStorage.setItem('sl-v4-today-override', JSON.stringify(todayOverride));
+    }
     if (d.fonts && Object.keys(d.fonts).length) {
       localStorage.setItem('sl-v4-fonts', JSON.stringify(d.fonts));
       const fs = document.getElementById('font-sans');
@@ -1038,6 +1102,7 @@ async function pushToCloud() {
     const payload = {
       sessions,
       goal: goalMins,
+      todayOverride: todayOverride,
       fonts: fonts || {},
       view: viewMode,
       sidebarCollapsed,
@@ -1126,7 +1191,7 @@ function showSyncToast(msg, type = 'info') {
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div>
-        <div class="slabel">Daily Goal</div>
+        <div class="slabel">Default Goal</div>
         <div class="goal-card">
           <div class="goal-display" id="goal-display">—</div>
           <div class="goal-steppers">
@@ -1143,16 +1208,67 @@ function showSyncToast(msg, type = 'info') {
             </div>
             <span class="goal-sep">min</span>
           </div>
-          <div class="goal-hint">scroll ↕ over fields to adjust</div>
+          <div class="goal-hint">min 1h 30m · scroll ↕ to adjust</div>
           <div class="goal-saved" id="goal-saved">✓ Goal saved</div>
         </div>
       </div>
 
       <div>
-        <div class="slabel">Subjects</div>
-        <div class="subj-list" id="sb-subjects"></div>
-        <div style="margin-top:10px">
-          <button id="clear-filter" style="display:none;width:100%;padding:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--rsm);color:var(--text-2);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s" onclick="clearFilter()">✕ Clear filter</button>
+        <div class="slabel">Today's Goal <span style="font-size:10px;color:var(--text-3);font-weight:500;text-transform:none;letter-spacing:0;font-family:var(--sans)">— overrides default</span></div>
+        <div class="goal-card" style="padding:14px">
+          <div class="goal-display" id="today-goal-display" style="font-size:22px;margin-bottom:12px">—</div>
+          <div class="goal-steppers">
+            <div class="goal-unit-wrap">
+              <button class="gstep" onmousedown="stepTodayGoal('h',-1)">−</button>
+              <input class="goal-inp" id="tgoal-h" type="number" min="0" max="23" placeholder="0">
+              <button class="gstep" onmousedown="stepTodayGoal('h', 1)">+</button>
+            </div>
+            <span class="goal-sep">hr</span>
+            <div class="goal-unit-wrap">
+              <button class="gstep" onmousedown="stepTodayGoal('m',-5)">−</button>
+              <input class="goal-inp" id="tgoal-m" type="number" min="0" max="59" placeholder="0">
+              <button class="gstep" onmousedown="stepTodayGoal('m', 5)">+</button>
+            </div>
+            <span class="goal-sep">min</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <button class="settings-btn" style="flex:2;padding:7px" onclick="setTodayGoal()">Set for Today</button>
+            <button class="settings-btn" id="tgoal-clear-btn" style="flex:1;padding:7px;display:none" onclick="clearTodayGoal()">✕ Clear</button>
+          </div>
+          <div class="goal-hint" style="margin-top:0">min 1h 30m · resets at midnight</div>
+          <div class="goal-saved" id="today-goal-saved">✓ Set for today</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="slabel">Data</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="data-btn export-btn" onclick="exportData()">
+            <span class="data-btn-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </span>
+            <span class="data-btn-text">
+              <span class="data-btn-label">Export Backup</span>
+              <span class="data-btn-desc">Save your data as JSON</span>
+            </span>
+          </button>
+          <button class="data-btn import-btn" onclick="importData()">
+            <span class="data-btn-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </span>
+            <span class="data-btn-text">
+              <span class="data-btn-label">Import Backup</span>
+              <span class="data-btn-desc">Restore from a JSON file</span>
+            </span>
+          </button>
         </div>
       </div>
 
@@ -1196,14 +1312,6 @@ function showSyncToast(msg, type = 'info') {
               </label>
             </div>
             <div class="sync-status-row" id="last-sync-info">Never synced</div>
-            <button class="settings-btn" onclick="exportData()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Export Backup
-            </button>
-            <button class="settings-btn" onclick="importData()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Import Backup
-            </button>
           </div>
         </div>
       </div>
@@ -1273,6 +1381,16 @@ function showSyncToast(msg, type = 'info') {
 let sessions = JSON.parse(localStorage.getItem('sl-v4-sessions') || '[]');
 if (!sessions.length) { const v3 = localStorage.getItem('sl-v3-sessions'); if (v3) { sessions = JSON.parse(v3); persist(); } }
 let goalMins = parseInt(localStorage.getItem('sl-v4-goal') || localStorage.getItem('sl-v3-goal') || '120');
+
+// Today's goal override: { date: 'YYYY-MM-DD', mins: N } or null
+let todayOverride = JSON.parse(localStorage.getItem('sl-v4-today-override') || 'null');
+if (todayOverride && todayOverride.date !== todayStr()) todayOverride = null; // stale — reset
+
+function getEffectiveGoal(dateStr) {
+  if (dateStr === todayStr() && todayOverride) return todayOverride.mins;
+  return goalMins;
+}
+function getTodayGoal() { return getEffectiveGoal(todayStr()); }
 let filterSubj = null, viewYear = new Date().getFullYear(), viewMode = localStorage.getItem('sl-v4-view') || 'timeline', editingId = null;
 let sidebarCollapsed = JSON.parse(localStorage.getItem('sl-sidebar-collapsed') || 'false');
 
@@ -1375,18 +1493,33 @@ function applySidebarState() {
 }
 
 let goalRenderTimer = null, goalSavedTimer = null;
+
 function stepGoal(field, delta) {
-  const el = document.getElementById('goal-' + field);
+  const hEl = document.getElementById('goal-h');
+  const mEl = document.getElementById('goal-m');
   const max = field === 'h' ? 23 : 59;
+  const el = field === 'h' ? hEl : mEl;
   let v = (parseInt(el.value) || 0) + delta;
   el.value = Math.max(0, Math.min(max, v));
+  // Enforce 90m minimum after step
+  const curH = parseInt(hEl.value) || 0;
+  const curM = parseInt(mEl.value) || 0;
+  if (curH * 60 + curM < 90 && curH * 60 + curM > 0) {
+    hEl.value = 1; mEl.value = 30;
+  }
   onGoalInput();
 }
 function onGoalInput() {
   const h = Math.max(0, Math.min(23, parseInt(document.getElementById('goal-h').value) || 0));
   const m = Math.max(0, Math.min(59, parseInt(document.getElementById('goal-m').value) || 0));
-  const nm = h * 60 + m;
-  if (nm > 0) {
+  let nm = h * 60 + m;
+  if (nm > 0 && nm < 90) {
+    // snap to 90m minimum
+    nm = 90;
+    document.getElementById('goal-h').value = 1;
+    document.getElementById('goal-m').value = 30;
+  }
+  if (nm >= 90) {
     goalMins = nm;
     localStorage.setItem('sl-v4-goal', String(goalMins));
     updateGoalDisplay();
@@ -1407,6 +1540,65 @@ function updateGoalDisplay() {
   document.getElementById('goal-display').innerHTML = html;
 }
 
+// ── Today's Goal override ──
+function stepTodayGoal(field, delta) {
+  const el = document.getElementById('tgoal-' + field);
+  const max = field === 'h' ? 23 : 59;
+  let v = (parseInt(el.value) || 0) + delta;
+  el.value = Math.max(0, Math.min(max, v));
+  updateTodayGoalDisplay();
+}
+function updateTodayGoalDisplay() {
+  const h = parseInt(document.getElementById('tgoal-h').value) || 0;
+  const m = parseInt(document.getElementById('tgoal-m').value) || 0;
+  const nm = h * 60 + m;
+  const el = document.getElementById('today-goal-display');
+  if (nm > 0) {
+    const dh = Math.floor(nm/60), dm = nm%60;
+    let html = '';
+    if (dh > 0) html += dh + '<span class="unit">hr</span>';
+    if (dh > 0 && dm > 0) html += ' ';
+    if (dm > 0 || dh === 0) html += dm + '<span class="unit">min</span>';
+    el.innerHTML = html;
+  } else {
+    el.textContent = '—';
+  }
+}
+function setTodayGoal() {
+  const h = Math.max(0, Math.min(23, parseInt(document.getElementById('tgoal-h').value) || 0));
+  const m = Math.max(0, Math.min(59, parseInt(document.getElementById('tgoal-m').value) || 0));
+  let nm = h * 60 + m;
+  if (!nm) return;
+  if (nm < 90) {
+    nm = 90;
+    document.getElementById('tgoal-h').value = 1;
+    document.getElementById('tgoal-m').value = 30;
+    updateTodayGoalDisplay();
+  }
+  todayOverride = { date: todayStr(), mins: nm };
+  localStorage.setItem('sl-v4-today-override', JSON.stringify(todayOverride));
+  const saved = document.getElementById('today-goal-saved');
+  saved.classList.add('show');
+  clearTimeout(goalSavedTimer);
+  goalSavedTimer = setTimeout(() => saved.classList.remove('show'), 1600);
+  document.getElementById('tgoal-clear-btn').style.display = '';
+  clearTimeout(goalRenderTimer);
+  goalRenderTimer = setTimeout(() => render(), 350);
+}
+function clearTodayGoal() {
+  todayOverride = null;
+  localStorage.removeItem('sl-v4-today-override');
+  document.getElementById('tgoal-h').value = '';
+  document.getElementById('tgoal-m').value = '';
+  document.getElementById('today-goal-display').textContent = '—';
+  document.getElementById('tgoal-clear-btn').style.display = 'none';
+  clearTimeout(goalRenderTimer);
+  goalRenderTimer = setTimeout(() => render(), 350);
+}
+
+// stubs so old refs don't error
+function stepDayGoal() {} function onDayGoalInput() {} function wireWheelDg() {}
+
 function wireWheel(id, min, max, step) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1418,9 +1610,13 @@ function wireWheel(id, min, max, step) {
     el.dispatchEvent(new Event('input', { bubbles: true }));
   }, { passive: false });
 }
-wireWheel('f-h', 0, 23, 1); wireWheel('f-m', 0, 59, 5); wireWheel('goal-h', 0, 23, 1); wireWheel('goal-m', 0, 59, 5);
+wireWheel('f-h', 0, 23, 1); wireWheel('f-m', 0, 59, 5);
+wireWheel('goal-h', 0, 23, 1); wireWheel('goal-m', 0, 59, 5);
+wireWheel('tgoal-h', 0, 23, 1); wireWheel('tgoal-m', 0, 59, 5);
 document.getElementById('goal-h').addEventListener('input', onGoalInput);
 document.getElementById('goal-m').addEventListener('input', onGoalInput);
+document.getElementById('tgoal-h').addEventListener('input', updateTodayGoalDisplay);
+document.getElementById('tgoal-m').addEventListener('input', updateTodayGoalDisplay);
 
 function stepNF(id, delta, min, max) {
   const el = document.getElementById(id);
@@ -1538,16 +1734,19 @@ function calcStats() {
   const best = Object.keys(byDay).length > 0 ? Math.max(...Object.values(byDay)) : 0;
   
   let streak = 0;
-  const ds = new Set(sessions.map(s => s.date));
+  // Only days with ≥90 mins (1h30m) count toward streak
+  const qualifiedDaySet = new Set(
+    Object.entries(byDay).filter(([,m]) => m >= 90).map(([d]) => d)
+  );
   const dd = new Date(); dd.setDate(dd.getDate() - 1);
   const yest = localDate(dd);
 
   let dObj = new Date(); 
-  if (ds.has(t)) {
-    while (ds.has(localDate(dObj))) { streak++; dObj.setDate(dObj.getDate() - 1); }
-  } else if (ds.has(yest)) {
+  if (qualifiedDaySet.has(t)) {
+    while (qualifiedDaySet.has(localDate(dObj))) { streak++; dObj.setDate(dObj.getDate() - 1); }
+  } else if (qualifiedDaySet.has(yest)) {
     dObj.setDate(dObj.getDate() - 1); 
-    while (ds.has(localDate(dObj))) { streak++; dObj.setDate(dObj.getDate() - 1); }
+    while (qualifiedDaySet.has(localDate(dObj))) { streak++; dObj.setDate(dObj.getDate() - 1); }
   }
 
   const subjMap = {}; sessions.forEach(s => { subjMap[s.subject] = (subjMap[s.subject]||0) + s.mins; });
@@ -1574,7 +1773,7 @@ function calcAllTimeStats() {
   const bestWeekEntry = Object.entries(byWeek).reduce((a,[d,m])=>m>a[1]?[d,m]:a, ['',0]);
   const bestMonthEntry = Object.entries(byMonth).reduce((a,[d,m])=>m>a[1]?[d,m]:a, ['',0]);
 
-  const allDays = Object.keys(byDay).sort();
+  const allDays = Object.keys(byDay).filter(d => byDay[d] >= 90).sort();
   let maxStreak = 0, curStreak = 0, prevDate = null;
   allDays.forEach(d => {
     if (prevDate) {
@@ -1607,11 +1806,13 @@ function render() {
 
 function renderHeader() {
   const { week, streak, today: todayMins } = calcStats();
-  const ds = new Set(sessions.map(s => s.date));
-  const atRisk = !ds.has(todayStr()) && streak > 0;
-  const todayPct  = Math.min(100, goalMins > 0 ? Math.round(todayMins / goalMins * 100) : 0);
-  const goalHit   = todayMins >= goalMins;
-  const goalLabel = (() => { const h = Math.floor(goalMins/60), m = goalMins%60; if (h && m) return h+'h '+m+'m'; if (h) return h+'h'; return m+'m'; })();
+  const todayGoal = getTodayGoal();
+  // Streak at risk if today hasn't hit ≥90m yet and we have an active streak
+  const todayTotal = sessions.filter(s => s.date === todayStr()).reduce((a,s)=>a+s.mins,0);
+  const atRisk = todayTotal < 90 && streak > 0;
+  const todayPct  = Math.min(100, todayGoal > 0 ? Math.round(todayMins / todayGoal * 100) : 0);
+  const goalHit   = todayMins >= todayGoal;
+  const goalLabel = (() => { const h = Math.floor(todayGoal/60), m = todayGoal%60; if (h && m) return h+'h '+m+'m'; if (h) return h+'h'; return m+'m'; })();
 
   document.getElementById('hstats').innerHTML = `
     <div class="hstat">
@@ -1628,7 +1829,7 @@ function renderHeader() {
     </div>
     <div class="hstat">
       <div class="hstat-icon streak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg></div>
-      <div class="hstat-text"><div class="lbl">Streak</div><div class="val">${streak}<span style="font-size:11px;color:var(--text-3);font-family:var(--sans);font-weight:600;margin-left:2px">day${streak!==1?'s':''}</span>${atRisk?'<span class="streak-warn" title="Streak at risk!">⚠</span>':''}</div></div>
+      <div class="hstat-text"><div class="lbl">Streak</div><div class="val">${streak}<span style="font-size:11px;color:var(--text-3);font-family:var(--sans);font-weight:600;margin-left:2px">day${streak!==1?'s':''}</span>${atRisk?'<span class="streak-warn" title="Streak at risk! Study ≥1h30m today">⚠</span>':''}</div></div>
     </div>
   `;
 }
@@ -1639,23 +1840,21 @@ function renderNudge() {
 }
 
 function renderSidebar() {
-  const { subjMap } = calcStats();
-  const sorted = Object.entries(subjMap).sort((a, b) => b[1] - a[1]);
-  const maxM = sorted.length ? sorted[0][1] : 1;
-  document.getElementById('sb-subjects').innerHTML = sorted.length
-    ? sorted.map(([s, m]) => `
-      <div class="subj-item ${filterSubj===s?'on':''}" onclick="toggleFilter('${s.replace(/'/g,"\\'")}')">
-        <div class="subj-top">
-          <div class="subj-left"><div class="dot" style="background:${sc(s)}; color:${sc(s)}"></div><span class="subj-name">${s}</span></div>
-          <div class="subj-hrs">${fmt(m)}</div>
-        </div>
-        <div class="subj-bar-wrap"><div class="subj-bar-fill" style="width:${Math.round(m/maxM*100)}%;background:${sc(s)}"></div></div>
-      </div>`).join('')
-    : '<div style="font-size:13px;color:var(--text-3);font-style:italic">No subjects yet</div>';
-
+  // Restore default goal inputs and today's override UI
   document.getElementById('goal-h').value = Math.floor(goalMins / 60);
   document.getElementById('goal-m').value = goalMins % 60;
   updateGoalDisplay();
+
+  if (todayOverride) {
+    document.getElementById('tgoal-h').value = Math.floor(todayOverride.mins / 60);
+    document.getElementById('tgoal-m').value = todayOverride.mins % 60;
+    document.getElementById('tgoal-clear-btn').style.display = '';
+  } else {
+    document.getElementById('tgoal-h').value = '';
+    document.getElementById('tgoal-m').value = '';
+    document.getElementById('tgoal-clear-btn').style.display = 'none';
+  }
+  updateTodayGoalDisplay();
 }
 
 function toggleFilter(s) { filterSubj = filterSubj === s ? null : s; document.getElementById('clear-filter').style.display = filterSubj ? 'block' : 'none'; render(); }
@@ -1810,7 +2009,7 @@ function renderHeatmap() {
         </div>`).join('')}
     </div>` : '';
 
-  const goalHitDays = Object.values(minsMap).filter(m => m >= goalMins).length;
+  const goalHitDays = Object.entries(minsMap).filter(([date, m]) => m >= getEffectiveGoal(date)).length;
   const goalHitRate = yDays ? Math.round(goalHitDays / yDays * 100) : 0;
   
   document.getElementById('heatmap-area').innerHTML = `
@@ -2100,7 +2299,8 @@ function renderTimeline() {
     
     const daycards = Object.keys(byDay).sort((a,b)=>b.localeCompare(a)).map(date => {
       const list = byDay[date], total = list.reduce((a,s)=>a+s.mins,0);
-      const pct = Math.min(100, Math.round(total/goalMins*100)), hit = total>=goalMins;
+      const dayGoal = getEffectiveGoal(date);
+      const pct = Math.min(100, Math.round(total/dayGoal*100)), hit = total>=dayGoal;
       const d = new Date(date+'T12:00:00'), dow = d.toLocaleDateString('en',{weekday:'short'}), isToday = date===todayStr();
       const rows = list.map(s => `
         <div class="srow">
@@ -2124,7 +2324,7 @@ function renderTimeline() {
           <div class="day-card">
             <div class="dhead">
               <div class="ddate"><span class="dow">${dow}</span>${d.getDate()}${isToday?'<span class="dtoday">TODAY</span>':''}</div>
-              <div class="dtime ${hit?'hit':''}">${fmt(total)} / ${fmt(goalMins)}</div>
+              <div class="dtime ${hit?'hit':''}">${fmt(total)} / ${fmt(dayGoal)}</div>
             </div>
             <div class="prog"><div class="pfill ${hit?'hit':''}" style="width:${pct}%"></div></div>
             ${rows}
@@ -2159,7 +2359,7 @@ function hideTip() { document.getElementById('tip').style.display = 'none'; }
 function exportData() {
   const fonts = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
   const view = localStorage.getItem('sl-v4-view') || 'timeline';
-  const d = JSON.stringify({ sessions, goal: goalMins, fonts: fonts, view: view, sidebarCollapsed: sidebarCollapsed, version: 5 }, null, 2);
+  const d = JSON.stringify({ sessions, goal: goalMins, todayOverride: todayOverride, fonts: fonts, view: view, sidebarCollapsed: sidebarCollapsed, version: 5 }, null, 2);
   const a = document.createElement('a'); 
   a.href = 'data:application/json,'+encodeURIComponent(d);
   a.download = 'studylog-backup-'+todayStr()+'.json'; 
@@ -2176,6 +2376,10 @@ function handleImport(e) {
       const d = JSON.parse(ev.target.result);
       if (Array.isArray(d.sessions)) { sessions = d.sessions; persist(); }
       if (d.goal) { goalMins = d.goal; localStorage.setItem('sl-v4-goal', String(goalMins)); }
+      if (d.todayOverride && d.todayOverride.date === todayStr()) {
+        todayOverride = d.todayOverride;
+        localStorage.setItem('sl-v4-today-override', JSON.stringify(todayOverride));
+      }
       if (d.fonts) {
         localStorage.setItem('sl-v4-fonts', JSON.stringify(d.fonts));
         document.getElementById('font-sans').value = d.fonts.sans || '';
