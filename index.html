@@ -252,6 +252,9 @@ header {
 .import-btn .data-btn-icon { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
 .export-btn:hover .data-btn-icon { background: rgba(59,130,246,0.2); }
 .import-btn:hover .data-btn-icon { background: rgba(16,185,129,0.2); }
+.ai-btn .data-btn-icon { background: rgba(139,92,246,0.12); color: var(--purple); border: 1px solid rgba(139,92,246,0.2); }
+.ai-btn:hover .data-btn-icon { background: rgba(139,92,246,0.2); }
+
 .data-btn-text { display: flex; flex-direction: column; gap: 2px; }
 .data-btn-label { font-size: 13px; font-weight: 700; color: var(--text); font-family: var(--sans); }
 .data-btn-desc { font-size: 11px; color: var(--text-3); font-family: var(--sans); font-weight: 500; }
@@ -1018,6 +1021,16 @@ function showSyncToast(msg, type = 'info') {
       <div>
         <div class="slabel">Data</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
+          <!-- New AI Feedback Button -->
+          <button class="data-btn ai-btn" onclick="copyAIPrompt()">
+            <span class="data-btn-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+            </span>
+            <span class="data-btn-text">
+              <span class="data-btn-label">AI Feedback Prompt</span>
+              <span class="data-btn-desc">Copy data for AI analysis</span>
+            </span>
+          </button>
           <button class="data-btn export-btn" onclick="exportData()">
             <span class="data-btn-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -2287,6 +2300,58 @@ function showTip(e, date, mins) {
   t.style.top = topPos + 'px';
 }
 function hideTip() { document.getElementById('tip').style.display = 'none'; }
+
+// AI Prompt Generation 
+function copyAIPrompt() {
+  const at = calcAllTimeStats();
+  if (!at || !sessions.length) {
+    showSyncToast('No data to analyze.', 'error');
+    return;
+  }
+  
+  let prompt = `I am using a study tracker and want you to act as my academic coach. Analyze my performance data, identify patterns, and provide constructive feedback to help me improve my habits.\n\n`;
+  prompt += `### OVERALL STATS ###\n`;
+  prompt += `- Total Study Time: ${fmt(at.total)}\n`;
+  prompt += `- Active Study Days: ${at.daysStudied}\n`;
+  prompt += `- Average per Active Day: ${fmt(at.avgPerDay)}\n`;
+  prompt += `- Longest Study Streak: ${at.maxStreak} days\n\n`;
+  
+  prompt += `### SUBJECT BREAKDOWN ###\n`;
+  const sortedSubj = Object.entries(at.subjMap).sort((a,b)=>b[1]-a[1]);
+  sortedSubj.forEach(([s, m]) => {
+    prompt += `- ${s}: ${fmt(m)}\n`;
+  });
+  prompt += `\n`;
+  
+  prompt += `### RECENT 30 DAYS ###\n`;
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dStr = localDate(d);
+    const dayMins = sessions.filter(s => s.date === dStr).reduce((a,s)=>a+s.mins, 0);
+    prompt += `- ${dStr}: ${fmt(dayMins)}\n`;
+  }
+  prompt += `\n`;
+  
+  prompt += `Please provide:\n1. A brief analysis of my consistency and dedication.\n2. Observations on my subject distribution and any imbalances.\n3. Three highly actionable tips to enhance my study routine and maintain motivation.`;
+
+  // Use a temporary textarea to securely write to clipboard
+  const textArea = document.createElement("textarea");
+  textArea.value = prompt;
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    showSyncToast('AI Prompt copied to clipboard!', 'success');
+  } catch (err) {
+    showSyncToast('Failed to copy prompt.', 'error');
+  } finally {
+    document.body.removeChild(textArea);
+  }
+}
 
 function exportData() {
   const fonts = JSON.parse(localStorage.getItem('sl-v4-fonts') || 'null');
