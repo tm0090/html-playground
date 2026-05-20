@@ -530,7 +530,7 @@
         </div>
         <div class="row">
           <span class="row-label">Custom Heading</span>
-          <input class="txt" type="text" id="customHeading" placeholder="Todays time remaining">
+          <input class="txt" type="text" id="customHeading" placeholder="Time Remaining Today">
         </div>
         <div class="row">
           <span class="row-label">Show Minutes</span>
@@ -838,7 +838,7 @@
   function updateCountdown() {
     // Determine custom heading
     const hText = customHeadingEl.value.trim();
-    headingDisplayEl.textContent = hText ? hText : "Todays time remaining";
+    headingDisplayEl.textContent = hText ? hText : "Time Remaining Today";
 
     const now = new Date();
     const targetStr = targetTimeEl.value || "23:00";
