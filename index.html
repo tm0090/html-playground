@@ -365,6 +365,55 @@
                     </div>
                 </div>
 
+                <!-- NEW: PREFERENCES SECTION WITH DYNAMIC HH/MM/SS TOGGLES -->
+                <div class="border-t border-white/10 pt-6 space-y-4">
+                    <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Preferences</label>
+                    
+                    <div class="space-y-2 bg-white/5 p-3 rounded-lg border border-white/5">
+                        <span class="block text-[10px] uppercase tracking-wider text-white/50 font-bold mb-2">Display Time Units</span>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-white/80 font-semibold">Show Hours (HH)</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" id="toggle-hours" class="sr-only peer">
+                              <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-white/80 font-semibold">Show Minutes (MM)</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" id="toggle-minutes" class="sr-only peer" checked>
+                              <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-white/80 font-semibold">Show Seconds (SS)</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" id="toggle-seconds" class="sr-only peer" checked>
+                              <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-white/80 font-semibold">Pulsing Clock Animation</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" id="toggle-pulse" class="sr-only peer" checked>
+                          <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-white/80 font-semibold">Auto Fullscreen on Start</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" id="toggle-fullscreen" class="sr-only peer" checked>
+                          <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
+                        </label>
+                    </div>
+                </div>
+
             </div>
             
             <div class="mt-8 pt-6 border-t border-white/10 text-center text-white/30 text-xs">
@@ -397,6 +446,13 @@
             waterStyle: 'breathing',
             waterSpeed: 20,
             waterBrightness: 1.0, 
+
+            // INDEPENDENT TIME FORMAT PREFERENCES
+            showHours: false,
+            showMinutes: true,
+            showSeconds: true,
+            pulsingClock: true,
+            autoFullScreen: true,
         };
 
         // --- Persistent Storage Logic ---
@@ -411,6 +467,11 @@
                 waterStyle: state.waterStyle,
                 waterSpeed: state.waterSpeed,
                 waterBrightness: state.waterBrightness,
+                showHours: state.showHours,
+                showMinutes: state.showMinutes,
+                showSeconds: state.showSeconds,
+                pulsingClock: state.pulsingClock,
+                autoFullScreen: state.autoFullScreen,
             };
             localStorage.setItem('focusFlowSettings', JSON.stringify(settings));
         }
@@ -430,6 +491,12 @@
                     state.waterStyle = parsed.waterStyle || 'breathing';
                     state.waterSpeed = parsed.waterSpeed || 20;
                     state.waterBrightness = parsed.waterBrightness !== undefined ? parsed.waterBrightness : 1.0;
+                    
+                    state.showHours = parsed.showHours !== undefined ? parsed.showHours : false;
+                    state.showMinutes = parsed.showMinutes !== undefined ? parsed.showMinutes : true;
+                    state.showSeconds = parsed.showSeconds !== undefined ? parsed.showSeconds : true;
+                    state.pulsingClock = parsed.pulsingClock !== undefined ? parsed.pulsingClock : true;
+                    state.autoFullScreen = parsed.autoFullScreen !== undefined ? parsed.autoFullScreen : true;
                     
                     // Reset current session stats based on loaded values
                     state.duration = state.mode === 'focus' ? state.focusDuration : state.breakDuration;
@@ -469,7 +536,14 @@
 
             topControls: document.getElementById('top-controls'),
             bottomControls: document.getElementById('bottom-controls'),
-            canvas: document.getElementById('waterCanvas')
+            canvas: document.getElementById('waterCanvas'),
+
+            // TOGGLES
+            toggleHours: document.getElementById('toggle-hours'),
+            toggleMinutes: document.getElementById('toggle-minutes'),
+            toggleSeconds: document.getElementById('toggle-seconds'),
+            togglePulse: document.getElementById('toggle-pulse'),
+            toggleFullscreen: document.getElementById('toggle-fullscreen'),
         };
 
         // --- Canvas & Physics ---
@@ -682,9 +756,57 @@
 
         // --- Timer Logic ---
         function formatTime(seconds) {
-            const m = Math.floor(seconds / 60);
-            const s = seconds % 60;
-            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+            const hasH = state.showHours;
+            const hasM = state.showMinutes;
+            const hasS = state.showSeconds;
+
+            // Simple fallback if all unit toggles are disabled
+            if (!hasH && !hasM && !hasS) {
+                return "00:00";
+            }
+
+            let h = null, m = null, s = null;
+            let rem = seconds;
+
+            if (hasH) {
+                h = Math.floor(rem / 3600);
+                rem = rem % 3600;
+            }
+
+            if (hasM) {
+                m = Math.floor(rem / 60);
+                rem = rem % 60;
+            }
+
+            if (hasS) {
+                s = rem;
+            } else {
+                // If there is leftover time, gracefully round up the smallest active visible unit
+                if (rem > 0) {
+                    if (hasM) {
+                        m += 1;
+                        if (m >= 60 && hasH) {
+                            m = 0;
+                            h += 1;
+                        }
+                    } else if (hasH) {
+                        h += 1;
+                    }
+                }
+            }
+
+            const parts = [];
+            if (hasH) {
+                parts.push(h.toString().padStart(2, '0'));
+            }
+            if (hasM) {
+                parts.push(m.toString().padStart(2, '0'));
+            }
+            if (hasS) {
+                parts.push(s.toString().padStart(2, '0'));
+            }
+
+            return parts.join(':');
         }
 
         function updateDisplay() {
@@ -718,7 +840,7 @@
                 state.isRunning = false;
                 els.startBtn.innerHTML = '<i class="fa-solid fa-play text-3xl ml-1"></i>';
             } else {
-                if (!document.fullscreenElement) {
+                if (state.autoFullScreen && !document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch(e => console.log(e));
                 }
 
@@ -829,6 +951,20 @@
                 }
             });
 
+            // Update Toggle Switches
+            els.toggleHours.checked = state.showHours;
+            els.toggleMinutes.checked = state.showMinutes;
+            els.toggleSeconds.checked = state.showSeconds;
+            els.togglePulse.checked = state.pulsingClock;
+            els.toggleFullscreen.checked = state.autoFullScreen;
+
+            // Apply Pulsing Clock logic
+            if (state.pulsingClock) {
+                els.timerDisplay.classList.add('breathing');
+            } else {
+                els.timerDisplay.classList.remove('breathing');
+            }
+
             // Update Slider Visuals (Fill Effect)
             const allSliders = document.querySelectorAll('input[type="range"]');
             allSliders.forEach(slider => {
@@ -894,6 +1030,36 @@
                 const percent = ((val - min) / (max - min)) * 100;
                 range.style.setProperty('--progress', `${percent}%`);
             });
+        });
+
+        // Preferences Toggles Additions
+        els.toggleHours.addEventListener('change', (e) => {
+            state.showHours = e.target.checked;
+            updateDisplay();
+            saveSettings();
+        });
+
+        els.toggleMinutes.addEventListener('change', (e) => {
+            state.showMinutes = e.target.checked;
+            updateDisplay();
+            saveSettings();
+        });
+
+        els.toggleSeconds.addEventListener('change', (e) => {
+            state.showSeconds = e.target.checked;
+            updateDisplay();
+            saveSettings();
+        });
+
+        els.togglePulse.addEventListener('change', (e) => {
+            state.pulsingClock = e.target.checked;
+            updateSettingsUI();
+            saveSettings();
+        });
+
+        els.toggleFullscreen.addEventListener('change', (e) => {
+            state.autoFullScreen = e.target.checked;
+            saveSettings();
         });
 
         // Focus Duration Slider
