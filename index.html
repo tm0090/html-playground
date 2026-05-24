@@ -350,7 +350,8 @@
                 <div class="grid grid-cols-2 gap-6 pt-2">
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Clock Size</label>
-                        <input type="range" id="size-slider" min="2" max="40" step="0.5" value="10">
+                        <!-- Updated min/max for vw units -->
+                        <input type="range" id="size-slider" min="5" max="60" step="0.5" value="14">
                     </div>
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Clock Font</label>
@@ -365,7 +366,6 @@
                     </div>
                 </div>
 
-                <!-- NEW: PREFERENCES SECTION WITH DYNAMIC HH/MM/SS TOGGLES -->
                 <div class="border-t border-white/10 pt-6 space-y-4">
                     <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Preferences</label>
                     
@@ -436,7 +436,7 @@
             timerId: null,
             
             viewMode: 'hybrid',
-            clockSize: 10,
+            clockSize: 14,       // Changed default to 14 (vw format)
             font: 'Inter',
             isUiVisible: true,
             themeHue: 350, 
@@ -485,7 +485,7 @@
                     state.focusDuration = parsed.focusDuration || state.focusDuration;
                     state.breakDuration = parsed.breakDuration || state.breakDuration;
                     state.viewMode = parsed.viewMode || 'hybrid';
-                    state.clockSize = parsed.clockSize || 10;
+                    state.clockSize = parsed.clockSize || 14;
                     state.font = parsed.font || 'Inter';
                     state.customColor = parsed.customColor || null;
                     state.waterStyle = parsed.waterStyle || 'breathing';
@@ -567,11 +567,6 @@
         }
 
         function getColor(progress) {
-            // Modern "Pleasant" Gradient Logic
-            // 0% (Start) = Rose Red (Hue 350)
-            // 50% (Middle) = Amber/Gold (Hue 40)
-            // 100% (End) = Spring Mint (Hue 160)
-            
             let h, s, l;
             
             if (progress < 0.5) {
@@ -918,7 +913,8 @@
             els.breakSlider.value = state.breakDuration / 60;
 
             // Update Appearance
-            els.timerDisplay.style.fontSize = `${state.clockSize}rem`;
+            // USE VW UNITS FOR SCALING
+            els.timerDisplay.style.fontSize = `${state.clockSize}vw`;
             els.sizeSlider.value = state.clockSize;
             
             els.timerDisplay.style.fontFamily = state.font;
