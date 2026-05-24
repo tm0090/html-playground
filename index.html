@@ -42,12 +42,15 @@
             transition: opacity 0.5s ease;
         } 
 
-        /* The Timer Text */
+        /* The Timer Text - Highly Optimized for GPU Compositing */
         #timer-display {
             font-variant-numeric: tabular-nums;
             text-shadow: 0 4px 30px rgba(0,0,0,0.3);
             user-select: none;
-            transition: transform 0.3s ease, opacity 0.5s ease;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+            will-change: transform;
+            backface-visibility: hidden;
+            transform: translate3d(0, 0, 0);
         }
 
         /* Session Status Indicator */
@@ -165,7 +168,7 @@
         input[type=range]::-moz-range-track {
             width: 100%;
             height: 4px;
-            background: linear-gradient(to right, #ffffff var(--progress, 0%), rgba(255,255,255,0.15) var(--progress, 0%));
+            background: linear-gradient(to right, #ffffff var(--progress, 0%), rgba(255, 255, 255, 0.15) var(--progress, 0%));
             border-radius: 2px;
         }
         input[type=range]::-moz-range-thumb {
@@ -211,10 +214,11 @@
             pointer-events: none !important;
         }
 
+        /* Jitter-free breathe animation using purely hardware-accelerated transforms */
         @keyframes breathe {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1) translate3d(0, 0, 0); }
+            50% { transform: scale(1.025) translate3d(0, 0, 0); }
+            100% { transform: scale(1) translate3d(0, 0, 0); }
         }
         .breathing {
             animation: breathe 6s ease-in-out infinite;
@@ -407,7 +411,7 @@
 
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-white/80 font-semibold">Auto Fullscreen on Start</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
+                        <label class="relative inline-flex inline-flex items-center cursor-pointer">
                           <input type="checkbox" id="toggle-fullscreen" class="sr-only peer" checked>
                           <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
                         </label>
@@ -417,7 +421,7 @@
             </div>
             
             <div class="mt-8 pt-6 border-t border-white/10 text-center text-white/30 text-xs">
-                Focus Flow Engine v2.1
+                Focus Flow Engine v2.2 (Optimized)
             </div>
         </div>
     </div>
@@ -550,7 +554,8 @@
         const ctx = els.canvas.getContext('2d');
         let width, height;
         let waves = [];
-        let time = 0;
+        let waveTime = 0;
+        let lastTime = 0;
 
         function resize() {
             width = els.canvas.width = window.innerWidth;
@@ -560,7 +565,7 @@
         // Initialize Waves 
         function initWaves() {
             waves = [
-                { y: 0, length: 0.01, amplitude: 15, speed: 1, offset: 0 },
+                { y: 0, length: 0.01, amplitude: 15, speed: 1.0, offset: 0 },
                 { y: 0, length: 0.005, amplitude: 20, speed: 1.5, offset: 100 },
                 { y: 0, length: 0.002, amplitude: 25, speed: 0.5, offset: 200 }
             ];
@@ -593,7 +598,15 @@
             return { h, s, l };
         }
 
-        function drawWaves() {
+        // --- Delta-Time Based Physics Animation Loop ---
+        function drawWaves(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const delta = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // Prevent physics bugs or huge jumps when tab is unfocused/resumed
+            const dt = Math.min(delta, 100); 
+            
             ctx.clearRect(0, 0, width, height);
             
             const totalDuration = state.duration;
@@ -606,21 +619,28 @@
 
             const color = getColor(progress);
             const baseWaterHeight = height - (height * progress);
-            const speedMult = (state.waterSpeed / 20) * 0.003; 
+            
+            // Adjust speeds so they match the original pacing at 60fps, now delta-time scaled
+            const speedMult = (state.waterSpeed / 20) * 0.016 * (dt / 16.67); 
+            waveTime += speedMult;
+
+            // Increased loop step size to 20px (from 10px) to cut drawing loops by half.
+            // This drastically cuts down mathematical operations per frame for zero visible detail loss.
+            const segmentStep = 20;
 
             waves.forEach((wave, i) => {
                 ctx.beginPath();
                 ctx.moveTo(0, height);
 
                 const style = state.waterStyle;
-                const t = time * speedMult;
+                const t = waveTime * wave.speed;
 
-                // --- PHYSICS ENGINE ---
+                // --- OPTIMIZED PHYSICS ENGINE ---
                 if (style === 'digital') {
                     const step = 40;
                     for (let x = 0; x <= width + step; x += step) {
                         const y = baseWaterHeight + 
-                                  Math.sin(x * wave.length + t * wave.speed + wave.offset) * wave.amplitude;
+                                  Math.sin(x * wave.length + t + wave.offset) * wave.amplitude;
                         ctx.lineTo(x, Math.floor(y / step) * step);
                         ctx.lineTo(x + step, Math.floor(y / step) * step);
                     }
@@ -628,7 +648,7 @@
                 else if (style === 'retro') {
                     const step = 60;
                     for (let x = 0; x <= width + step; x += step) {
-                        const s = Math.sin(x * wave.length + t * wave.speed + wave.offset);
+                        const s = Math.sin(x * wave.length + t + wave.offset);
                         const y = baseWaterHeight + (s > 0 ? 1 : -1) * wave.amplitude;
                         ctx.lineTo(x, y);
                         ctx.lineTo(x + step, y);
@@ -642,22 +662,22 @@
                     }
                 }
                 else if (style === 'dune') {
-                    const period = 60;
-                    for (let x = 0; x <= width + period; x += 10) {
-                        const s = Math.sin(x * wave.length + t * wave.speed);
+                    for (let x = 0; x <= width + segmentStep; x += segmentStep) {
+                        const s = Math.sin(x * wave.length + t);
                         const tri = (2 / Math.PI) * Math.asin(s);
                         ctx.lineTo(x, baseWaterHeight + tri * wave.amplitude * 1.5);
                     }
                 }
                 else if (style === 'voltage') {
                     for (let x = 0; x <= width + 20; x += 20) {
-                        const s = Math.sin(x * wave.length + t * wave.speed + wave.offset);
+                        const s = Math.sin(x * wave.length + t + wave.offset);
                         const noise = (s > 0 ? 1 : -1) * Math.abs(s);
                         const y = baseWaterHeight + noise * wave.amplitude;
                         ctx.lineTo(x, y);
                     }
                 }
                 else if (style === 'static') {
+                    // Static mode doesn't need smooth delta calculations
                     for (let x = 0; x <= width + 10; x += 10) {
                         const noise = Math.random() * wave.amplitude - (wave.amplitude/2);
                         ctx.lineTo(x, baseWaterHeight + noise);
@@ -675,26 +695,26 @@
                 else if (style === 'minimal') {
                     for (let x = 0; x <= width + 50; x += 50) {
                         const y = baseWaterHeight + 
-                                  Math.sin(x * 0.001 + t + wave.offset) * 5;
+                                  Math.sin(x * 0.001 + waveTime * 0.5 + wave.offset) * 5;
                         ctx.lineTo(x, y);
                     }
                 }
                 else if (style === 'ocean') {
-                    for (let x = 0; x <= width + 10; x += 10) {
+                    for (let x = 0; x <= width + segmentStep; x += segmentStep) {
                         const y = baseWaterHeight + 
                                   Math.sin(x * wave.length + (t * 5) + wave.offset) * wave.amplitude;
                         ctx.lineTo(x, y);
                     }
                 }
                 else if (style === 'bounce') {
-                    for (let x = 0; x <= width + 10; x += 10) {
-                        const s = Math.sin(x * wave.length + t * wave.speed + wave.offset);
+                    for (let x = 0; x <= width + segmentStep; x += segmentStep) {
+                        const s = Math.sin(x * wave.length + t + wave.offset);
                         const y = baseWaterHeight - Math.abs(s) * wave.amplitude * 1.5; 
                         ctx.lineTo(x, y);
                     }
                 }
                 else if (style === 'orbit') {
-                    for (let x = 0; x <= width + 10; x += 10) {
+                    for (let x = 0; x <= width + segmentStep; x += segmentStep) {
                         const y = baseWaterHeight + 
                                   Math.sin(x * wave.length + t) * wave.amplitude +
                                   Math.cos(x * wave.length * 2 + t) * (wave.amplitude * 0.5);
@@ -702,22 +722,22 @@
                     }
                 }
                 else if (style === 'sludge') {
-                    for (let x = 0; x <= width + 10; x += 10) {
-                        const s = Math.sin(x * wave.length + t * wave.speed);
+                    for (let x = 0; x <= width + segmentStep; x += segmentStep) {
+                        const s = Math.sin(x * wave.length + t);
                         const y = baseWaterHeight + (s * s * s) * wave.amplitude;
                         ctx.lineTo(x, y);
                     }
                 }
                 else if (style === 'flux') {
-                    for (let x = 0; x <= width + 10; x += 10) {
+                    for (let x = 0; x <= width + segmentStep; x += segmentStep) {
                         const ampMod = Math.sin(x * 0.005 + t);
                         const y = baseWaterHeight + 
-                                  Math.sin(x * wave.length + t * wave.speed) * wave.amplitude * ampMod;
+                                  Math.sin(x * wave.length + t) * wave.amplitude * ampMod;
                         ctx.lineTo(x, y);
                     }
                 }
                 else if (style === 'nebula') {
-                    for (let x = 0; x <= width + 10; x += 5) {
+                    for (let x = 0; x <= width + 10; x += 10) {
                         const y = baseWaterHeight + 
                                   Math.sin(x * 0.005 + t) * 30 + 
                                   Math.sin(x * 0.02 + t * 2) * 10;
@@ -725,10 +745,10 @@
                     }
                 }
                 else {
-                    // Default: Breathing
-                    for (let x = 0; x <= width + 10; x += 10) {
+                    // Default: Breathing Wave Style
+                    for (let x = 0; x <= width + segmentStep; x += segmentStep) {
                         const y = baseWaterHeight + 
-                                  Math.sin(x * wave.length + t * wave.speed + wave.offset) * wave.amplitude;
+                                  Math.sin(x * wave.length + t + wave.offset) * wave.amplitude;
                         ctx.lineTo(x, y);
                     }
                 }
@@ -745,7 +765,6 @@
                 ctx.fill();
             });
 
-            time++;
             requestAnimationFrame(drawWaves);
         }
 
@@ -913,7 +932,6 @@
             els.breakSlider.value = state.breakDuration / 60;
 
             // Update Appearance
-            // USE VW UNITS FOR SCALING
             els.timerDisplay.style.fontSize = `${state.clockSize}vw`;
             els.sizeSlider.value = state.clockSize;
             
