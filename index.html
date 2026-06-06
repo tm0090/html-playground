@@ -8,7 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Base Imports & Reset */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
         body {
             margin: 0;
@@ -51,6 +51,14 @@
             will-change: transform;
             backface-visibility: hidden;
             transform: translate3d(0, 0, 0);
+        }
+
+        /* Arrival Time Display */
+        #arrival-time {
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: all 0.5s ease;
+            will-change: opacity, transform;
         }
 
         /* Session Status Indicator */
@@ -237,8 +245,15 @@
 
         <div id="session-status" title="Click Settings to Switch Mode">Focus Session</div>
 
-        <div class="flex-grow flex items-center justify-center w-full relative">
+        <!-- Timer Display Area: Changed to flex-col to cleanly stack timer and arrival time -->
+        <div class="flex-grow flex flex-col items-center justify-center w-full relative">
             <h1 id="timer-display" class="font-bold leading-none breathing">25:00</h1>
+            
+            <!-- Expected Arrival Time Element -->
+            <div id="arrival-time" class="mt-4 text-white/60 text-lg font-medium tracking-wider flex items-center gap-2 opacity-0 transform translate-y-[-10px]">
+                <i class="fa-solid fa-hourglass-end text-sm"></i> 
+                <span id="arrival-text">--:--</span>
+            </div>
         </div>
 
         <div id="bottom-controls" class="absolute bottom-12 flex gap-6 items-center transition-all duration-500">
@@ -354,13 +369,17 @@
                 <div class="grid grid-cols-2 gap-6 pt-2">
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Clock Size</label>
-                        <!-- Updated min/max for vw units -->
                         <input type="range" id="size-slider" min="5" max="60" step="0.5" value="14">
                     </div>
                     <div>
-                        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Clock Font</label>
-                        <input type="text" id="font-input" placeholder="e.g. Lobster" class="w-full bg-white/10 border border-white/10 rounded px-2 py-1 text-white focus:outline-none focus:border-white/50 transition">
+                        <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Arrival Size</label>
+                        <input type="range" id="arrival-size-slider" min="0.5" max="5" step="0.1" value="1.125">
                     </div>
+                </div>
+
+                <div class="pt-2 border-b border-white/5 pb-6">
+                    <label class="block text-xs uppercase tracking-wider text-white/60 mb-2 font-bold">Custom Font</label>
+                    <input type="text" id="font-input" placeholder="e.g. Lobster" class="w-full bg-white/10 border border-white/10 rounded px-3 py-2 text-white focus:outline-none focus:border-white/50 transition text-xs">
                 </div>
 
                 <div class="flex items-center justify-between border-t border-white/10 pt-6">
@@ -401,6 +420,15 @@
                         </div>
                     </div>
 
+                    <!-- New Arrival Time Toggle Added Cleanly Here -->
+                    <div class="flex items-center justify-between border-b border-white/5 pb-3">
+                        <span class="text-xs text-white/80 font-semibold">Show Expected Finish Time</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" id="toggle-arrival-time" class="sr-only peer" checked>
+                          <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
+                        </label>
+                    </div>
+
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-white/80 font-semibold">Pulsing Clock Animation</span>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -421,7 +449,7 @@
             </div>
             
             <div class="mt-8 pt-6 border-t border-white/10 text-center text-white/30 text-xs">
-                Focus Flow Engine v2.2 (Optimized)
+                Focus Flow Engine v2.3 (Arrival Sync)
             </div>
         </div>
     </div>
@@ -441,6 +469,7 @@
             
             viewMode: 'hybrid',
             clockSize: 14,       // Changed default to 14 (vw format)
+            arrivalSize: 1.125,  // Default size in rem
             font: 'Inter',
             isUiVisible: true,
             themeHue: 350, 
@@ -457,6 +486,7 @@
             showSeconds: true,
             pulsingClock: true,
             autoFullScreen: true,
+            showArrivalTime: true, // New property for expected finish time
         };
 
         // --- Persistent Storage Logic ---
@@ -466,6 +496,7 @@
                 breakDuration: state.breakDuration,
                 viewMode: state.viewMode,
                 clockSize: state.clockSize,
+                arrivalSize: state.arrivalSize,
                 font: state.font,
                 customColor: state.customColor,
                 waterStyle: state.waterStyle,
@@ -476,6 +507,7 @@
                 showSeconds: state.showSeconds,
                 pulsingClock: state.pulsingClock,
                 autoFullScreen: state.autoFullScreen,
+                showArrivalTime: state.showArrivalTime, // Save arrival time preference
             };
             localStorage.setItem('focusFlowSettings', JSON.stringify(settings));
         }
@@ -490,6 +522,7 @@
                     state.breakDuration = parsed.breakDuration || state.breakDuration;
                     state.viewMode = parsed.viewMode || 'hybrid';
                     state.clockSize = parsed.clockSize || 14;
+                    state.arrivalSize = parsed.arrivalSize !== undefined ? parsed.arrivalSize : 1.125;
                     state.font = parsed.font || 'Inter';
                     state.customColor = parsed.customColor || null;
                     state.waterStyle = parsed.waterStyle || 'breathing';
@@ -501,6 +534,9 @@
                     state.showSeconds = parsed.showSeconds !== undefined ? parsed.showSeconds : true;
                     state.pulsingClock = parsed.pulsingClock !== undefined ? parsed.pulsingClock : true;
                     state.autoFullScreen = parsed.autoFullScreen !== undefined ? parsed.autoFullScreen : true;
+                    
+                    // Load arrival time preference gracefully 
+                    state.showArrivalTime = parsed.showArrivalTime !== undefined ? parsed.showArrivalTime : true;
                     
                     // Reset current session stats based on loaded values
                     state.duration = state.mode === 'focus' ? state.focusDuration : state.breakDuration;
@@ -514,6 +550,8 @@
         // --- DOM Elements ---
         const els = {
             timerDisplay: document.getElementById('timer-display'),
+            arrivalTime: document.getElementById('arrival-time'),
+            arrivalText: document.getElementById('arrival-text'),
             sessionStatus: document.getElementById('session-status'),
             startBtn: document.getElementById('start-btn'),
             resetBtn: document.getElementById('reset-btn'),
@@ -528,6 +566,7 @@
             breakValue: document.getElementById('break-value'),
 
             sizeSlider: document.getElementById('size-slider'),
+            arrivalSizeSlider: document.getElementById('arrival-size-slider'),
             fontInput: document.getElementById('font-input'),
             colorPicker: document.getElementById('color-picker'),
             modeBtns: document.querySelectorAll('.mode-select'),
@@ -548,6 +587,7 @@
             toggleSeconds: document.getElementById('toggle-seconds'),
             togglePulse: document.getElementById('toggle-pulse'),
             toggleFullscreen: document.getElementById('toggle-fullscreen'),
+            toggleArrivalTime: document.getElementById('toggle-arrival-time'), // New toggle
         };
 
         // --- Canvas & Physics ---
@@ -824,11 +864,34 @@
         }
 
         function updateDisplay() {
+            // Main Clock Text Updates
             els.timerDisplay.textContent = formatTime(state.timeLeft);
             const modeText = state.mode === 'focus' ? 'Focus' : 'Break';
             document.title = `${formatTime(state.timeLeft)} | ${modeText}`;
             
-            els.timerDisplay.style.opacity = state.viewMode === 'water' ? '0' : '1';
+            // Visibility logic for Timer & Arrival time
+            if (state.viewMode === 'water') {
+                els.timerDisplay.style.opacity = '0';
+                els.arrivalTime.style.opacity = '0';
+                els.arrivalTime.style.transform = 'translateY(-10px)';
+            } else {
+                els.timerDisplay.style.opacity = '1';
+                
+                // Show arrival time only if toggled ON and we aren't in water-only mode
+                if (state.showArrivalTime) {
+                    // Calculate arrival Date/Time
+                    const finishTime = new Date(Date.now() + state.timeLeft * 1000);
+                    // Format into simple localized AM/PM e.g. "02:30 PM"
+                    const timeString = finishTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    els.arrivalText.textContent = timeString;
+                    els.arrivalTime.style.opacity = '1';
+                    els.arrivalTime.style.transform = 'translateY(0)';
+                } else {
+                    els.arrivalTime.style.opacity = '0';
+                    els.arrivalTime.style.transform = 'translateY(-10px)';
+                }
+            }
             
             // Session Status Text
             if(state.mode === 'focus') {
@@ -839,12 +902,17 @@
                 els.sessionStatus.style.color = "#6ee7b7"; // Greenish
             }
 
-            // Colorize Text
+            // Colorize Text Elements
             if (state.customColor) {
                 els.timerDisplay.style.color = state.customColor;
+                els.arrivalTime.style.color = state.customColor;
             } else {
                 const textL = Math.min(95, state.themeL + 25);
-                els.timerDisplay.style.color = `hsl(${state.themeHue}, ${state.themeS}%, ${textL}%)`;
+                const dynColor = `hsl(${state.themeHue}, ${state.themeS}%, ${textL}%)`;
+                els.timerDisplay.style.color = dynColor;
+                
+                // Dim the arrival time slightly compared to main clock, keeping hue synced
+                els.arrivalTime.style.color = `hsl(${state.themeHue}, ${state.themeS}%, ${textL - 20}%)`;
             }
         }
 
@@ -860,6 +928,10 @@
 
                 state.isRunning = true;
                 els.startBtn.innerHTML = '<i class="fa-solid fa-pause text-3xl"></i>';
+                
+                // Force an immediate display update to refresh expected arrival time perfectly when unpaused
+                updateDisplay();
+
                 state.timerId = setInterval(() => {
                     if (state.timeLeft > 0) {
                         state.timeLeft--;
@@ -935,7 +1007,11 @@
             els.timerDisplay.style.fontSize = `${state.clockSize}vw`;
             els.sizeSlider.value = state.clockSize;
             
+            els.arrivalTime.style.fontSize = `${state.arrivalSize}rem`;
+            els.arrivalSizeSlider.value = state.arrivalSize;
+            
             els.timerDisplay.style.fontFamily = state.font;
+            els.arrivalTime.style.fontFamily = state.font; // Apply font to arrival time too
             els.fontInput.value = state.font === 'Inter' ? '' : state.font;
             
             els.waterStyleSelect.value = state.waterStyle;
@@ -971,6 +1047,7 @@
             els.toggleSeconds.checked = state.showSeconds;
             els.togglePulse.checked = state.pulsingClock;
             els.toggleFullscreen.checked = state.autoFullScreen;
+            els.toggleArrivalTime.checked = state.showArrivalTime; // Update Arrival Toggle
 
             // Apply Pulsing Clock logic
             if (state.pulsingClock) {
@@ -999,6 +1076,8 @@
             els.topControls.classList[method]('distraction-hidden');
             els.settingsBtn.classList[method]('distraction-hidden');
             els.sessionStatus.classList[method]('distraction-hidden');
+            
+            // Note: timerDisplay & arrivalTime remain visible during focus mode if not water-only
         }
 
         function loadFont(fontName) {
@@ -1075,6 +1154,13 @@
             state.autoFullScreen = e.target.checked;
             saveSettings();
         });
+        
+        // Arrival Time Toggle Integration
+        els.toggleArrivalTime.addEventListener('change', (e) => {
+            state.showArrivalTime = e.target.checked;
+            updateDisplay();
+            saveSettings();
+        });
 
         // Focus Duration Slider
         els.durationSlider.addEventListener('input', (e) => {
@@ -1107,6 +1193,12 @@
 
         els.sizeSlider.addEventListener('input', (e) => {
             state.clockSize = e.target.value;
+            updateSettingsUI();
+            saveSettings();
+        });
+
+        els.arrivalSizeSlider.addEventListener('input', (e) => {
+            state.arrivalSize = parseFloat(e.target.value);
             updateSettingsUI();
             saveSettings();
         });
