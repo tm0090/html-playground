@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme editor</title>
+    <!-- Tailwind CSS for high-end styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for elite typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        },
+                        panel: '#0f172a',
+                        canvas: '#070a13',
+                        bordercol: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+
+        /* Inspect mode neon dashed highlight rules */
+        .inspect-highlight-active {
+            outline: 2px dashed #3b82f6 !important;
+            outline-offset: 3px !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.7) !important;
+            position: relative !important;
+            transition: all 0.15s ease-in-out !important;
+        }
+
+        .inspect-badge {
+            position: absolute;
+            top: -24px;
+            left: 0;
+            background: #3b82f6;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            z-index: 99999;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            animation: fadeInInspect 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInInspect {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Blur overlays */
+        .glassmorphic-modal {
+            background: rgba(11, 15, 25, 0.9);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Custom thumb slider */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+            background: #60a5fa;
+        }
+    </style>
+</head>
+<body class="bg-[#070a13] text-slate-100 min-h-screen font-sans overflow-x-hidden selection:bg-blue-600 selection:text-white">
+
+    <!-- COMPACT HIGH-FIDELITY ACTIONS BAR (Replaces Blocky Header) -->
+    <div class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+            </div>
+            <div>
+                <span class="font-extrabold text-sm tracking-wide text-white uppercase">Theme editor</span>
+           
+            </div>
+        </div>
+
+        <!-- Inline Controls Suite -->
+        <div class="flex items-center gap-3">
+            <button onclick="openCSSModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-1.5 px-4 rounded-lg text-xs flex items-center gap-2 shadow-lg shadow-blue-500/20 transition">
+                <i class="fa-solid fa-code"></i> Input / Export CSS Template
+            </button>
+            <button onclick="copyFinishedCSS()" id="copyBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-4 rounded-lg text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition">
+                <i class="fa-solid fa-copy"></i> Copy CSS
+            </button>
+            <button onclick="toggleLayout()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-1.5 px-3 rounded-lg text-xs flex items-center gap-2 transition" title="Toggle Sidebar vs Stacked layout">
+                <i id="layoutIcon" class="fa-solid fa-columns"></i> <span id="layoutText">Switch Layout</span>
+            </button>
+            <button onclick="loadDefaultTemplate()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1 transition" title="Reset back to standard template">
+                <i class="fa-solid fa-rotate"></i> Reset Defaults
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN WORKSPACE CONTAINER -->
+    <div id="workspaceGrid" class="max-w-[1700px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6 transition-all duration-300">
+        
+        <!-- LEFT COLUMN: CONTROLLERS PANEL -->
+        <div class="flex flex-col gap-4 max-h-[calc(100vh-110px)] overflow-hidden">
+            <div class="bg-slate-900/90 border border-slate-800/80 rounded-xl p-4 flex flex-col h-full shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-850 pb-3 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg"><i class="fa-solid fa-sliders text-xs"></i></span>
+                        <h2 class="font-bold text-xs uppercase tracking-wider text-slate-300">Theme Properties</h2>
+                    </div>
+                    <span id="varCount" class="text-xs bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full font-mono">0 Sliders</span>
+                </div>
+
+                <!-- Search/Filter Controls -->
+                <div class="relative mb-3">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
+                    <input type="text" id="searchVar" oninput="filterVariables(this.value)" placeholder="Filter color properties..." class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-1.5 text-xs text-blue-400 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+                </div>
+
+                <!-- Controllers Inner Panel -->
+                <div class="flex-1 overflow-y-auto pr-1 space-y-4" id="controlsContainer">
+                    <div class="text-center py-10 text-slate-500">
+                        <i class="fa-solid fa-triangle-exclamation text-xl text-slate-650 mb-2"></i>
+                        <p class="text-xs italic">No variables loaded. Input custom CSS to compile.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: LIVING PREVIEW LAB -->
+        <div id="previewCanvasArea" class="flex flex-col gap-6 overflow-y-auto max-h-[calc(100vh-110px)] pr-1">
+            
+            <!-- SECTION 1: HIGH-FIDELITY JELLYFIN MOCKUP -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col">
+                <!-- Visual Workspace Info bar -->
+                <div class="bg-slate-950/80 px-4 py-2 flex items-center justify-between border-b border-slate-850 text-xs text-slate-400">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="font-medium text-slate-300">Live Mockup Viewport (Ref: Desktop App Layout)</span>
+                    </div>
+                    <span class="text-slate-500 font-mono text-[10px]">16:9 Aspect-Ratio Adaptive Client Matrix</span>
+                </div>
+
+                <!-- Jellyfin Desktop Simulator Layer -->
+                <div id="simWindow" class="relative w-full aspect-video min-h-[460px] max-h-[640px] flex flex-col overflow-y-auto transition-all duration-300">
+                    
+                    <!-- Top App Bar -->
+                    <div id="simHeader" class="sticky top-0 z-10 h-14 flex items-center justify-between px-6 border-b transition-all duration-200 backdrop-blur-md">
+                        <div class="flex items-center gap-4">
+                            <button class="text-slate-100 opacity-80 hover:opacity-100 text-lg transition">
+                                <i class="fa-solid fa-bars"></i>
+                            </button>
+                            <div class="flex items-center gap-2">
+                                <span class="text-blue-500 text-lg filter drop-shadow-[0_0_8px_currentColor]"><i class="fa-solid fa-play"></i></span>
+                                <span class="font-extrabold tracking-wide text-sm text-slate-100">Jellyfin</span>
+                            </div>
+                        </div>
+
+                        <!-- Pill Menu Navigation -->
+                        <div class="flex items-center gap-2">
+                            <div id="simHomePill" class="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition duration-300 cursor-pointer shadow-md">
+                                <i class="fa-solid fa-house"></i>
+                                <span>Home</span>
+                            </div>
+                            <div id="simFavoritesPill" class="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold border transition duration-300 cursor-pointer">
+                                <i class="fa-regular fa-heart"></i>
+                                <span>Favorites</span>
+                            </div>
+                        </div>
+
+                        <!-- Utility Side Icons -->
+                        <div class="flex items-center gap-4 text-slate-300">
+                            <i class="fa-solid fa-users text-sm opacity-85 hover:opacity-100 cursor-pointer transition"></i>
+                            <i class="fa-solid fa-tv text-sm opacity-85 hover:opacity-100 cursor-pointer transition"></i>
+                            <i class="fa-solid fa-magnifying-glass text-sm opacity-85 hover:opacity-100 cursor-pointer transition"></i>
+                            <!-- Dynamic User Portrait bubble -->
+                            <div id="simUserProfile" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-all duration-300 cursor-pointer">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jellyfin Body Grid container -->
+                    <div class="p-6 flex flex-col gap-8">
+                        
+                        <!-- My Media Shelf -->
+                        <div>
+                            <h3 class="text-sm font-bold mb-3 tracking-wide text-slate-200 flex items-center gap-2">
+                                <span>My Media</span>
+                                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                            </h3>
+                            <div class="grid grid-cols-4 gap-4">
+                                <!-- Box 1 -->
+                                <div id="simMediaCard1" class="group relative rounded-xl overflow-hidden aspect-video border transition-all duration-300 cursor-pointer shadow-lg">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                                    <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&auto=format&fit=crop&q=60" alt="Movies" onerror="this.src='https://placehold.co/400x225/111827/ffffff?text=Movies'" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <div class="absolute bottom-3 left-3 z-20">
+                                        <p class="font-bold text-xs text-white">Movies</p>
+                                    </div>
+                                </div>
+                                <!-- Box 2 -->
+                                <div id="simMediaCard2" class="group relative rounded-xl overflow-hidden aspect-video border transition-all duration-300 cursor-pointer shadow-lg">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                                    <img src="https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=400&auto=format&fit=crop&q=60" alt="TV" onerror="this.src='https://placehold.co/400x225/111827/ffffff?text=TV+Shows'" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <div class="absolute bottom-3 left-3 z-20">
+                                        <p class="font-bold text-xs text-white">TV Shows</p>
+                                    </div>
+                                </div>
+                                <!-- Box 3 -->
+                                <div id="simMediaCard3" class="group relative rounded-xl overflow-hidden aspect-video border transition-all duration-300 cursor-pointer shadow-lg">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                                    <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&auto=format&fit=crop&q=60" alt="Music" onerror="this.src='https://placehold.co/400x225/111827/ffffff?text=Music'" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <div class="absolute bottom-3 left-3 z-20">
+                                        <p class="font-bold text-xs text-white">Music</p>
+                                    </div>
+                                </div>
+                                <!-- Box 4 -->
+                                <div id="simMediaCard4" class="group relative rounded-xl overflow-hidden aspect-video border transition-all duration-300 cursor-pointer shadow-lg">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+                                    <img src="https://images.unsplash.com/photo-1585647347483-22b66260dfff?w=400&auto=format&fit=crop&q=60" alt="Live" onerror="this.src='https://placehold.co/400x225/111827/ffffff?text=Live+TV'" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <div class="absolute bottom-3 left-3 z-20">
+                                        <p class="font-bold text-xs text-white">Live TV</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Continue Watching Shelf -->
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-sm font-bold tracking-wide text-slate-200 flex items-center gap-2">
+                                    <span>Continue Watching</span>
+                                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                                </h3>
+                            </div>
+                            <div class="grid grid-cols-4 gap-4">
+                                <!-- Continue Block 1 -->
+                                <div id="simContinueCard1" class="group relative rounded-xl overflow-hidden aspect-[16/10] border transition-all duration-300 cursor-pointer shadow-lg flex flex-col justify-between">
+                                    <div class="relative flex-1 bg-slate-950">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent z-10 opacity-60"></div>
+                                        <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=300&auto=format&fit=crop&q=60" alt="Inception" onerror="this.src='https://placehold.co/300x150/111827/ffffff?text=Inception'" class="absolute inset-0 w-full h-full object-cover">
+                                        <div id="simMiniPlay1" class="absolute bottom-3 left-3 z-20 w-8 h-8 rounded-full flex items-center justify-center text-xs text-white shadow-lg border transition duration-200 hover:scale-110">
+                                            <i class="fa-solid fa-play ml-0.5"></i>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-black/40 backdrop-blur-sm z-20">
+                                        <p class="font-bold text-xs truncate text-slate-200">Inception</p>
+                                        <p id="simDimText1" class="text-[10px] mt-0.5 text-slate-400">S1:E2 • Sci-Fi Thriller</p>
+                                        <div class="w-full h-1 bg-slate-800 rounded-full mt-2 overflow-hidden" id="simCardSeekBg1">
+                                            <div class="h-full w-[65%] rounded-full" id="simCardSeekFill1"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Continue Block 2 -->
+                                <div id="simContinueCard2" class="group relative rounded-xl overflow-hidden aspect-[16/10] border transition-all duration-300 cursor-pointer shadow-lg flex flex-col justify-between">
+                                    <div class="relative flex-1 bg-slate-950">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent z-10 opacity-60"></div>
+                                        <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&auto=format&fit=crop&q=60" alt="The Dark Knight" onerror="this.src='https://placehold.co/300x150/111827/ffffff?text=The+Dark+Knight'" class="absolute inset-0 w-full h-full object-cover">
+                                        <div id="simMiniPlay2" class="absolute bottom-3 left-3 z-20 w-8 h-8 rounded-full flex items-center justify-center text-xs text-white shadow-lg border transition duration-200 hover:scale-110">
+                                            <i class="fa-solid fa-play ml-0.5"></i>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-black/40 backdrop-blur-sm z-20">
+                                        <p class="font-bold text-xs truncate text-slate-200">The Dark Knight</p>
+                                        <p id="simDimText2" class="text-[10px] mt-0.5 text-slate-400">Movie • Action & Drama</p>
+                                        <div class="w-full h-1 bg-slate-800 rounded-full mt-2 overflow-hidden" id="simCardSeekBg2">
+                                            <div class="h-full w-[45%] rounded-full" id="simCardSeekFill2"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Continue Block 3 -->
+                                <div id="simContinueCard3" class="group relative rounded-xl overflow-hidden aspect-[16/10] border transition-all duration-300 cursor-pointer shadow-lg flex flex-col justify-between">
+                                    <div class="relative flex-1 bg-slate-950">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent z-10 opacity-60"></div>
+                                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=60" alt="Blade Runner" onerror="this.src='https://placehold.co/300x150/111827/ffffff?text=Blade+Runner'" class="absolute inset-0 w-full h-full object-cover">
+                                        <div id="simMiniPlay3" class="absolute bottom-3 left-3 z-20 w-8 h-8 rounded-full flex items-center justify-center text-xs text-white shadow-lg border transition duration-200 hover:scale-110">
+                                            <i class="fa-solid fa-play ml-0.5"></i>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-black/40 backdrop-blur-sm z-20">
+                                        <p class="font-bold text-xs truncate text-slate-200">Blade Runner 2049</p>
+                                        <p id="simDimText3" class="text-[10px] mt-0.5 text-slate-400">Movie • Cyberpunk Sci-Fi</p>
+                                        <div class="w-full h-1 bg-slate-800 rounded-full mt-2 overflow-hidden" id="simCardSeekBg3">
+                                            <div class="h-full w-[85%] rounded-full" id="simCardSeekFill3"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Continue Block 4 -->
+                                <div id="simContinueCard4" class="group relative rounded-xl overflow-hidden aspect-[16/10] border transition-all duration-300 cursor-pointer shadow-lg flex flex-col justify-between">
+                                    <div class="relative flex-1 bg-slate-950">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent z-10 opacity-60"></div>
+                                        <img src="https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=300&auto=format&fit=crop&q=60" alt="Sherlock" onerror="this.src='https://placehold.co/300x150/111827/ffffff?text=Sherlock'" class="absolute inset-0 w-full h-full object-cover">
+                                        <div id="simMiniPlay4" class="absolute bottom-3 left-3 z-20 w-8 h-8 rounded-full flex items-center justify-center text-xs text-white shadow-lg border transition duration-200 hover:scale-110">
+                                            <i class="fa-solid fa-play ml-0.5"></i>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 bg-black/40 backdrop-blur-sm z-20">
+                                        <p class="font-bold text-xs truncate text-slate-200">Sherlock Holmes</p>
+                                        <p id="simDimText4" class="text-[10px] mt-0.5 text-slate-400">S2:E1 • Mystery & Crime</p>
+                                        <div class="w-full h-1 bg-slate-800 rounded-full mt-2 overflow-hidden" id="simCardSeekBg4">
+                                            <div class="h-full w-[25%] rounded-full" id="simCardSeekFill4"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: INTERACTIVE COMPONENT WORKBENCH -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col gap-6 shadow-xl">
+                <div>
+                    <h3 class="text-sm font-bold tracking-wide text-slate-300 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-vial text-blue-400"></i>
+                        Interactive Testing & Preview Bench
+                    </h3>
+                    <p class="text-xs text-slate-400">Test and customize individual components like buttons, checkboxes, and seek bars under the compiled theme variables.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- CTA Sandbox -->
+                    <div class="flex flex-col gap-4">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800 pb-1">Primary Component Actions</span>
+                        
+                        <div id="simHero" class="border p-5 rounded-xl flex flex-col gap-3 transition-colors duration-200 bg-slate-950">
+                            <div>
+                                <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-clapperboard text-xs text-blue-400"></i>
+                                    Action Buttons Sandbox
+                                </h4>
+                                <p id="simHeroDesc" class="text-[11px] text-slate-400 leading-relaxed mt-1">This panel checks primary watch action links and secondary delete tags mapped directly to variables.</p>
+                            </div>
+                            
+                            <div class="flex items-center gap-3 mt-1">
+                                <button id="simSubmitBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:brightness-110 active:scale-95 transition-all">
+                                    <i class="fa-solid fa-play"></i> Watch Preview
+                                </button>
+                                <button id="simDeleteBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold border hover:brightness-110 active:scale-95 transition-all">
+                                    <i class="fa-solid fa-trash-can"></i> Remove Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Selectors & Seek Sandbox -->
+                    <div class="flex flex-col gap-4 justify-between">
+                        <div class="flex flex-col gap-3">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800 pb-1">Selection Checkbox states</span>
+                            
+                            <div id="simSelectorBg" class="p-4 rounded-xl flex items-center justify-between gap-4 transition-colors duration-200 bg-slate-950">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="simCheckbox" checked class="w-4.5 h-4.5 rounded border-0 cursor-pointer focus:ring-0">
+                                    <span id="simText" class="text-xs font-medium text-slate-200">Highlight Option Toggle Component</span>
+                                </div>
+                                <span class="text-[9px] bg-black/40 text-blue-400 px-2 py-1 rounded font-mono">ACTIVE STATE</span>
+                            </div>
+                        </div>
+
+                        <!-- Music Progress bar sandbox -->
+                        <div class="p-4 bg-slate-950 rounded-xl flex flex-col gap-2">
+                            <div class="flex items-center justify-between text-xs text-slate-400">
+                                <span class="text-[11px]">System Player Seekbar Accent Track</span>
+                                <span class="font-mono text-[9px] text-blue-400">45% Progress</span>
+                            </div>
+                            <div id="simSeekBg" class="h-2 rounded-full relative cursor-pointer overflow-hidden bg-slate-800">
+                                <div id="simSeekFill" class="h-full absolute left-0 top-0 w-[45%]"></div>
+                                <div id="simSeekThumb" class="w-2 h-2 rounded-full absolute left-[45%] top-0"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- INPUT & OUTPUT CSS TEMPLATE MODAL -->
+    <div id="cssModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="glassmorphic-modal w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg"><i class="fa-solid fa-code text-sm"></i></span>
+                    <h3 class="font-bold text-sm uppercase tracking-wider text-white">Import / Export Jellyfin Styles</h3>
+                </div>
+                <button onclick="closeCSSModal()" class="text-slate-400 hover:text-white transition text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto">
+                
+                <!-- Left Input Panel -->
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <label for="cssInput" class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">1. Raw Theme Input CSS</label>
+                        <button onclick="clearCSSInput()" class="text-slate-500 hover:text-slate-350 text-[10px] flex items-center gap-1 transition"><i class="fa-solid fa-eraser"></i> Clear</button>
+                    </div>
+                    <div class="relative flex-1">
+                        <textarea id="cssInput" oninput="handleCSSInput()" class="w-full h-80 bg-slate-950 text-emerald-400 border border-slate-850 rounded-xl p-4 font-mono text-[11px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none" placeholder="/* Paste your raw variables here... */"></textarea>
+                    </div>
+                    <p class="text-[10px] text-slate-500">Auto-parsing is active. Editing here instantly updates variables and your visual simulation.</p>
+                </div>
+
+                <!-- Right Compile Panel -->
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <label for="cssOutput" class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">2. Compiled Export CSS Code</label>
+                        <span class="text-[9px] text-slate-500 font-mono">Synchronized Live</span>
+                    </div>
+                    <div class="relative flex-1">
+                        <textarea id="cssOutput" readonly class="w-full h-80 bg-slate-950 text-blue-300 border border-slate-850 rounded-xl p-4 font-mono text-[11px] focus:outline-none resize-none" placeholder="Compiled variables dynamically appear here..."></textarea>
+                    </div>
+                    <p class="text-[10px] text-slate-500">Copy this block directly into your Jellyfin client Dashboard Custom CSS box.</p>
+                </div>
+
+            </div>
+
+            <!-- Modal Bottom bar -->
+            <div class="px-6 py-4 bg-slate-950/60 border-t border-slate-850 flex items-center justify-between">
+                <div class="text-xs text-slate-400">
+                    <i class="fa-solid fa-circle-info text-blue-400"></i> Adjusting sliders automatically compiles back to your core stylesheets.
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="closeCSSModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 px-5 rounded-xl text-xs transition">
+                        Dismiss
+                    </button>
+                    <button onclick="parseAndApplyCSS()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-blue-500/20 transition">
+                        <i class="fa-solid fa-arrows-rotate"></i> Parse Variables
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // High fidelity user-friendly descriptions and groupings for individual variables
+        const variableGroups = {
+            'Base & Background Canvas': {
+                icon: 'fa-solid fa-layer-group',
+                vars: {
+                    '--darkerGradientPoint': 'Deep Base Backdrop: Defines the primary structural page background floor color.',
+                    '--darkerGradientPointAlpha': 'Backdrop Alpha overlay: Glassmorphism blending value used for transparent sections and main layout sheets.',
+                    '--lighterGradientPoint': 'Secondary Elevation Color: Backdrops for secondary sections and the lighter upper grid colors.',
+                    '--lighterGradientPointAlpha': 'Lighter Backdrop Alpha: Transparent overlay blending parameter for page widgets.',
+                    '--gradientPointAlpha': 'General Overlay Blend: General translucency layer applied to panels and modal overlays.'
+                }
+            },
+            'Navigation Layouts': {
+                icon: 'fa-solid fa-compass',
+                vars: {
+                    '--headerColor': 'Top Navigation Bar Tint: Sets top-bar menu bar container, balancing transparency.',
+                    '--drawerColor': 'Sidebar backplate: Color of collapsable drawer menu frames and modal side trays.'
+                }
+            },
+            'Borders & Separators': {
+                icon: 'fa-solid fa-border-all',
+                vars: {
+                    '--borderColor': 'Primary Outlines: Base dividers, standard movie card boundaries, and scroll limits.',
+                    '--darkerBorderColor': 'Deep Container Frames: Used around secondary visual boxes and layout cards.',
+                    '--lighterBorderColor': 'Bright Edge Accents: Used to define fine neon highlights around buttons and focus segments.'
+                }
+            },
+            'Field Selectors & Accents': {
+                icon: 'fa-solid fa-toggle-on',
+                vars: {
+                    '--selectorBackgroundColor': 'Fields Inactive Backing: Color of dropdown options, checkboxes, and input bars.',
+                    '--selectorBackgroundColorAlpha': 'Translucent Field Overlay: Blends fields into backdrops while maintaining legibility.',
+                    '--activeColor': 'Selected Active Item: Highlights active navigations, check elements, and ticked nodes.',
+                    '--activeColorAlpha': 'Selected Node Overlay: Shading used around ticked elements and text selection.',
+                    '--highlightOutlineColor': 'Visual Focus Boundary: Primary outline color used on keyboards, TVs, and hover focuses.'
+                }
+            },
+            'Button Elements & CTAs': {
+                icon: 'fa-solid fa-play-circle',
+                vars: {
+                    '--btnSubmitColor': 'Primary Submit Button Base: Primary color for primary confirm/validation buttons.',
+                    '--btnSubmitBorderColor': 'Primary Submit Button Edge: Edge bounding outline applied around watch anchors.',
+                    '--btnDeleteColor': 'Critical Destructive Action Fill: Background hue for delete and danger indicators.',
+                    '--btnDeleteBorderColor': 'Critical Destructive Action Outline: Outer edge bounding frame applied to warning buttons.',
+                    '--checkboxCheckedBgColor': 'Checked Selector Fill: Accent background coloring inside clicked checklist blocks.'
+                }
+            },
+            'Poster Overlay Indicators': {
+                icon: 'fa-solid fa-video',
+                vars: {
+                    '--btnMiniPlayColor': 'Card Mini Playback Fill: Background hue for small hover action play button nodes.',
+                    '--btnMiniPlayBorderColor': 'Card Mini Playback Edge: Boundary ring framing hover action mini play anchors.'
+                }
+            },
+            'On-Screen Media Player & Seekers': {
+                icon: 'fa-solid fa-sliders',
+                vars: {
+                    '--osdSeekBarPlayedColor': 'Seek Track Played Highlight: Fills the active track bar segments.',
+                    '--osdSeekBarBufferedColorAlpha': 'Seek Track Buffering Segment: Highlight overlays indicating loaded frames.',
+                    '--osdSeekBarThumbColor': 'Seek Playhead Needle Hub: Center pin or handle used to scrub playback positions.',
+                    '--tableBodyColor': 'Grid Rows / Table Base: Backdrop shading used to isolate metadata listing sheets.',
+                    '--uiAccentColor': 'Brand Signature Highlight: Controls primary home status nodes and major media highlights.'
+                }
+            },
+            'Typography & Text styles': {
+                icon: 'fa-solid fa-font',
+                vars: {
+                    '--textColor': 'Primary Body Typography: Used for headlines, movie titles, and primary focus labels.',
+                    '--dimTextColor': 'Secondary Muted Typography: Subtitles, file metadata tags, and timestamp indicators.'
+                }
+            }
+        };
+
+        // Flat lookup dictionary of variable description text for search/general lookup
+        const variableDescriptions = {};
+        for (const [group, data] of Object.entries(variableGroups)) {
+            for (const [vName, desc] of Object.entries(data.vars)) {
+                variableDescriptions[vName] = desc;
+            }
+        }
+
+        // Element targets mapping for our dev Inspect Mode feature
+        const elementSelectorMapping = {
+            '--darkerGradientPoint': ['#simWindow', '#simHero', '#simContinueCard1', '#simContinueCard2', '#simContinueCard3', '#simContinueCard4'],
+            '--darkerGradientPointAlpha': ['#simWindow'],
+            '--lighterGradientPoint': ['#simWindow', '#simContinueCard1', '#simContinueCard2', '#simContinueCard3', '#simContinueCard4'],
+            '--lighterGradientPointAlpha': ['#simWindow'],
+            '--gradientPointAlpha': ['#simWindow'],
+            '--headerColor': ['#simHeader'],
+            '--drawerColor': ['#simUserProfile'],
+            '--borderColor': ['#simHeader', '#simHero', '#simMediaCard1', '#simMediaCard2', '#simMediaCard3', '#simMediaCard4', '#simContinueCard1', '#simContinueCard2', '#simContinueCard3', '#simContinueCard4'],
+            '--darkerBorderColor': ['#simMediaCard1', '#simMediaCard2', '#simMediaCard3', '#simMediaCard4', '#simContinueCard1', '#simContinueCard2', '#simContinueCard3', '#simContinueCard4'],
+            '--lighterBorderColor': ['#simHero'],
+            '--selectorBackgroundColor': ['#simFavoritesPill', '#simSelectorBg', '#simCardSeekBg1', '#simCardSeekBg2', '#simCardSeekBg3', '#simCardSeekBg4', '#simSeekBg'],
+            '--selectorBackgroundColorAlpha': ['#simSelectorBg'],
+            '--activeColor': ['#simHomePill'],
+            '--activeColorAlpha': ['#simHomePill'],
+            '--highlightOutlineColor': ['#simHomePill', '#simCheckbox'],
+            '--btnSubmitColor': ['#simSubmitBtn'],
+            '--btnSubmitBorderColor': ['#simSubmitBtn'],
+            '--btnDeleteColor': ['#simDeleteBtn'],
+            '--btnDeleteBorderColor': ['#simDeleteBtn'],
+            '--checkboxCheckedBgColor': ['#simCheckbox'],
+            '--btnMiniPlayColor': ['#simMiniPlay1', '#simMiniPlay2', '#simMiniPlay3', '#simMiniPlay4'],
+            '--btnMiniPlayBorderColor': ['#simMiniPlay1', '#simMiniPlay2', '#simMiniPlay3', '#simMiniPlay4'],
+            '--osdSeekBarPlayedColor': ['#simCardSeekFill1', '#simCardSeekFill2', '#simCardSeekFill3', '#simCardSeekFill4', '#simSeekFill'],
+            '--osdSeekBarBufferedColorAlpha': ['#simCardSeekBg1', '#simCardSeekBg2', '#simCardSeekBg3', '#simCardSeekBg4', '#simSeekBg'],
+            '--osdSeekBarThumbColor': ['#simSeekThumb'],
+            '--tableBodyColor': ['#simWindow'],
+            '--uiAccentColor': ['#simHomePill', '#simCardSeekFill1', '#simCardSeekFill2', '#simCardSeekFill3', '#simCardSeekFill4', '#simSeekFill'],
+            '--textColor': ['#simHeader', '#simText', 'h3', 'p', '.font-bold'],
+            '--dimTextColor': ['#simDimText1', '#simDimText2', '#simDimText3', '#simDimText4', '#simHeroDesc', '#simFavoritesPill']
+        };
+
+        let parsedVariables = [];
+        let rawCSSStructure = "";
+        let currentLayout = "split"; // "split" or "stacked"
+        let parseTimeout = null;
+    </script>
+
+    <script>
+        /**
+         * Parses percentage or decimal alpha values securely
+         */
+        function parseAlpha(alphaStr) {
+            if (!alphaStr) return null;
+            alphaStr = alphaStr.trim();
+            if (alphaStr.endsWith('%')) {
+                return parseFloat(alphaStr) / 100;
+            }
+            return parseFloat(alphaStr);
+        }
+
+        /**
+         * Hex to HSL color converter
+         */
+        function hexToHsl(hex) {
+            hex = hex.replace(/^#/, '');
+            let r, g, b, a = null;
+            if (hex.length === 3) {
+                r = parseInt(hex[0] + hex[0], 16);
+                g = parseInt(hex[1] + hex[1], 16);
+                b = parseInt(hex[2] + hex[2], 16);
+            } else if (hex.length === 4) {
+                r = parseInt(hex[0] + hex[0], 16);
+                g = parseInt(hex[1] + hex[1], 16);
+                b = parseInt(hex[2] + hex[2], 16);
+                a = Math.round((parseInt(hex[3] + hex[3], 16) / 255) * 100) / 100;
+            } else if (hex.length === 6) {
+                r = parseInt(hex.substring(0, 2), 16);
+                g = parseInt(hex.substring(2, 4), 16);
+                b = parseInt(hex.substring(4, 6), 16);
+            } else if (hex.length === 8) {
+                r = parseInt(hex.substring(0, 2), 16);
+                g = parseInt(hex.substring(2, 4), 16);
+                b = parseInt(hex.substring(4, 6), 16);
+                a = Math.round((parseInt(hex.substring(6, 8), 16) / 255) * 100) / 100;
+            } else {
+                return null;
+            }
+            const hsl = rgbToHsl(r, g, b);
+            return { ...hsl, a };
+        }
+
+        /**
+         * RGB to HSL color space converter
+         */
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) {
+                h = s = 0; // achromatic
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        /**
+         * HSL to RGB color space converter
+         */
+        function hslToRgb(h, s, l) {
+            h /= 360; s /= 100; l /= 100;
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l; // achromatic
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        /**
+         * HSL to Hex color string converter
+         */
+        function hslToHex(h, s, l) {
+            const { r, g, b } = hslToRgb(h, s, l);
+            const toHex = x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            };
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        /**
+         * Robust parser parsing Hex, RGB, RGBA, HSL, HSLA strings (supporting modern slashes and percentages)
+         */
+        function parseColorValue(str) {
+            if (!str) return null;
+            str = str.trim();
+
+            // Clear any inline comments first
+            str = str.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+
+            // 1. Check standard comma-separated HSL/HSLA
+            let hslMatch = str.match(/hsla?\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*(?:\s*,\s*([\d.%]+)\s*)?\)/i);
+            if (hslMatch) {
+                return {
+                    h: Math.round(parseFloat(hslMatch[1])),
+                    s: Math.round(parseFloat(hslMatch[2])),
+                    l: Math.round(parseFloat(hslMatch[3])),
+                    a: hslMatch[4] !== undefined ? parseAlpha(hslMatch[4]) : null,
+                    format: hslMatch[0].toLowerCase().startsWith('hsla') ? 'hsla' : 'hsl'
+                };
+            }
+
+            // 2. Check space-separated / slash modern CSS HSL/HSLA values
+            let hslSpaceMatch = str.match(/hsla?\(\s*([\d.]+)\s+([\d.]+)%?\s+([\d.]+)%?\s*(?:\/\s*([\d.%]+)\s*)?\)/i);
+            if (hslSpaceMatch) {
+                return {
+                    h: Math.round(parseFloat(hslSpaceMatch[1])),
+                    s: Math.round(parseFloat(hslSpaceMatch[2])),
+                    l: Math.round(parseFloat(hslSpaceMatch[3])),
+                    a: hslSpaceMatch[4] !== undefined ? parseAlpha(hslSpaceMatch[4]) : null,
+                    format: (hslSpaceMatch[0].toLowerCase().startsWith('hsla') || hslSpaceMatch[4] !== undefined) ? 'hsla' : 'hsl'
+                };
+            }
+
+            // 3. Check RGB/RGBA comma-separated format
+            let rgbMatch = str.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:\s*,\s*([\d.%]+)\s*)?\)/i);
+            if (rgbMatch) {
+                const r = parseInt(rgbMatch[1]);
+                const g = parseInt(rgbMatch[2]);
+                const b = parseInt(rgbMatch[3]);
+                const a = rgbMatch[4] !== undefined ? parseAlpha(rgbMatch[4]) : null;
+                const hsl = rgbToHsl(r, g, b);
+                return {
+                    ...hsl,
+                    a: a,
+                    format: rgbMatch[0].toLowerCase().startsWith('rgba') ? 'rgba' : 'rgb'
+                };
+            }
+
+            // 4. Check RGB/RGBA space-separated format (e.g. rgb(117 111 226) or rgb(31 41 55 / 1))
+            let rgbSpaceMatch = str.match(/rgba?\(\s*(\d+)\s+(\d+)\s+(\d+)\s*(?:\/\s*([\d.%]+)\s*)?\)/i);
+            if (rgbSpaceMatch) {
+                const r = parseInt(rgbSpaceMatch[1]);
+                const g = parseInt(rgbSpaceMatch[2]);
+                const b = parseInt(rgbSpaceMatch[3]);
+                const a = rgbSpaceMatch[4] !== undefined ? parseAlpha(rgbSpaceMatch[4]) : null;
+                const hsl = rgbToHsl(r, g, b);
+                return {
+                    ...hsl,
+                    a: a,
+                    format: rgbSpaceMatch[4] !== undefined ? 'rgba' : 'rgb'
+                };
+            }
+
+            // 5. Check Hex codes
+            let hexMatch = str.match(/^#([0-9a-fA-F]{3,8})$/i);
+            if (hexMatch) {
+                const hsl = hexToHsl(str);
+                if (hsl) {
+                    return {
+                        ...hsl,
+                        format: hsl.a !== null ? 'rgba' : 'hex'
+                    };
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Reconstruct color string in its original format
+         */
+        function formatColorValue(item) {
+            const { h, s, l, a, format } = item;
+            if (format === 'hsl' || (format === 'hsla' && a === null)) {
+                return `hsl(${h}, ${s}%, ${l}%)`;
+            } else if (format === 'hsla') {
+                return `hsla(${h}, ${s}%, ${l}%, ${a !== null ? a : 1.0})`;
+            } else if (format === 'rgb' || (format === 'rgba' && a === null)) {
+                const { r, g, b } = hslToRgb(h, s, l);
+                return `rgb(${r}, ${g}, ${b})`;
+            } else if (format === 'rgba') {
+                const { r, g, b } = hslToRgb(h, s, l);
+                return `rgba(${r}, ${g}, ${b}, ${a !== null ? a : 1.0})`;
+            } else if (format === 'hex') {
+                if (a !== null && a < 1.0) {
+                    const { r, g, b } = hslToRgb(h, s, l);
+                    return `rgba(${r}, ${g}, ${b}, ${a})`;
+                }
+                return hslToHex(h, s, l);
+            }
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        }
+    </script>
+
+    <script>
+        /**
+         * Floating Non-Intrusive Toast System
+         */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer') || createToastContainer();
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl border transition-all duration-300 transform translate-y-2 opacity-0 text-xs font-semibold ${
+                type === 'success' 
+                    ? 'bg-slate-900/95 text-emerald-400 border-emerald-500/30' 
+                    : 'bg-slate-900/95 text-amber-400 border-amber-500/30'
+            }`;
+            
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'fixed bottom-5 right-5 z-[99999] flex flex-col gap-2 pointer-events-none';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function openCSSModal() {
+            const modal = document.getElementById('cssModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeCSSModal() {
+            const modal = document.getElementById('cssModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function clearCSSInput() {
+            document.getElementById('cssInput').value = '';
+            showToast("Raw input workspace cleared", "warning");
+        }
+
+        function parseAndApplyCSS() {
+            parseCSS();
+            closeCSSModal();
+            showToast("CSS parsed successfully!");
+        }
+
+        function toggleLayout() {
+            const grid = document.getElementById('workspaceGrid');
+            const previewArea = document.getElementById('previewCanvasArea');
+            const layoutIcon = document.getElementById('layoutIcon');
+            const layoutText = document.getElementById('layoutText');
+
+            if (currentLayout === "split") {
+                grid.classList.remove('lg:grid-cols-[420px_1fr]');
+                grid.classList.add('grid-cols-1');
+                previewArea.classList.remove('max-h-[calc(100vh-110px)]');
+                
+                layoutIcon.classList.remove('fa-columns');
+                layoutIcon.classList.add('fa-table-list');
+                layoutText.innerText = "Side-by-Side";
+                currentLayout = "stacked";
+            } else {
+                grid.classList.remove('grid-cols-1');
+                grid.classList.add('lg:grid-cols-[420px_1fr]');
+                previewArea.classList.add('max-h-[calc(100vh-110px)]');
+                
+                layoutIcon.classList.remove('fa-table-list');
+                layoutIcon.classList.add('fa-columns');
+                layoutText.innerText = "Switch Layout";
+                currentLayout = "split";
+            }
+        }
+
+        function filterVariables(query) {
+            const cards = document.querySelectorAll('.color-card');
+            const sections = document.querySelectorAll('.category-section');
+            const cleanQuery = query.toLowerCase().trim();
+
+            cards.forEach(card => {
+                const varName = card.getAttribute('data-var-name').toLowerCase();
+                const varDesc = card.getAttribute('data-var-desc').toLowerCase();
+                if (varName.includes(cleanQuery) || varDesc.includes(cleanQuery)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            sections.forEach(sec => {
+                const visibleCards = sec.querySelectorAll('.color-card[style="display: block;"]');
+                if (visibleCards.length === 0 && cleanQuery !== '') {
+                    sec.style.display = 'none';
+                } else {
+                    sec.style.display = 'block';
+                }
+            });
+        }
+    </script>
+
+    <script>
+        function loadDefaultTemplate() {
+            document.getElementById('cssInput').value = `/*! ElegantFin Theme v26.06.06 for Jellyfin by lscambo13 */
+
+:root {
+    --elegantFinFooterText: "ElegantFin v26.06.06";
+
+    /* Base theme colors */
+    color-scheme: dark;
+    --darkerGradientPoint: #111827;
+    --darkerGradientPointAlpha: rgba(17, 24, 39, 0.85);
+    --lighterGradientPoint: #1d2635;
+    --lighterGradientPointAlpha: rgba(29, 38, 53, 0.85);
+    --gradientPointAlpha: rgba(29, 38, 53, 0.3);
+    --headerColor: rgba(30, 40, 54, 0.8);
+    --drawerColor: rgba(30, 40, 54, 0.9);
+
+    --borderColor: hsl(214, 13%, 32%);
+    --darkerBorderColor: hsl(214, 13%, 22%);
+    --lighterBorderColor: hsla(0, 0%, 100%, 0.2);
+
+    --selectorBackgroundColor: rgb(55, 65, 81);
+    --selectorBackgroundColorAlpha: rgba(55, 65, 81, 0.5);
+
+    --activeColorAlpha: rgba(119, 91, 244, 0.9);
+    --activeColor: rgb(119, 91, 244);
+    --osdSeekBarPlayedColor: rgb(209, 213, 219);
+    --osdSeekBarBufferedColorAlpha: rgba(128, 128, 128, 0.5);
+    --osdSeekBarThumbColor: #ffffff;
+    --tableBodyColor: rgb(31 41 55 / 1);
+    --uiAccentColor: rgb(117 111 226);
+    --btnMiniPlayColor: rgb(41 154 93);
+    --btnMiniPlayBorderColor: rgb(50, 167, 105);
+
+    /* Base component colors */
+    --btnDeleteColor: rgb(169, 29, 29);
+    --btnDeleteBorderColor: rgb(217, 84, 84);
+    --btnSubmitColor: rgb(61, 54, 178);
+    --btnSubmitBorderColor: rgb(117 111 226);
+    --checkboxCheckedBgColor: rgb(79, 70, 229);
+    --highlightOutlineColor: rgb(37, 99, 235);
+
+    /* dark theme based text colors */
+    --textColor: rgb(209, 213, 219);
+    --dimTextColor: rgb(156, 163, 175);
+}`;
+            parseCSS();
+        }
+
+        /**
+         * Debounced live parser on typing
+         */
+        function handleCSSInput() {
+            clearTimeout(parseTimeout);
+            parseTimeout = setTimeout(() => {
+                parseCSS();
+            }, 400);
+        }
+
+        /**
+         * Heavy-duty parser extracts all color variables (RGB, HEX, HSL) inside root block, supporting slash ratios
+         */
+        function parseCSS() {
+            const input = document.getElementById('cssInput').value;
+            rawCSSStructure = input;
+            const container = document.getElementById('controlsContainer');
+            parsedVariables = [];
+
+            // Strip comments ONLY for parsing variable matches, keeping original comments in rawCSSStructure
+            let cleanInput = input.replace(/\/\*[\s\S]*?\*\//g, '');
+            cleanInput = cleanInput.replace(/\/\/.*$/gm, '');
+
+            // Universal regex targeting CSS custom variables with color declarations.
+            // Slashes are allowed inside the capture scope to preserve modern CSS formats.
+            const cssVarRegex = /(--[\w-]+)\s*:\s*([^;\n\r]+)/g;
+            
+            let match;
+            while ((match = cssVarRegex.exec(cleanInput)) !== null) {
+                const varName = match[1].trim();
+                const rawValue = match[2].trim();
+
+                // Check if this is a recognized property
+                if (variableDescriptions[varName]) {
+                    const parsed = parseColorValue(rawValue);
+                    if (parsed) {
+                        parsedVariables.push({
+                            name: varName,
+                            ...parsed,
+                            originalValue: rawValue
+                        });
+                    }
+                }
+            }
+
+            document.getElementById('varCount').innerText = `${parsedVariables.length} Loaded`;
+
+            if (parsedVariables.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-500">
+                        <i class="fa-solid fa-triangle-exclamation text-xl text-amber-500 mb-2"></i>
+                        <p class="text-xs italic">No matching theme color variables identified. Check formatting or template details.</p>
+                    </div>`;
+                return;
+            }
+
+            renderDynamicControls();
+            updateSimulatorStyles();
+            generateOutput();
+        }
+
+        /**
+         * Categorizes and displays variables inside responsive cards
+         */
+        function renderDynamicControls() {
+            const container = document.getElementById('controlsContainer');
+            container.innerHTML = '';
+
+            for (const [groupName, groupData] of Object.entries(variableGroups)) {
+                
+                const groupVariables = parsedVariables.filter(v => Object.keys(groupData.vars).includes(v.name));
+                
+                if (groupVariables.length === 0) continue;
+
+                const section = document.createElement('div');
+                section.className = 'category-section space-y-2.5';
+                
+                section.innerHTML = `
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-2 border-b border-slate-800/60 pb-1.5">
+                        <i class="${groupData.icon} text-blue-400"></i>
+                        <span>${groupName}</span>
+                    </div>
+                `;
+
+                const cardList = document.createElement('div');
+                cardList.className = 'space-y-3';
+
+                groupVariables.forEach(variable => {
+                    const index = parsedVariables.findIndex(v => v.name === variable.name);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'color-card bg-slate-950 p-3 rounded-xl border border-slate-850 hover:border-blue-500/50 transition-all duration-150 relative';
+                    card.setAttribute('data-var-name', variable.name);
+                    
+                    const description = variableDescriptions[variable.name] || 'Custom configuration theme styling properties.';
+                    card.setAttribute('data-var-desc', description);
+
+                    // Hover highlights simulation inside mock preview
+                    card.addEventListener('mouseenter', () => startPreviewHighlight(variable.name));
+                    card.addEventListener('mouseleave', () => stopPreviewHighlight(variable.name));
+
+                    const currentCSSColor = formatColorValue(variable);
+
+                    card.innerHTML = `
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="w-8 h-8 rounded-full border border-slate-800 flex-shrink-0 shadow-md flex items-center justify-center relative overflow-hidden" style="background-color: ${currentCSSColor}">
+                                <span class="w-4 h-4 rounded-full" id="bubble-${index}" style="background-color: ${currentCSSColor}"></span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-mono text-[11px] font-bold text-blue-400 truncate" title="${variable.name}">${variable.name}</span>
+                                    <span class="text-[8px] font-mono text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded uppercase font-bold">${variable.format}</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 leading-normal mt-0.5">${description}</p>
+                            </div>
+                        </div>
+
+                        <!-- Sliders panel -->
+                        <div class="grid grid-cols-3 gap-2 bg-slate-900/60 p-2 rounded-lg text-[9px] text-slate-400 font-mono">
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between">
+                                    <span>HUE</span>
+                                    <span id="lbl-h-${index}" class="text-blue-400">${variable.h}°</span>
+                                </div>
+                                <input type="range" min="0" max="360" value="${variable.h}" oninput="updateColor(${index}, 'h', this.value)" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between">
+                                    <span>SAT</span>
+                                    <span id="lbl-s-${index}" class="text-blue-400">${variable.s}%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="${variable.s}" oninput="updateColor(${index}, 's', this.value)" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <div class="flex justify-between">
+                                    <span>LIG</span>
+                                    <span id="lbl-l-${index}" class="text-blue-400">${variable.l}%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="${variable.l}" oninput="updateColor(${index}, 'l', this.value)" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Transparency Alpha adjustments -->
+                        <div class="mt-2 pt-2 border-t border-slate-900/60 flex items-center justify-between">
+                            <span class="text-[9px] font-mono text-slate-500 uppercase">Alpha Blend Factor</span>
+                            <div class="flex items-center gap-1.5">
+                                <input type="range" min="0" max="1" step="0.01" value="${variable.a !== null ? variable.a : 1.0}" oninput="updateColor(${index}, 'a', this.value)" class="w-20 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                                <input type="text" id="val-a-${index}" value="${variable.a !== null ? variable.a : '1.0'}" onchange="updateColor(${index}, 'a', this.value)" class="w-10 bg-slate-900 border border-slate-800 rounded px-1 py-0.5 text-[9px] font-mono text-center text-slate-200 focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                    `;
+
+                    cardList.appendChild(card);
+                });
+
+                section.appendChild(cardList);
+                container.appendChild(section);
+            }
+        }
+    </script>
+
+    <script>
+        function startPreviewHighlight(varName) {
+            const targets = elementSelectorMapping[varName];
+            if (!targets) return;
+
+            targets.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => {
+                    el.classList.add('inspect-highlight-active');
+                    
+                    // Spawn a developer inspect tag overlay
+                    const badge = document.createElement('div');
+                    badge.className = 'inspect-badge';
+                    badge.innerText = varName;
+                    el.appendChild(badge);
+                });
+            });
+        }
+
+        function stopPreviewHighlight(varName) {
+            const targets = elementSelectorMapping[varName];
+            if (!targets) return;
+
+            targets.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => {
+                    el.classList.remove('inspect-highlight-active');
+                    
+                    // Strip spawned tags
+                    const badges = el.querySelectorAll('.inspect-badge');
+                    badges.forEach(b => b.remove());
+                });
+            });
+        }
+
+        /**
+         * Trigger color slider updates and instantly sync both core template input and output CSS
+         */
+        function updateColor(index, channel, value) {
+            const item = parsedVariables[index];
+            
+            if (channel === 'a') {
+                item.a = parseFloat(value);
+                // Dynamically upgrade to alpha formats to preserve translucency correctly
+                if (item.format === 'hsl') item.format = 'hsla';
+                if (item.format === 'rgb') item.format = 'rgba';
+            } else {
+                item[channel] = parseInt(value);
+            }
+
+            // Sync visual labels
+            if (channel !== 'a') {
+                const label = document.getElementById(`lbl-${channel}-${index}`);
+                if (label) {
+                    label.textContent = `${channel.toUpperCase() === 'H' ? 'HUE' : channel.toUpperCase() === 'S' ? 'SAT' : 'LIG'}: ${value}${channel === 'h' ? '°' : '%'}`;
+                }
+            } else {
+                const inputVal = document.getElementById(`val-a-${index}`);
+                if (inputVal) {
+                    inputVal.value = value;
+                }
+            }
+
+            // Sync dynamic preview indicators
+            const bubble = document.getElementById(`bubble-${index}`);
+            if (bubble) {
+                const updatedColor = formatColorValue(item);
+                bubble.style.backgroundColor = updatedColor;
+                bubble.parentElement.style.backgroundColor = updatedColor;
+            }
+
+            updateSimulatorStyles();
+            generateOutput();
+        }
+
+        /**
+         * Fetch current value or fall back to native parameters
+         */
+        function getColorValue(varName, fallback) {
+            const found = parsedVariables.find(v => v.name === varName);
+            if (!found) return fallback;
+            return formatColorValue(found);
+        }
+
+        /**
+         * Live updates of CSS styling values onto mockup components
+         */
+        function updateSimulatorStyles() {
+            const darkerBg = getColorValue('--darkerGradientPoint', '#0b0f19');
+            const lighterBg = getColorValue('--lighterGradientPoint', '#151f32');
+            const headerBg = getColorValue('--headerColor', 'rgba(21, 31, 50, 0.8)');
+            const borderCol = getColorValue('--borderColor', '#243249');
+            const darkerBorderCol = getColorValue('--darkerBorderColor', '#1e293b');
+            const selectorBg = getColorValue('--selectorBackgroundColor', '#1e293b');
+            const accentBg = getColorValue('--uiAccentColor', '#3b82f6');
+            const miniPlayBg = getColorValue('--btnMiniPlayColor', '#10b981');
+            const miniPlayBorder = getColorValue('--btnMiniPlayBorderColor', '#059669');
+            const deleteBg = getColorValue('--btnDeleteColor', '#ef4444');
+            const deleteBorder = getColorValue('--btnDeleteBorderColor', '#dc2626');
+            const submitBg = getColorValue('--btnSubmitColor', '#4f46e5');
+            const submitBorder = getColorValue('--btnSubmitBorderColor', '#4338ca');
+            const checkboxCheckedBg = getColorValue('--checkboxCheckedBgColor', '#3b82f6');
+            const textColor = getColorValue('--textColor', '#f8fafc');
+            const dimTextColor = getColorValue('--dimTextColor', '#94a3b8');
+
+            const simWindow = document.getElementById('simWindow');
+            if (simWindow) {
+                simWindow.style.background = `linear-gradient(180deg, ${lighterBg} 0%, ${darkerBg} 100%)`;
+                simWindow.style.color = textColor;
+            }
+
+            const simHeader = document.getElementById('simHeader');
+            if (simHeader) {
+                simHeader.style.backgroundColor = headerBg;
+                simHeader.style.borderColor = borderCol;
+            }
+
+            const homePill = document.getElementById('simHomePill');
+            if (homePill) {
+                homePill.style.backgroundColor = accentBg;
+                homePill.style.color = '#ffffff';
+            }
+
+            const favPill = document.getElementById('simFavoritesPill');
+            if (favPill) {
+                favPill.style.borderColor = borderCol;
+                favPill.style.color = dimTextColor;
+                favPill.style.backgroundColor = selectorBg;
+            }
+
+            const profile = document.getElementById('simUserProfile');
+            if (profile) {
+                profile.style.backgroundColor = selectorBg;
+                profile.style.borderColor = borderCol;
+                profile.style.color = textColor;
+            }
+
+            ['1', '2', '3', '4'].forEach(id => {
+                const mediaCard = document.getElementById(`simMediaCard${id}`);
+                if (mediaCard) {
+                    mediaCard.style.borderColor = darkerBorderCol;
+                }
+            });
+
+            ['1', '2', '3', '4'].forEach(id => {
+                const contCard = document.getElementById(`simContinueCard${id}`);
+                if (contCard) {
+                    contCard.style.borderColor = darkerBorderCol;
+                }
+                const dimText = document.getElementById(`simDimText${id}`);
+                if (dimText) {
+                    dimText.style.color = dimTextColor;
+                }
+                const seekBg = document.getElementById(`simCardSeekBg${id}`);
+                if (seekBg) {
+                    seekBg.style.backgroundColor = selectorBg;
+                }
+                const seekFill = document.getElementById(`simCardSeekFill${id}`);
+                if (seekFill) {
+                    seekFill.style.backgroundColor = accentBg;
+                }
+                const miniPlay = document.getElementById(`simMiniPlay${id}`);
+                if (miniPlay) {
+                    miniPlay.style.backgroundColor = miniPlayBg;
+                    miniPlay.style.borderColor = miniPlayBorder;
+                }
+            });
+
+            const simHero = document.getElementById('simHero');
+            if (simHero) {
+                simHero.style.background = `linear-gradient(135deg, ${lighterBg} 0%, ${darkerBg} 100%)`;
+                simHero.style.borderColor = borderCol;
+            }
+
+            const heroDesc = document.getElementById('simHeroDesc');
+            if (heroDesc) {
+                heroDesc.style.color = dimTextColor;
+            }
+
+            const submitBtn = document.getElementById('simSubmitBtn');
+            if (submitBtn) {
+                submitBtn.style.backgroundColor = submitBg;
+                submitBtn.style.borderColor = submitBorder;
+                submitBtn.style.color = '#ffffff';
+            }
+
+            const deleteBtn = document.getElementById('simDeleteBtn');
+            if (deleteBtn) {
+                deleteBtn.style.backgroundColor = deleteBg;
+                deleteBtn.style.borderColor = deleteBorder;
+                deleteBtn.style.color = '#ffffff';
+            }
+
+            const selectorBgEl = document.getElementById('simSelectorBg');
+            if (selectorBgEl) {
+                selectorBgEl.style.backgroundColor = selectorBg;
+                selectorBgEl.style.borderColor = borderCol;
+            }
+
+            const simCheckbox = document.getElementById('simCheckbox');
+            if (simCheckbox) {
+                simCheckbox.style.backgroundColor = selectorBg;
+                simCheckbox.style.accentColor = checkboxCheckedBg;
+            }
+
+            const simText = document.getElementById('simText');
+            if (simText) {
+                simText.style.color = textColor;
+            }
+
+            const simSeekBg = document.getElementById('simSeekBg');
+            if (simSeekBg) {
+                simSeekBg.style.backgroundColor = selectorBg;
+            }
+
+            const simSeekFill = document.getElementById('simSeekFill');
+            if (simSeekFill) {
+                simSeekFill.style.backgroundColor = accentBg;
+            }
+
+            const simSeekThumb = document.getElementById('simSeekThumb');
+            if (simSeekThumb) {
+                simSeekThumb.style.backgroundColor = textColor;
+            }
+        }
+
+        /**
+         * Generate outputs retaining full original comments structure safely, synchronizing both fields
+         */
+        function generateOutput() {
+            let output = rawCSSStructure;
+            parsedVariables.forEach(item => {
+                const targetValue = formatColorValue(item);
+                
+                // Construct robust safe replacements matching any hex, rgb, rgba, hsl, or hsla patterns
+                const searchRegex = new RegExp(`(${item.name}\\s*:\\s*)([^;]+)(;)`, 'g');
+                output = output.replace(searchRegex, `$1${targetValue}$3`);
+            });
+            document.getElementById('cssOutput').value = output;
+            document.getElementById('cssInput').value = output; // Keep BOTH inputs completely aligned with current compiled state!
+            rawCSSStructure = output; // Set base structure so subsequent slider actions incrementally adjust the latest core
+        }
+
+        /**
+         * Premium offscreen clipboard copying handler bypassing all hidden element and iframe limits
+         */
+        function copyFinishedCSS() {
+            // Re-sync and gather latest live code
+            generateOutput();
+            const compiledCode = document.getElementById('cssOutput').value;
+
+            // Generate an active off-screen textarea container so select() works seamlessly on both mobile/desktop inside hidden states
+            const offscreenTextArea = document.createElement('textarea');
+            offscreenTextArea.value = compiledCode;
+            offscreenTextArea.style.position = 'fixed';
+            offscreenTextArea.style.left = '-9999px';
+            offscreenTextArea.style.top = '0';
+            offscreenTextArea.style.opacity = '0';
+            document.body.appendChild(offscreenTextArea);
+
+            offscreenTextArea.select();
+            offscreenTextArea.setSelectionRange(0, 99999); // Mobile tap support
+
+            let copyStatus = false;
+            try {
+                copyStatus = document.execCommand('copy');
+            } catch (err) {
+                copyStatus = false;
+            }
+
+            document.body.removeChild(offscreenTextArea);
+
+            if (copyStatus) {
+                showSuccessNotification();
+                showToast("Theme copied to clipboard!");
+            } else {
+                // Secondary clipboard fallback sequence
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(compiledCode)
+                        .then(() => {
+                            showSuccessNotification();
+                            showToast("Theme copied to clipboard!");
+                        })
+                        .catch(() => {
+                            triggerCopyFallback(compiledCode);
+                        });
+                } else {
+                    triggerCopyFallback(compiledCode);
+                }
+            }
+        }
+
+        /**
+         * Non-intrusive modal fallback in case clipboard writes are blocked by standard iframe policy rules
+         */
+        function triggerCopyFallback(code) {
+            openCSSModal();
+            const outputText = document.getElementById('cssOutput');
+            outputText.select();
+            showToast("Action blocked. Please manually copy code highlighted inside the right workspace container.", "warning");
+        }
+
+        function showSuccessNotification() {
+            const copyBtn = document.getElementById('copyBtn');
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = "<i class='fa-solid fa-check'></i> Copied Styles!";
+            copyBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+            copyBtn.classList.add('bg-teal-600');
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+                copyBtn.classList.remove('bg-teal-600');
+                copyBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+            }, 2000);
+        }
+
+        window.onload = function() {
+            loadDefaultTemplate();
+        };
+    </script>
+</body>
+</html>
