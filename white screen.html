@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>White Screen Light</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white; /* Pure white background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Prevent scrolling */
+            user-select: none; /* Prevent text highlighting on double taps */
+            cursor: pointer;
+        }
+
+        #hint {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            color: #aaa; /* Faint gray hint text when not in fullscreen */
+            border: 1px dashed #ddd;
+            border-radius: 8px;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            font-family: sans-serif;
+            text-align: center;
+        }
+
+        /* We use a class to hide elements when fullscreen is active */
+        .hide-in-fullscreen {
+            display: none !important;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="hint">Tap anywhere to toggle Fullscreen Light</div>
+
+    <script>
+        const hint = document.getElementById('hint');
+
+        // Function to toggle fullscreen with cross-browser support
+        function toggleFullScreen() {
+            const doc = document;
+            const docEl = document.documentElement;
+
+            const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+            const exitFS = doc.exitFullscreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+            const fsElement = doc.fullscreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+            if (!fsElement) {
+                if (requestFS) {
+                    requestFS.call(docEl).catch((err) => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                }
+            } else {
+                if (exitFS) {
+                    exitFS.call(doc);
+                }
+            }
+        }
+
+        // Tap/click anywhere on the page to enter or exit fullscreen
+        document.addEventListener('click', toggleFullScreen);
+
+        // Listen for fullscreen change events to hide all text in fullscreen mode
+        function handleFullscreenChange() {
+            const fsElement = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+            if (fsElement) {
+                // Fully enter light mode - hide hint text
+                hint.classList.add('hide-in-fullscreen');
+            } else {
+                // Exited fullscreen mode - reveal hint text
+                hint.classList.remove('hide-in-fullscreen');
+            }
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+    </script>
+</body>
+</html>
