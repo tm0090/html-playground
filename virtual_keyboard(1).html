@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Keyboard</title>
+    <style>
+        :root {
+            --bg-color: #0c0c0e;
+            --keyboard-bg: #16161a;
+            --key-bg: #25252c;
+            --key-text: #f3f3f6;
+            --key-shadow: #0a0a0c;
+            --key-hover: #32323a;
+            --key-active: #42424d;
+            --action-bg: #6366f1;
+            --action-text: #ffffff;
+            --action-shadow: #4338ca;
+            --action-hover: #4f46e5;
+            --action-active: #3730a3;
+            --danger-bg: #e11d48;
+            --danger-shadow: #9f1239;
+            --danger-hover: #be123c;
+            --success-bg: #059669;
+            --success-shadow: #047857;
+            --success-hover: #046c4e;
+            --text-area-bg: #16161a;
+            --text-area-border: #2d2d36;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --border-radius-main: 8px;
+            --border-radius-key: 4px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: var(--key-text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .display-area {
+            background-color: var(--text-area-bg);
+            border: 2px solid var(--text-area-border);
+            border-radius: var(--border-radius-main);
+            padding: 1.5rem;
+            min-height: 150px;
+            font-size: 1.5rem;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            color: var(--key-text);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            outline: none;
+            position: relative;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.3em;
+            background-color: var(--action-bg);
+            vertical-align: sub;
+            margin-left: 2px;
+            animation: cursorBlink 1s infinite;
+        }
+
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .display-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4px;
+            font-size: 0.85rem;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .display-area:focus {
+            border-color: var(--action-bg);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: var(--key-text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .display-area {
+            background-color: var(--text-area-bg);
+            border: 2px solid var(--text-area-border);
+            border-radius: var(--border-radius-main);
+            padding: 1.5rem;
+            min-height: 150px;
+            font-size: 1.5rem;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: border-color 0.3s ease;
+            outline: none;
+        }
+
+        .display-area:focus {
+            border-color: var(--action-bg);
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--border-radius-key);
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .btn-copy {
+            background-color: var(--success-bg);
+            color: white;
+            box-shadow: 0 4px 0 var(--success-shadow);
+        }
+
+        .btn-copy:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 var(--success-shadow);
+        }
+        
+        .btn-copy:hover {
+             background-color: var(--success-hover);
+        }
+
+        .btn-clear {
+            background-color: var(--danger-bg);
+            color: white;
+            box-shadow: 0 4px 0 var(--danger-shadow);
+        }
+
+        .btn-clear:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 var(--danger-shadow);
+        }
+
+        .btn-clear:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .keyboard {
+            background-color: var(--keyboard-bg);
+            padding: 20px;
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .key {
+            background-color: var(--key-bg);
+            color: var(--key-text);
+            border: none;
+            border-radius: var(--border-radius-key);
+            font-size: 1.25rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 15px;
+            min-width: 50px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            box-shadow: 0 4px 0 var(--key-shadow);
+            transition: all 0.1s ease;
+            font-family: inherit;
+        }
+
+        .key:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 var(--key-shadow);
+            background-color: var(--key-active);
+        }
+
+        .key:hover {
+            background-color: var(--key-hover);
+        }
+
+        .key-space {
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        .key-backspace {
+            background-color: var(--key-bg);
+            min-width: 80px;
+            font-size: 1rem;
+        }
+
+        .key-action {
+            background-color: var(--action-bg);
+            color: var(--action-text);
+            box-shadow: 0 4px 0 var(--action-shadow);
+            min-width: 80px;
+            font-size: 1rem;
+        }
+
+        .key-action:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 var(--action-shadow);
+            background-color: var(--action-active);
+        }
+        
+        .key-action:hover {
+             background-color: var(--action-hover);
+        }
+
+        .key.active {
+            background-color: var(--action-bg);
+            color: white;
+            transform: translateY(4px);
+            box-shadow: 0 0 0 var(--action-shadow);
+        }
+
+        /* Notification toast styling */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--key-bg);
+            color: var(--key-text);
+            border: 1px solid var(--text-area-border);
+            padding: 12px 24px;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .key {
+                min-width: 35px;
+                height: 50px;
+                padding: 10px;
+                font-size: 1.1rem;
+            }
+            .row {
+                gap: 5px;
+            }
+            .keyboard {
+                padding: 10px;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Display Header with Character Counter -->
+        <div class="display-header">
+            <span id="charCount">0 characters</span>
+        </div>
+
+        <!-- The area where typed text appears -->
+        <div id="displayArea" class="display-area" contenteditable="false"><span id="textBuffer"></span><span class="cursor"></span></div>
+
+        <div class="control-panel">
+            <button id="clearBtn" class="btn btn-clear">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                Clear
+            </button>
+            <button id="copyBtn" class="btn btn-copy">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy
+            </button>
+        </div>
+
+        <div class="keyboard" id="keyboard">
+            <!-- Row 1: Numbers -->
+            <div class="row">
+                <button class="key char-key" data-char="1">1</button>
+                <button class="key char-key" data-char="2">2</button>
+                <button class="key char-key" data-char="3">3</button>
+                <button class="key char-key" data-char="4">4</button>
+                <button class="key char-key" data-char="5">5</button>
+                <button class="key char-key" data-char="6">6</button>
+                <button class="key char-key" data-char="7">7</button>
+                <button class="key char-key" data-char="8">8</button>
+                <button class="key char-key" data-char="9">9</button>
+                <button class="key char-key" data-char="0">0</button>
+                <button class="key key-backspace" id="backspaceBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                </button>
+            </div>
+            
+            <!-- Row 2: QWERTY Top -->
+            <div class="row">
+                <button class="key char-key letter-key" data-char="q">q</button>
+                <button class="key char-key letter-key" data-char="w">w</button>
+                <button class="key char-key letter-key" data-char="e">e</button>
+                <button class="key char-key letter-key" data-char="r">r</button>
+                <button class="key char-key letter-key" data-char="t">t</button>
+                <button class="key char-key letter-key" data-char="y">y</button>
+                <button class="key char-key letter-key" data-char="u">u</button>
+                <button class="key char-key letter-key" data-char="i">i</button>
+                <button class="key char-key letter-key" data-char="o">o</button>
+                <button class="key char-key letter-key" data-char="p">p</button>
+                <button class="key char-key" data-char="-">-</button>
+            </div>
+
+            <!-- Row 3: QWERTY Home -->
+            <div class="row">
+                <button class="key key-action" id="capsBtn">Caps</button>
+                <button class="key char-key letter-key" data-char="a">a</button>
+                <button class="key char-key letter-key" data-char="s">s</button>
+                <button class="key char-key letter-key" data-char="d">d</button>
+                <button class="key char-key letter-key" data-char="f">f</button>
+                <button class="key char-key letter-key" data-char="g">g</button>
+                <button class="key char-key letter-key" data-char="h">h</button>
+                <button class="key char-key letter-key" data-char="j">j</button>
+                <button class="key char-key letter-key" data-char="k">k</button>
+                <button class="key char-key letter-key" data-char="l">l</button>
+                <button class="key char-key" data-char="'">'</button>
+            </div>
+
+            <!-- Row 4: QWERTY Bottom -->
+            <div class="row">
+                <button class="key key-action" id="shiftBtn">Shift</button>
+                <button class="key char-key letter-key" data-char="z">z</button>
+                <button class="key char-key letter-key" data-char="x">x</button>
+                <button class="key char-key letter-key" data-char="c">c</button>
+                <button class="key char-key letter-key" data-char="v">v</button>
+                <button class="key char-key letter-key" data-char="b">b</button>
+                <button class="key char-key letter-key" data-char="n">n</button>
+                <button class="key char-key letter-key" data-char="m">m</button>
+                <button class="key char-key" data-char=",">,</button>
+                <button class="key char-key" data-char=".">.</button>
+                <button class="key char-key" data-char="?">?</button>
+            </div>
+
+            <!-- Row 5: Spacebar and Enter -->
+            <div class="row">
+                <button class="key char-key" data-char="@">@</button>
+                <button class="key key-space" id="spaceBtn">Space</button>
+                <button class="key char-key key-action" data-char="\n" style="min-width: 100px;">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Text copied to clipboard!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const displayArea = document.getElementById('displayArea');
+            const textBuffer = document.getElementById('textBuffer');
+            const charCount = document.getElementById('charCount');
+            const clearBtn = document.getElementById('clearBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const capsBtn = document.getElementById('capsBtn');
+            const shiftBtn = document.getElementById('shiftBtn');
+            const backspaceBtn = document.getElementById('backspaceBtn');
+            const spaceBtn = document.getElementById('spaceBtn');
+            const charKeys = document.querySelectorAll('.char-key');
+            const letterKeys = document.querySelectorAll('.letter-key');
+            const toast = document.getElementById('toast');
+
+            let currentText = "";
+            let isCapsOn = false;
+            let isShiftOn = false;
+
+            // Helper to update the display
+            function updateDisplay() {
+                textBuffer.textContent = currentText;
+                charCount.textContent = `${currentText.length} character${currentText.length === 1 ? '' : 's'}`;
+            }
+
+            // Helper to append a character
+            function typeCharacter(char) {
+                let charToType = char;
+                
+                // Handle uppercase logic
+                if (char.length === 1 && /[a-z]/i.test(char)) {
+                    if ((isCapsOn && !isShiftOn) || (!isCapsOn && isShiftOn)) {
+                        charToType = char.toUpperCase();
+                    } else {
+                        charToType = char.toLowerCase();
+                    }
+                }
+
+                currentText += charToType;
+                
+                // Turn off shift after one character if it was on
+                if (isShiftOn) {
+                    toggleShift();
+                }
+                
+                updateDisplay();
+            }
+
+            // Toggle Caps Lock
+            function toggleCaps() {
+                isCapsOn = !isCapsOn;
+                capsBtn.classList.toggle('active', isCapsOn);
+                updateKeyboardCase();
+            }
+
+            // Toggle Shift
+            function toggleShift() {
+                isShiftOn = !isShiftOn;
+                shiftBtn.classList.toggle('active', isShiftOn);
+                updateKeyboardCase();
+            }
+
+            // Update visual letters on keys based on state
+            function updateKeyboardCase() {
+                const upper = (isCapsOn && !isShiftOn) || (!isCapsOn && isShiftOn);
+                letterKeys.forEach(key => {
+                    const baseChar = key.getAttribute('data-char');
+                    key.textContent = upper ? baseChar.toUpperCase() : baseChar.toLowerCase();
+                });
+            }
+
+            // Show temporary toast message
+            function showToast(message) {
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
+
+            // Event Listeners for character keys
+            charKeys.forEach(key => {
+                key.addEventListener('click', (e) => {
+                    // Prevent default to avoid selection issues
+                    e.preventDefault(); 
+                    
+                    // Handle special case for Enter key which uses \n
+                    const char = key.getAttribute('data-char') === '\\n' ? '\n' : key.getAttribute('data-char');
+                    typeCharacter(char);
+                });
+            });
+
+            // Backspace logic
+            backspaceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentText = currentText.slice(0, -1);
+                updateDisplay();
+            });
+
+            // Space logic (explicit binding though it has data-char too, for flexibility)
+            spaceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                typeCharacter(' ');
+            });
+
+            // Caps Lock logic
+            capsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleCaps();
+            });
+
+            // Shift logic
+            shiftBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleShift();
+            });
+
+            // Clear logic
+            clearBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentText = "";
+                updateDisplay();
+            });
+
+            // Copy logic using document.execCommand as fallback/primary for broad compatibility in embedded environments
+            copyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                if (!currentText) {
+                    showToast("Nothing to copy!");
+                    return;
+                }
+
+                // Create a temporary textarea to copy from
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = currentText;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showToast("Text copied to clipboard!");
+                    } else {
+                        showToast("Failed to copy.");
+                    }
+                } catch (err) {
+                    console.error('Oops, unable to copy', err);
+                    showToast("Error copying text.");
+                }
+                
+                document.body.removeChild(tempTextArea);
+            });
+        });
+    </script>
+</body>
+</html>
