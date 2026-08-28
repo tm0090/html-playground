@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clock</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --text-color: #ffffff;
+      --shadow-color: #000000;
+      --bg-color: #000000;
+      --date-color: #aaaaaa;
+      --date-shadow-color: #000000;
+      --font-family: 'Lexend', sans-serif;
+      --date-font: 'Open Sans', sans-serif;
+      --date-size: 1.8vw;
+      
+      /* Settings UI variables */
+      --panel-bg: rgba(18, 18, 24, 0.75);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --panel-text: rgba(255, 255, 255, 0.9);
+      --panel-text-muted: rgba(255, 255, 255, 0.6);
+      --control-bg: rgba(255, 255, 255, 0.06);
+      --control-border: rgba(255, 255, 255, 0.1);
+      --control-hover: rgba(255, 255, 255, 0.12);
+      --accent-color: #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-family);
+      background: var(--bg-color);
+      color: var(--text-color);
+      overflow: hidden;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+
+    #app {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      text-align: center;
+      padding: 30px;
+    }
+
+    /* ── Clock ── */
+    #clock {
+      font-size: 14vw;
+      font-weight: 700;
+      text-shadow: 0 0 60px var(--shadow-color);
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 10px;
+      color: var(--text-color);
+      line-height: 1;
+      letter-spacing: 2px;
+      transition: font-size 0.3s ease;
+    }
+
+    #ampm {
+      font-size: 2vw;
+      opacity: 0.75;
+      text-transform: uppercase;
+      font-weight: 400;
+      align-self: flex-end;
+      padding-bottom: 0.8vw;
+      transition: font-size 0.3s ease;
+    }
+
+    #dateDisplay {
+      font-family: var(--date-font);
+      font-size: var(--date-size);
+      color: var(--date-color);
+      text-shadow: 0 0 30px var(--date-shadow-color);
+      margin-top: 16px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: 0.85;
+      transition: font-size 0.3s ease;
+    }
+
+    /* ── Settings Button & Trigger Zone ── */
+    .settings-wrapper {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 24px;
+      z-index: 110;
+    }
+
+    #settingsBtn {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      color: var(--panel-text);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    #settingsBtn:hover {
+      background: var(--control-hover);
+      transform: rotate(45deg) scale(1.05);
+    }
+
+    #settingsBtn svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    /* Hover Visibility Logic */
+    body.hover-icon-enabled .settings-wrapper #settingsBtn {
+      opacity: 0;
+      transform: scale(0.8);
+      pointer-events: none;
+    }
+    
+    body.hover-icon-enabled:not(.panel-open) .settings-wrapper:hover #settingsBtn {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+    
+    body.hover-icon-enabled:not(.panel-open) .settings-wrapper:hover #settingsBtn:hover {
+      transform: rotate(45deg) scale(1.05);
+    }
+
+    /* Hide the settings icon when the panel is open */
+    body.panel-open .settings-wrapper #settingsBtn {
+      opacity: 0;
+      transform: scale(0.8) rotate(-45deg);
+      pointer-events: none;
+      transition: opacity 0s, transform 0s;
+    }
+
+    /* ── Settings Sidebar Panel ── */
+    #settingsPanel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 340px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.panel-open #settingsPanel {
+      transform: translateX(0);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .panel-header h2 {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--panel-text);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--panel-text-muted);
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .close-btn:hover {
+      color: var(--panel-text);
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel-content::-webkit-scrollbar { width: 6px; }
+    .panel-content::-webkit-scrollbar-track { background: transparent; }
+    .panel-content::-webkit-scrollbar-thumb { background: var(--control-border); border-radius: 6px; }
+    .panel-content::-webkit-scrollbar-thumb:hover { background: var(--panel-text-muted); }
+
+    .setting-group {
+      background: var(--control-bg);
+      border: 1px solid var(--control-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .group-title {
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--panel-text-muted);
+      font-family: 'Open Sans', sans-serif;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    /* Generic row */
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .row + .row { 
+      border-top: 1px solid var(--control-border); 
+      margin-top: 4px;
+      padding-top: 12px;
+    }
+
+    .row-label {
+      font-family: sans-serif;
+      font-size: 0.85rem;
+      color: var(--panel-text);
+      font-weight: 500;
+    }
+
+    /* ── Controls ── */
+
+    /* Toggle Switch */
+    .tog {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tog-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 22px;
+      background: rgba(100, 100, 100, 0.3);
+      transition: background 0.3s;
+    }
+    .tog-track::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .tog input:checked ~ .tog-track { background: var(--accent-color); }
+    .tog input:checked ~ .tog-track::after { 
+      transform: translateX(18px); 
+      background: var(--bg-color); /* Contrasting dot */
+    }
+
+    /* Color Swatch */
+    .swatch {
+      position: relative;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid var(--control-border);
+      flex-shrink: 0;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .swatch:hover { transform: scale(1.1); }
+    .swatch input[type="color"] {
+      position: absolute;
+      inset: -10px;
+      width: calc(100% + 20px);
+      height: calc(100% + 20px);
+      border: none; padding: 0; cursor: pointer;
+    }
+
+    /* Slider */
+    .slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 140px;
+    }
+    .slider-val-input {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.75rem;
+      color: var(--panel-text-muted);
+      width: 44px;
+      text-align: right;
+      background: transparent;
+      border: none;
+      outline: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s, color 0.2s;
+      padding-bottom: 1px;
+      border-radius: 0;
+      -moz-appearance: textfield;
+    }
+    .slider-val-input:hover {
+      border-bottom-color: var(--control-border);
+    }
+    .slider-val-input:focus {
+      color: var(--panel-text);
+      border-bottom-color: var(--accent-color);
+    }
+    .slider-val-input::-webkit-outer-spin-button,
+    .slider-val-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      height: 4px; border-radius: 4px;
+      background: var(--control-border);
+      outline: none;
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+      transition: transform 0.1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Text Input & Custom Select */
+    .txt, .custom-select {
+      width: 140px;
+    }
+    
+    .txt {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--control-border);
+      border-radius: 8px;
+      color: var(--panel-text);
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      font-family: 'Open Sans', sans-serif;
+      outline: none;
+      transition: all 0.2s;
+      height: 32px;
+    }
+    .txt:focus { 
+      border-color: var(--accent-color);
+      background: rgba(0,0,0,0.4);
+    }
+
+    /* Custom Dropdown Styling */
+    .custom-select {
+      position: relative;
+      user-select: none;
+    }
+    
+    .select-trigger {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--control-border);
+      border-radius: 8px;
+      color: var(--panel-text);
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      font-family: 'Open Sans', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 32px;
+      transition: all 0.2s;
+    }
+    
+    .select-trigger:hover, .custom-select.open .select-trigger {
+      border-color: var(--accent-color);
+      background: rgba(0,0,0,0.4);
+    }
+    
+    .select-trigger span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100px;
+    }
+    
+    .select-trigger .arrow {
+      width: 10px;
+      height: 10px;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .custom-select.open .arrow {
+      transform: rotate(180deg);
+    }
+    
+    .select-options {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      width: 170px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-5px);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 200;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+    
+    .custom-select.open .select-options {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .select-options::-webkit-scrollbar { width: 6px; }
+    .select-options::-webkit-scrollbar-track { background: transparent; }
+    .select-options::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 6px; }
+    .select-options::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+    
+    .option {
+      padding: 8px 14px;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.8rem;
+      color: var(--panel-text);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    
+    .option:hover {
+      background: var(--control-hover);
+    }
+    
+    .option.selected {
+      font-weight: 700;
+      color: var(--accent-color);
+      background: var(--control-bg);
+    }
+
+    /* ── Light mode ── */
+    body.light-mode {
+      --accent-color: #18181b;
+      
+      --panel-bg: rgba(255, 255, 255, 0.85);
+      --panel-border: rgba(0, 0, 0, 0.08);
+      --panel-text: #18181b;
+      --panel-text-muted: #71717a;
+      --control-bg: rgba(0, 0, 0, 0.03);
+      --control-border: rgba(0, 0, 0, 0.08);
+      --control-hover: rgba(0, 0, 0, 0.06);
+    }
+    
+    body.light-mode .select-trigger .arrow {
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2318181b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    }
+    body.light-mode .txt, body.light-mode .select-trigger {
+      background: rgba(255,255,255,0.6);
+    }
+    body.light-mode .txt:focus, body.light-mode .select-trigger:hover, body.light-mode .custom-select.open .select-trigger {
+      background: #fff;
+    }
+    body.light-mode .select-options::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+    body.light-mode .select-options::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+    /* Auto-hide cursor */
+    body.cursor-hidden { cursor: none !important; }
+    body.cursor-hidden * { cursor: none !important; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Trigger Zone & Settings Button -->
+  <div class="settings-wrapper">
+    <div id="settingsBtn" title="Settings">
+      <svg viewBox="0 0 24 24">
+        <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Settings Panel Sidebar -->
+  <aside id="settingsPanel">
+    <div class="panel-header">
+      <h2>Preferences</h2>
+      <button class="close-btn" id="closeBtn">&times;</button>
+    </div>
+
+    <div class="panel-content">
+      
+      <!-- CLOCK GROUP -->
+      <div class="setting-group">
+        <div class="group-title">Clock Display</div>
+        <div class="row">
+          <span class="row-label">Show Seconds</span>
+          <label class="tog"><input type="checkbox" id="showSeconds" checked><span class="tog-track"></span></label>
+        </div>
+        <div class="row">
+          <span class="row-label">12-Hour Format</span>
+          <label class="tog"><input type="checkbox" id="format12h"><span class="tog-track"></span></label>
+        </div>
+        <div class="row">
+          <span class="row-label">Show AM/PM</span>
+          <label class="tog"><input type="checkbox" id="showAmPm" checked><span class="tog-track"></span></label>
+        </div>
+        <div class="row">
+          <span class="row-label">Clock Size</span>
+          <div class="slider-wrap">
+            <input type="range" id="clockSize" min="5" max="30" value="14">
+            <input type="number" id="clockSizeVal" class="slider-val-input" min="1" value="14" title="Click to enter custom max size">
+          </div>
+        </div>
+        <div class="row">
+          <span class="row-label">Font Family</span>
+          <input class="txt" type="text" id="fontFamily" placeholder="(Google Fonts)">
+        </div>
+      </div>
+
+      <!-- DATE GROUP -->
+      <div class="setting-group">
+        <div class="group-title">Date Display</div>
+        <div class="row">
+          <span class="row-label">Show Date</span>
+          <label class="tog"><input type="checkbox" id="showDate" checked><span class="tog-track"></span></label>
+        </div>
+        <div class="row">
+          <span class="row-label">Format</span>
+          
+          <!-- Custom CSS Dropdown -->
+          <div class="custom-select" id="dateFormatSelect">
+            <div class="select-trigger">
+              <span id="dateFormatLabel">...</span>
+              <div class="arrow"></div>
+            </div>
+            <div class="select-options">
+              <div class="option" data-value="long"></div>
+              <div class="option" data-value="short"></div>
+              <div class="option" data-value="euro"></div>
+              <div class="option" data-value="iso"></div>
+              <div class="option" data-value="euro-dots"></div>
+              <div class="option" data-value="full"></div>
+              <div class="option" data-value="full-year"></div>
+              <div class="option" data-value="compact"></div>
+              <div class="option" data-value="med"></div>
+            </div>
+          </div>
+
+        </div>
+        <div class="row">
+          <span class="row-label">Date Size</span>
+          <div class="slider-wrap">
+            <input type="range" id="dateSize" min="0.5" max="5" step="0.1" value="1.8">
+            <input type="number" id="dateSizeVal" class="slider-val-input" min="0.1" step="0.1" value="1.8" title="Click to enter custom max size">
+          </div>
+        </div>
+        <div class="row">
+          <span class="row-label">Font Family</span>
+          <input class="txt" type="text" id="dateFont" placeholder="(Google Fonts)">
+        </div>
+      </div>
+
+      <!-- THEMING GROUP -->
+      <div class="setting-group">
+        <div class="group-title">Theme & Colors</div>
+        <div class="row">
+          <span class="row-label">Light Mode</span>
+          <label class="tog"><input type="checkbox" id="lightModeToggle"><span class="tog-track"></span></label>
+        </div>
+        <div class="row">
+          <span class="row-label">Background</span>
+          <div class="swatch"><input type="color" id="bgColor" value="#000000"></div>
+        </div>
+        <div class="row">
+          <span class="row-label">Clock Text</span>
+          <div class="swatch"><input type="color" id="textColor" value="#ffffff"></div>
+        </div>
+        <div class="row">
+          <span class="row-label">Clock Glow</span>
+          <div class="swatch"><input type="color" id="clockColor" value="#000000"></div>
+        </div>
+        <div class="row">
+          <span class="row-label">Date Text</span>
+          <div class="swatch"><input type="color" id="dateColor" value="#aaaaaa"></div>
+        </div>
+        <div class="row">
+          <span class="row-label">Date Glow</span>
+          <div class="swatch"><input type="color" id="dateGlowColor" value="#000000"></div>
+        </div>
+      </div>
+
+      <!-- BEHAVIOR GROUP -->
+      <div class="setting-group">
+        <div class="group-title">Behavior</div>
+        <div class="row">
+          <span class="row-label">Show Icon on Hover</span>
+          <label class="tog"><input type="checkbox" id="hoverShowIcon"><span class="tog-track"></span></label>
+        </div>
+        <div class="row">
+          <span class="row-label">Auto-Hide Cursor</span>
+          <label class="tog"><input type="checkbox" id="autohideCursor"><span class="tog-track"></span></label>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- Main App Content -->
+  <div id="clock">
+    <span id="mainTime">00:00:00</span>
+    <span id="ampm"></span>
+  </div>
+  <div id="dateDisplay"></div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  const clockEl        = $('clock');
+  const settingsBtn    = $('settingsBtn');
+  const closeBtn       = $('closeBtn');
+  const settingsPanel  = $('settingsPanel');
+  const bgColorEl      = $('bgColor');
+  const textColorEl    = $('textColor');
+  const clockColorEl   = $('clockColor');
+  const dateColorEl    = $('dateColor');
+  const dateGlowColorEl= $('dateGlowColor');
+  const fontFamilyEl   = $('fontFamily');
+  const dateFontEl     = $('dateFont');
+  const clockSizeEl    = $('clockSize');
+  const clockSizeValEl = $('clockSizeVal');
+  const dateSizeEl     = $('dateSize');
+  const dateSizeValEl  = $('dateSizeVal');
+  const lightModeEl    = $('lightModeToggle');
+  const showSecondsEl  = $('showSeconds');
+  const format12hEl    = $('format12h');
+  const showAmPmEl     = $('showAmPm');
+  const showDateEl     = $('showDate');
+  const hoverShowIconEl   = $('hoverShowIcon');
+  const autohideCursorEl  = $('autohideCursor');
+  const mainTimeEl     = $('mainTime');
+  const ampmEl         = $('ampm');
+  const dateDisplayEl  = $('dateDisplay');
+
+  let fontLinkTag = null, dateFontLinkTag = null;
+  let panelOpen   = false;
+  let currentDateFormat = 'long';
+
+  // ── Auto-hide cursor logic ───────────────────────────────
+  let cursorHideTimer = null;
+
+  function resetCursorHideTimer() {
+    if (!autohideCursorEl.checked) return;
+    document.body.classList.remove('cursor-hidden');
+    clearTimeout(cursorHideTimer);
+    cursorHideTimer = setTimeout(() => {
+      if (autohideCursorEl.checked) {
+        document.body.classList.add('cursor-hidden');
+      }
+    }, 3000);
+  }
+
+  function enableCursorAutoHide() {
+    document.addEventListener('mousemove', resetCursorHideTimer);
+    document.addEventListener('mousedown', resetCursorHideTimer);
+    resetCursorHideTimer();
+  }
+
+  function disableCursorAutoHide() {
+    clearTimeout(cursorHideTimer);
+    document.body.classList.remove('cursor-hidden');
+    document.removeEventListener('mousemove', resetCursorHideTimer);
+    document.removeEventListener('mousedown', resetCursorHideTimer);
+  }
+
+  autohideCursorEl.addEventListener('change', () => {
+    if (autohideCursorEl.checked) {
+      enableCursorAutoHide();
+    } else {
+      disableCursorAutoHide();
+    }
+    savePrefs();
+  });
+
+  // ── Date Formatting Logic ────────────────────────────────
+  function formatDate(d, fmt) {
+    const days  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months= ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const shortM= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const D  = d.getDate(), M = d.getMonth(), Y = d.getFullYear();
+    const DD = String(D).padStart(2,'0'), MM = String(M+1).padStart(2,'0');
+    switch(fmt) {
+      case 'long':       return `${days[d.getDay()].slice(0,3)}, ${shortM[M]} ${D}, ${Y}`;
+      case 'short':      return `${MM}/${DD}/${Y}`;
+      case 'euro':       return `${DD}/${MM}/${Y}`;
+      case 'iso':        return `${Y}-${MM}-${DD}`;
+      case 'euro-dots':  return `${DD}.${MM}.${Y}`;
+      case 'full':       return `${days[d.getDay()]}, ${months[M]} ${D}`;
+      case 'full-year':  return `${days[d.getDay()]}, ${shortM[M]} ${D}, ${Y}`;
+      case 'compact':    return `${D} ${shortM[M]} ${Y}`;
+      case 'med':        return `${shortM[M]} ${D} ${Y}`;
+      default:           return `${days[d.getDay()].slice(0,3)}, ${shortM[M]} ${D}, ${Y}`;
+    }
+  }
+
+  // ── Custom Dropdown Logic ────────────────────────────────
+  const customSelect = $('dateFormatSelect');
+  const selectTrigger = customSelect.querySelector('.select-trigger');
+  const dateFormatLabel = $('dateFormatLabel');
+  const options = customSelect.querySelectorAll('.option');
+
+  // Populate the dropdown with today's date representations dynamically
+  function populateDropdown() {
+    const now = new Date();
+    options.forEach(opt => {
+      opt.textContent = formatDate(now, opt.dataset.value);
+    });
+  }
+  populateDropdown();
+
+  selectTrigger.addEventListener('click', (e) => {
+    customSelect.classList.toggle('open');
+    e.stopPropagation(); // Stop click from propagating up
+  });
+
+  options.forEach(option => {
+    option.addEventListener('click', (e) => {
+      currentDateFormat = option.dataset.value;
+      dateFormatLabel.textContent = option.textContent;
+      
+      options.forEach(opt => opt.classList.remove('selected'));
+      option.classList.add('selected');
+      
+      customSelect.classList.remove('open');
+      applyPrefs();
+      savePrefs();
+      e.stopPropagation();
+    });
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (!customSelect.contains(e.target)) {
+      customSelect.classList.remove('open');
+    }
+  });
+
+  // ── Panel open/close logic ───────────────────────────────
+  function togglePanel() {
+    panelOpen = !panelOpen;
+    document.body.classList.toggle('panel-open', panelOpen);
+    if(!panelOpen) customSelect.classList.remove('open'); // close dropdown if panel closes
+  }
+
+  settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePanel();
+  });
+
+  closeBtn.addEventListener('click', () => {
+    if (panelOpen) togglePanel();
+  });
+
+  // Close panel if clicked outside
+  document.addEventListener('click', e => {
+    // Only close if it's open, and click target isn't the panel, settings btn, OR a child of the select
+    if (panelOpen && !settingsPanel.contains(e.target) && !settingsBtn.contains(e.target) && !customSelect.contains(e.target)) {
+      togglePanel();
+    }
+  });
+
+  // ── Clock update ─────────────────────────────────────────
+  function updateTime() {
+    const now     = new Date();
+    const showSec = showSecondsEl.checked;
+    const is12h   = format12hEl.checked;
+    const doAmPm  = showAmPmEl.checked;
+
+    let hours    = now.getHours();
+    let ampmText = '';
+
+    if (is12h) {
+      ampmText = hours >= 12 ? 'PM' : 'AM';
+      hours    = hours % 12 || 12;
+    }
+
+    const h = String(hours).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+
+    mainTimeEl.textContent = showSec ? `${h}:${m}:${s}` : `${h}:${m}`;
+    ampmEl.textContent     = (is12h && doAmPm) ? ampmText : '';
+    ampmEl.style.display   = (is12h && doAmPm) ? '' : 'none';
+
+    dateDisplayEl.style.display = showDateEl.checked ? '' : 'none';
+    if (showDateEl.checked) dateDisplayEl.textContent = formatDate(now, currentDateFormat);
+  }
+
+  setInterval(updateTime, 1000);
+  updateTime();
+
+  // ── Fonts ────────────────────────────────────────────────
+  function loadFont(font, which) {
+    const isDate = which === 'date';
+    let   tag    = isDate ? dateFontLinkTag : fontLinkTag;
+    const dflt   = isDate ? 'Open Sans'     : 'Lexend';
+    const cssVar = isDate ? '--date-font'   : '--font-family';
+
+    if (!font || !font.trim()) {
+      if (tag) { tag.remove(); }
+      document.documentElement.style.setProperty(cssVar, `'${dflt}', sans-serif`);
+      if (isDate) dateFontLinkTag = null; else fontLinkTag = null;
+      return;
+    }
+    const enc = font.trim().replace(/ /g,'+');
+    if (tag) tag.remove();
+    tag      = document.createElement('link');
+    tag.rel  = 'stylesheet';
+    tag.href = `https://fonts.googleapis.com/css2?family=${enc}&display=swap`;
+    document.head.appendChild(tag);
+    document.documentElement.style.setProperty(cssVar, `'${font.trim()}', sans-serif`);
+    if (isDate) dateFontLinkTag = tag; else fontLinkTag = tag;
+  }
+
+  // ── Apply ────────────────────────────────────────────────
+  function applyPrefs() {
+    const root = document.documentElement;
+    root.style.setProperty('--bg-color',     bgColorEl.value);
+    root.style.setProperty('--text-color',   textColorEl.value);
+    root.style.setProperty('--shadow-color', clockColorEl.value);
+    root.style.setProperty('--date-color',   dateColorEl.value);
+    root.style.setProperty('--date-shadow-color', dateGlowColorEl.value);
+
+    const csz = clockSizeEl.value;
+    clockEl.style.fontSize     = `${csz}vw`;
+    ampmEl.style.fontSize      = `${csz * 0.14}vw`;
+
+    const dsz = parseFloat(dateSizeEl.value).toFixed(1);
+    root.style.setProperty('--date-size', `${dsz}vw`);
+
+    document.body.classList.toggle('light-mode', lightModeEl.checked);
+    document.body.classList.toggle('hover-icon-enabled', hoverShowIconEl.checked);
+
+    loadFont(fontFamilyEl.value, 'clock');
+    loadFont(dateFontEl.value,   'date');
+    updateTime();
+  }
+
+  // ── Manual Size Logic ────────────────────────────────────
+  function bindDynamicSlider(numInput, rangeInput, minMax, absoluteMax) {
+    // Range dragging → update number input live + apply
+    rangeInput.addEventListener('input', () => {
+      numInput.value = parseFloat(rangeInput.value);
+      applyPrefs();
+      savePrefs();
+    });
+
+    // Number input → apply only on commit (Enter or blur), not on every keystroke
+    function commitNumInput() {
+      let val = parseFloat(numInput.value);
+      if (isNaN(val) || val <= 0) {
+        // Revert to current range value if invalid
+        numInput.value = parseFloat(rangeInput.value);
+        return;
+      }
+      if (absoluteMax !== undefined && val > absoluteMax) {
+        val = absoluteMax;
+      }
+      val = Math.max(0.1, val);
+      numInput.value  = val;
+      rangeInput.max  = Math.max(minMax, val);
+      rangeInput.value = val;
+      applyPrefs();
+      savePrefs();
+    }
+
+    numInput.addEventListener('change', commitNumInput);
+    numInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commitNumInput(); numInput.blur(); }
+      if (e.key === 'Escape') { numInput.value = parseFloat(rangeInput.value); numInput.blur(); }
+    });
+  }
+
+  bindDynamicSlider(clockSizeValEl, clockSizeEl, 30); 
+  bindDynamicSlider(dateSizeValEl, dateSizeEl, 5, 20); 
+
+  // ── Persist ──────────────────────────────────────────────
+  function savePrefs() {
+    localStorage.setItem('liveClockPrefs9', JSON.stringify({
+      bgColor:       bgColorEl.value,
+      textColor:     textColorEl.value,
+      clockColor:    clockColorEl.value,
+      dateColor:     dateColorEl.value,
+      dateGlowColor: dateGlowColorEl.value,
+      fontFamily:    fontFamilyEl.value,
+      dateFont:      dateFontEl.value,
+      clockSize:     clockSizeEl.value,
+      dateSize:      dateSizeEl.value,
+      lightMode:     lightModeEl.checked,
+      showSeconds:   showSecondsEl.checked,
+      format12h:     format12hEl.checked,
+      showAmPm:      showAmPmEl.checked,
+      showDate:      showDateEl.checked,
+      dateFormat:    currentDateFormat,
+      hoverShowIcon: hoverShowIconEl.checked,
+      autohideCursor: autohideCursorEl.checked,
+    }));
+  }
+
+  function loadPrefs() {
+    let p;
+    try { p = JSON.parse(localStorage.getItem('liveClockPrefs9')); } catch(e){}
+    
+    // Fallbacks
+    if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs8')); } catch(e){} }
+    if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs7')); } catch(e){} }
+    if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs6')); } catch(e){} }
+    if (!p) { try { p = JSON.parse(localStorage.getItem('liveClockPrefs4')); } catch(e){} }
+    
+    if (!p) {
+      clockSizeValEl.value = clockSizeEl.value;
+      dateSizeValEl.value  = dateSizeEl.value;
+      applyPrefs();
+      return;
+    }
+
+    let sClock = parseFloat(p.clockSize) || 14;
+    clockSizeEl.max = Math.max(30, sClock);
+    clockSizeEl.value = sClock;
+    clockSizeValEl.value = sClock;
+
+    let sDate = parseFloat(p.dateSize) || 1.8;
+    if (sDate > 20) sDate = 20;
+    dateSizeEl.max = Math.max(5, sDate);
+    dateSizeEl.value = sDate;
+    dateSizeValEl.value = sDate;
+
+    bgColorEl.value        = p.bgColor    || '#000000';
+    textColorEl.value      = p.textColor  || '#ffffff';
+    clockColorEl.value     = p.clockColor || '#000000'; 
+    dateColorEl.value      = p.dateColor  || '#aaaaaa';
+    dateGlowColorEl.value  = p.dateGlowColor || '#000000';
+    fontFamilyEl.value     = p.fontFamily || '';
+    dateFontEl.value       = p.dateFont   || '';
+    lightModeEl.checked    = p.lightMode  || false;
+    showSecondsEl.checked  = p.showSeconds !== false;
+    format12hEl.checked    = p.format12h  || false;
+    showAmPmEl.checked     = p.showAmPm   !== false;
+    showDateEl.checked     = p.showDate   !== false;
+    hoverShowIconEl.checked= p.hoverShowIcon || false;
+    autohideCursorEl.checked = p.autohideCursor || false;
+    
+    // Check if loaded format exists in our options, otherwise fallback to long
+    const loadedFormat = p.dateFormat || 'long';
+    const selectedOpt = customSelect.querySelector(`.option[data-value="${loadedFormat}"]`);
+    if (selectedOpt) {
+      currentDateFormat = loadedFormat;
+      dateFormatLabel.textContent = selectedOpt.textContent;
+      options.forEach(opt => opt.classList.remove('selected'));
+      selectedOpt.classList.add('selected');
+    } else {
+      currentDateFormat = 'long';
+      dateFormatLabel.textContent = customSelect.querySelector('.option[data-value="long"]').textContent;
+    }
+
+    applyPrefs();
+  }
+
+  // Light Mode Toggle Event
+  lightModeEl.addEventListener('change', () => {
+    if (lightModeEl.checked) {
+      bgColorEl.value = '#ffffff';
+      textColorEl.value = '#000000';
+      clockColorEl.value = '#ffffff';
+      dateColorEl.value = '#52525b';
+      dateGlowColorEl.value = '#ffffff';
+    } else {
+      bgColorEl.value = '#000000';
+      textColorEl.value = '#ffffff';
+      clockColorEl.value = '#000000';
+      dateColorEl.value = '#aaaaaa';
+      dateGlowColorEl.value = '#000000';
+    }
+    applyPrefs();
+    savePrefs();
+  });
+
+  // Attach standard listeners
+  [bgColorEl, textColorEl, clockColorEl, dateColorEl, dateGlowColorEl, fontFamilyEl, dateFontEl,
+   showSecondsEl, format12hEl, showAmPmEl, showDateEl, hoverShowIconEl
+  ].forEach(el => el.addEventListener('input', () => { applyPrefs(); savePrefs(); }));
+
+  loadPrefs();
+
+  // Activate cursor auto-hide if it was saved as enabled
+  if (autohideCursorEl.checked) {
+    enableCursorAutoHide();
+  }
+</script>
+</body>
+</html>
