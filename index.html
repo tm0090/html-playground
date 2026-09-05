@@ -239,9 +239,15 @@
 
     <div id="app-ui">
         
-        <div id="top-controls" class="absolute top-8 w-full flex justify-center opacity-50 text-xs tracking-widest uppercase transition-opacity duration-500">
-            Press <span class="mx-2 font-bold bg-white/20 px-1 rounded">TAB</span> to toggle UI, <span class="mx-2 font-bold bg-white/20 px-1 rounded">SPACE</span> to Start/Resume
+        <div id="top-controls" class="absolute top-8 w-full flex justify-center opacity-50 text-xs tracking-widest uppercase transition-opacity duration-500 z-20">
+            Press <span class="mx-2 font-bold bg-white/20 px-1 rounded">TAB</span> to toggle UI, <span class="mx-2 font-bold bg-white/20 px-1 rounded">SPACE</span> to Start/Pause, <span class="mx-2 font-bold bg-white/20 px-1 rounded">R</span> to Reset
         </div>
+
+        <button id="fullscreen-btn" class="absolute top-6 right-8 btn-icon p-3 rounded-full text-white/50 hover:text-white glass-panel transition-opacity duration-500 z-20" title="Toggle Fullscreen">
+            <svg class="w-5 h-5 expand-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 3h6v6M15 9l6-6M9 21H3v-6M9 15l-6 6" />
+            </svg>
+        </button>
 
         <div id="session-status" title="Click Settings to Switch Mode">Focus Session</div>
 
@@ -256,7 +262,16 @@
             </div>
         </div>
 
-        <div id="bottom-controls" class="absolute bottom-12 flex gap-6 items-center transition-all duration-500">
+        <!-- Reset Confirmation Toast -->
+        <div id="reset-toast" class="absolute bottom-36 left-1/2 transform -translate-x-1/2 z-30 transition-all duration-300 opacity-0 pointer-events-none translate-y-4">
+            <div class="glass-panel px-6 py-3 rounded-full flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.4)]">
+                <i class="fa-solid fa-circle-exclamation text-white/80"></i>
+                <span class="text-sm font-medium tracking-wide text-white/90">Press <kbd class="bg-white/20 px-2 py-0.5 rounded text-xs mx-1 font-bold">ENTER</kbd> to confirm reset</span>
+                <span class="text-xs text-white/40 ml-2">or ESC to cancel</span>
+            </div>
+        </div>
+
+        <div id="bottom-controls" class="absolute bottom-12 flex gap-6 items-center transition-all duration-500 z-20">
             <button id="reset-btn" class="btn-icon p-4 rounded-full text-white/70 hover:text-white" title="Reset Current Session">
                 <i class="fa-solid fa-rotate-left text-xl"></i>
             </button>
@@ -449,7 +464,7 @@
             </div>
             
             <div class="mt-8 pt-6 border-t border-white/10 text-center text-white/30 text-xs">
-                Focus Flow Engine v2.3 (Arrival Sync)
+                Focus Flow Engine v2.4 (Quick Controls)
             </div>
         </div>
     </div>
@@ -486,7 +501,11 @@
             showSeconds: true,
             pulsingClock: true,
             autoFullScreen: true,
-            showArrivalTime: true, // New property for expected finish time
+            showArrivalTime: true, 
+
+            // Shortcut UI States
+            isResetPending: false,
+            resetToastTimer: null
         };
 
         // --- Persistent Storage Logic ---
@@ -507,7 +526,7 @@
                 showSeconds: state.showSeconds,
                 pulsingClock: state.pulsingClock,
                 autoFullScreen: state.autoFullScreen,
-                showArrivalTime: state.showArrivalTime, // Save arrival time preference
+                showArrivalTime: state.showArrivalTime, 
             };
             localStorage.setItem('focusFlowSettings', JSON.stringify(settings));
         }
@@ -556,6 +575,8 @@
             startBtn: document.getElementById('start-btn'),
             resetBtn: document.getElementById('reset-btn'),
             settingsBtn: document.getElementById('settings-btn'),
+            fullscreenBtn: document.getElementById('fullscreen-btn'), // New Button
+            resetToast: document.getElementById('reset-toast'),       // New Toast
             closeSettings: document.getElementById('close-settings'),
             modal: document.getElementById('settings-modal'),
             
@@ -587,7 +608,7 @@
             toggleSeconds: document.getElementById('toggle-seconds'),
             togglePulse: document.getElementById('toggle-pulse'),
             toggleFullscreen: document.getElementById('toggle-fullscreen'),
-            toggleArrivalTime: document.getElementById('toggle-arrival-time'), // New toggle
+            toggleArrivalTime: document.getElementById('toggle-arrival-time'), 
         };
 
         // --- Canvas & Physics ---
@@ -665,7 +686,6 @@
             waveTime += speedMult;
 
             // Increased loop step size to 20px (from 10px) to cut drawing loops by half.
-            // This drastically cuts down mathematical operations per frame for zero visible detail loss.
             const segmentStep = 20;
 
             waves.forEach((wave, i) => {
@@ -717,7 +737,6 @@
                     }
                 }
                 else if (style === 'static') {
-                    // Static mode doesn't need smooth delta calculations
                     for (let x = 0; x <= width + 10; x += 10) {
                         const noise = Math.random() * wave.amplitude - (wave.amplitude/2);
                         ctx.lineTo(x, baseWaterHeight + noise);
@@ -814,7 +833,6 @@
             const hasM = state.showMinutes;
             const hasS = state.showSeconds;
 
-            // Simple fallback if all unit toggles are disabled
             if (!hasH && !hasM && !hasS) {
                 return "00:00";
             }
@@ -835,7 +853,6 @@
             if (hasS) {
                 s = rem;
             } else {
-                // If there is leftover time, gracefully round up the smallest active visible unit
                 if (rem > 0) {
                     if (hasM) {
                         m += 1;
@@ -850,15 +867,9 @@
             }
 
             const parts = [];
-            if (hasH) {
-                parts.push(h.toString().padStart(2, '0'));
-            }
-            if (hasM) {
-                parts.push(m.toString().padStart(2, '0'));
-            }
-            if (hasS) {
-                parts.push(s.toString().padStart(2, '0'));
-            }
+            if (hasH) parts.push(h.toString().padStart(2, '0'));
+            if (hasM) parts.push(m.toString().padStart(2, '0'));
+            if (hasS) parts.push(s.toString().padStart(2, '0'));
 
             return parts.join(':');
         }
@@ -877,11 +888,9 @@
             } else {
                 els.timerDisplay.style.opacity = '1';
                 
-                // Show arrival time only if toggled ON and we aren't in water-only mode
+                // Show arrival time only if toggled ON
                 if (state.showArrivalTime) {
-                    // Calculate arrival Date/Time
                     const finishTime = new Date(Date.now() + state.timeLeft * 1000);
-                    // Format into simple localized AM/PM e.g. "02:30 PM"
                     const timeString = finishTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     
                     els.arrivalText.textContent = timeString;
@@ -899,7 +908,7 @@
                 els.sessionStatus.style.color = "rgba(255,255,255,0.6)";
             } else {
                 els.sessionStatus.textContent = "Break Time";
-                els.sessionStatus.style.color = "#6ee7b7"; // Greenish
+                els.sessionStatus.style.color = "#6ee7b7"; 
             }
 
             // Colorize Text Elements
@@ -910,8 +919,6 @@
                 const textL = Math.min(95, state.themeL + 25);
                 const dynColor = `hsl(${state.themeHue}, ${state.themeS}%, ${textL}%)`;
                 els.timerDisplay.style.color = dynColor;
-                
-                // Dim the arrival time slightly compared to main clock, keeping hue synced
                 els.arrivalTime.style.color = `hsl(${state.themeHue}, ${state.themeS}%, ${textL - 20}%)`;
             }
         }
@@ -929,7 +936,6 @@
                 state.isRunning = true;
                 els.startBtn.innerHTML = '<i class="fa-solid fa-pause text-3xl"></i>';
                 
-                // Force an immediate display update to refresh expected arrival time perfectly when unpaused
                 updateDisplay();
 
                 state.timerId = setInterval(() => {
@@ -944,7 +950,6 @@
         }
 
         function switchSessionMode(newMode) {
-            // Stop current timer
             clearInterval(state.timerId);
             state.isRunning = false;
             els.startBtn.innerHTML = '<i class="fa-solid fa-play text-3xl ml-1"></i>';
@@ -968,7 +973,6 @@
             const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
             audio.play();
             
-            // --- POMODORO LOGIC ---
             if(state.mode === 'focus') {
                 switchSessionMode('break');
                 alert("Focus Session Complete! Take a break.");
@@ -982,7 +986,6 @@
             clearInterval(state.timerId);
             state.isRunning = false;
             
-            // Reset to the start of current mode
             if(state.mode === 'focus') {
                 state.timeLeft = state.focusDuration;
                 state.duration = state.focusDuration;
@@ -995,15 +998,42 @@
             updateDisplay();
         }
 
+        function toggleFullScreenMode() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Handle Fullscreen icon changes 
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                els.fullscreenBtn.innerHTML = `
+                    <svg class="w-5 h-5 compress-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 9h-6V3M21 3l-6 6M3 15h6v6M3 21l6-6" />
+                    </svg>
+                `;
+            } else {
+                els.fullscreenBtn.innerHTML = `
+                    <svg class="w-5 h-5 expand-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 3h6v6M15 9l6-6M9 21H3v-6M9 15l-6 6" />
+                    </svg>
+                `;
+            }
+        });
+
         // --- Settings Logic ---
         function updateSettingsUI() {
-            // Update Sliders
             els.durationValue.textContent = `${Math.floor(state.focusDuration / 60)}m`;
             els.breakValue.textContent = `${Math.floor(state.breakDuration / 60)}m`;
             els.durationSlider.value = state.focusDuration / 60;
             els.breakSlider.value = state.breakDuration / 60;
 
-            // Update Appearance
             els.timerDisplay.style.fontSize = `${state.clockSize}vw`;
             els.sizeSlider.value = state.clockSize;
             
@@ -1011,18 +1041,16 @@
             els.arrivalSizeSlider.value = state.arrivalSize;
             
             els.timerDisplay.style.fontFamily = state.font;
-            els.arrivalTime.style.fontFamily = state.font; // Apply font to arrival time too
+            els.arrivalTime.style.fontFamily = state.font; 
             els.fontInput.value = state.font === 'Inter' ? '' : state.font;
             
             els.waterStyleSelect.value = state.waterStyle;
             els.speedSlider.value = state.waterSpeed;
             if(state.customColor) els.colorPicker.value = state.customColor;
 
-            // Update Brightness
             els.brightnessSlider.value = state.waterBrightness * 100;
             els.brightnessValue.textContent = `${Math.round(state.waterBrightness * 100)}%`;
             
-            // Update Buttons
             els.modeBtns.forEach(btn => {
                 const mode = btn.dataset.mode;
                 if(mode === state.viewMode) {
@@ -1041,22 +1069,19 @@
                 }
             });
 
-            // Update Toggle Switches
             els.toggleHours.checked = state.showHours;
             els.toggleMinutes.checked = state.showMinutes;
             els.toggleSeconds.checked = state.showSeconds;
             els.togglePulse.checked = state.pulsingClock;
             els.toggleFullscreen.checked = state.autoFullScreen;
-            els.toggleArrivalTime.checked = state.showArrivalTime; // Update Arrival Toggle
+            els.toggleArrivalTime.checked = state.showArrivalTime; 
 
-            // Apply Pulsing Clock logic
             if (state.pulsingClock) {
                 els.timerDisplay.classList.add('breathing');
             } else {
                 els.timerDisplay.classList.remove('breathing');
             }
 
-            // Update Slider Visuals (Fill Effect)
             const allSliders = document.querySelectorAll('input[type="range"]');
             allSliders.forEach(slider => {
                 const min = parseFloat(slider.min) || 0;
@@ -1076,8 +1101,8 @@
             els.topControls.classList[method]('distraction-hidden');
             els.settingsBtn.classList[method]('distraction-hidden');
             els.sessionStatus.classList[method]('distraction-hidden');
-            
-            // Note: timerDisplay & arrivalTime remain visible during focus mode if not water-only
+            els.fullscreenBtn.classList[method]('distraction-hidden');
+            if (state.isResetPending) hideResetToast(); // hide toast cleanly if toggling UI
         }
 
         function loadFont(fontName) {
@@ -1091,10 +1116,33 @@
             saveSettings();
         }
 
+        // --- Toast Keyboard UI Helpers ---
+        function showResetToast() {
+            state.isResetPending = true;
+            els.resetToast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            els.resetToast.classList.add('opacity-100', 'translate-y-0');
+            
+            // Auto hide after 5 seconds to prevent it hanging around
+            clearTimeout(state.resetToastTimer);
+            state.resetToastTimer = setTimeout(hideResetToast, 5000);
+        }
+
+        function hideResetToast() {
+            state.isResetPending = false;
+            els.resetToast.classList.remove('opacity-100', 'translate-y-0');
+            els.resetToast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            clearTimeout(state.resetToastTimer);
+        }
+
+
         // --- Event Listeners ---
         window.addEventListener('resize', resize);
         els.startBtn.addEventListener('click', toggleTimer);
-        els.resetBtn.addEventListener('click', resetTimer);
+        els.resetBtn.addEventListener('click', () => {
+            // If they click it, show the toast instead of instant reset for consistency
+            showResetToast();
+        });
+        els.fullscreenBtn.addEventListener('click', toggleFullScreenMode);
         
         els.settingsBtn.addEventListener('click', () => {
             els.modal.classList.remove('modal-enter');
@@ -1106,7 +1154,6 @@
             els.modal.classList.add('modal-enter');
         });
 
-        // Close Modal when clicking outside (on the backdrop)
         els.modal.addEventListener('click', (e) => {
             if (e.target === els.modal) {
                 els.modal.classList.remove('modal-enter-active');
@@ -1114,7 +1161,6 @@
             }
         });
 
-        // Global Listener for Visual Slider Updates
         document.querySelectorAll('input[type="range"]').forEach(range => {
             range.addEventListener('input', () => {
                 const min = parseFloat(range.min) || 0;
@@ -1125,7 +1171,6 @@
             });
         });
 
-        // Preferences Toggles Additions
         els.toggleHours.addEventListener('change', (e) => {
             state.showHours = e.target.checked;
             updateDisplay();
@@ -1155,14 +1200,12 @@
             saveSettings();
         });
         
-        // Arrival Time Toggle Integration
         els.toggleArrivalTime.addEventListener('change', (e) => {
             state.showArrivalTime = e.target.checked;
             updateDisplay();
             saveSettings();
         });
 
-        // Focus Duration Slider
         els.durationSlider.addEventListener('input', (e) => {
             state.focusDuration = e.target.value * 60;
             if (!state.isRunning && state.mode === 'focus') {
@@ -1173,7 +1216,6 @@
             saveSettings();
         });
 
-        // Break Duration Slider
         els.breakSlider.addEventListener('input', (e) => {
             state.breakDuration = e.target.value * 60;
             if (!state.isRunning && state.mode === 'break') {
@@ -1184,7 +1226,6 @@
             saveSettings();
         });
 
-        // Manual Session Switching
         els.sessionBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 switchSessionMode(btn.dataset.session);
@@ -1241,25 +1282,39 @@
             saveSettings();
         });
 
+        // Global Keyboard Shortcut Controller
         document.addEventListener('keydown', (e) => {
+            // Do not capture keystrokes if the user is typing in a text field
+            if (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text') {
+                return;
+            }
+
             if (e.code === 'Tab') {
                 e.preventDefault();
                 toggleUI();
             }
-            // Start/Stop with Spacebar
-            if (e.code === 'Space') {
-                // If user is typing in the font input, don't toggle timer
-                if (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text') {
-                    return;
-                }
-                e.preventDefault(); // Prevent scrolling
+            else if (e.code === 'Space') {
+                e.preventDefault();
                 toggleTimer();
+            }
+            else if (e.key.toLowerCase() === 'r') {
+                e.preventDefault();
+                showResetToast();
+            }
+            else if (e.code === 'Enter' && state.isResetPending) {
+                e.preventDefault();
+                resetTimer();
+                hideResetToast();
+            }
+            else if (e.code === 'Escape' && state.isResetPending) {
+                e.preventDefault();
+                hideResetToast();
             }
         });
 
         // --- Init ---
-        loadSettings(); // Load prefs first
-        loadFont(state.font); // Load font if saved
+        loadSettings(); 
+        loadFont(state.font); 
         resize();
         initWaves();
         requestAnimationFrame(drawWaves);
