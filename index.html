@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Base Imports & Reset */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
         body {
@@ -17,6 +16,11 @@
             color: white;
             font-family: 'Inter', sans-serif;
             transition: background-color 1s ease;
+        }
+
+        /* Hide cursor globally when inactive */
+        body.cursor-hidden, body.cursor-hidden * {
+            cursor: none !important;
         }
 
         /* Canvas Positioning */
@@ -30,7 +34,6 @@
             pointer-events: none;
         }
 
-        /* UI Layers */
         #app-ui {
             position: relative;
             z-index: 10;
@@ -79,7 +82,6 @@
             text-shadow: 0 0 15px rgba(255,255,255,0.4);
         }
 
-        /* Interactive Elements Glassmorphism */
         .glass-panel {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(12px);
@@ -188,7 +190,6 @@
             box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 4px 8px rgba(0,0,0,0.5);
         }
 
-
         /* Other Inputs */
         select {
             appearance: none;
@@ -237,6 +238,14 @@
 
     <canvas id="waterCanvas"></canvas>
 
+    <!-- Global Notification Toast -->
+    <div id="global-notification" class="fixed top-8 left-1/2 transform -translate-x-1/2 z-[100] transition-all duration-500 opacity-0 pointer-events-none -translate-y-4">
+        <div class="glass-panel px-6 py-4 rounded-full flex items-center gap-4 shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/20">
+            <i id="notification-icon" class="fa-solid fa-bell text-white text-xl"></i>
+            <span id="notification-text" class="text-sm font-bold tracking-wide text-white"></span>
+        </div>
+    </div>
+
     <div id="app-ui">
         
         <div id="top-controls" class="absolute top-8 w-full flex justify-center opacity-50 text-xs tracking-widest uppercase transition-opacity duration-500 z-20">
@@ -251,7 +260,7 @@
 
         <div id="session-status" title="Click Settings to Switch Mode">Focus Session</div>
 
-        <!-- Timer Display Area: Changed to flex-col to cleanly stack timer and arrival time -->
+        <!-- Timer Display Area -->
         <div class="flex-grow flex flex-col items-center justify-center w-full relative">
             <h1 id="timer-display" class="font-bold leading-none breathing">25:00</h1>
             
@@ -287,6 +296,7 @@
 
     </div>
 
+    <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-enter transition-all duration-300">
         <div class="glass-panel w-full max-w-md p-8 rounded-2xl mx-4 relative text-sm overflow-y-auto max-h-[90vh]">
             
@@ -435,7 +445,6 @@
                         </div>
                     </div>
 
-                    <!-- New Arrival Time Toggle Added Cleanly Here -->
                     <div class="flex items-center justify-between border-b border-white/5 pb-3">
                         <span class="text-xs text-white/80 font-semibold">Show Expected Finish Time</span>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -454,7 +463,7 @@
 
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-white/80 font-semibold">Auto Fullscreen on Start</span>
-                        <label class="relative inline-flex inline-flex items-center cursor-pointer">
+                        <label class="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" id="toggle-fullscreen" class="sr-only peer" checked>
                           <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
                         </label>
@@ -464,27 +473,26 @@
             </div>
             
             <div class="mt-8 pt-6 border-t border-white/10 text-center text-white/30 text-xs">
-                Focus Flow Engine v2.4 (Quick Controls)
+                Focus Flow Engine v2.5 (Automated Focus & UI Hiding)
             </div>
         </div>
     </div>
 
     <script>
-        // --- State Management ---
         const state = {
             focusDuration: 25 * 60,
             breakDuration: 5 * 60,
             
-            duration: 25 * 60,   // Current total duration of active session
+            duration: 25 * 60,   
             timeLeft: 25 * 60,
-            mode: 'focus',       // 'focus' | 'break'
+            mode: 'focus',       
             
             isRunning: false,
             timerId: null,
             
             viewMode: 'hybrid',
-            clockSize: 14,       // Changed default to 14 (vw format)
-            arrivalSize: 1.125,  // Default size in rem
+            clockSize: 14,       
+            arrivalSize: 1.125,  
             font: 'Inter',
             isUiVisible: true,
             themeHue: 350, 
@@ -508,7 +516,6 @@
             resetToastTimer: null
         };
 
-        // --- Persistent Storage Logic ---
         function saveSettings() {
             const settings = {
                 focusDuration: state.focusDuration,
@@ -536,7 +543,6 @@
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    // Merge saved settings
                     state.focusDuration = parsed.focusDuration || state.focusDuration;
                     state.breakDuration = parsed.breakDuration || state.breakDuration;
                     state.viewMode = parsed.viewMode || 'hybrid';
@@ -553,11 +559,8 @@
                     state.showSeconds = parsed.showSeconds !== undefined ? parsed.showSeconds : true;
                     state.pulsingClock = parsed.pulsingClock !== undefined ? parsed.pulsingClock : true;
                     state.autoFullScreen = parsed.autoFullScreen !== undefined ? parsed.autoFullScreen : true;
-                    
-                    // Load arrival time preference gracefully 
                     state.showArrivalTime = parsed.showArrivalTime !== undefined ? parsed.showArrivalTime : true;
                     
-                    // Reset current session stats based on loaded values
                     state.duration = state.mode === 'focus' ? state.focusDuration : state.breakDuration;
                     state.timeLeft = state.duration;
                 } catch (e) {
@@ -566,7 +569,6 @@
             }
         }
 
-        // --- DOM Elements ---
         const els = {
             timerDisplay: document.getElementById('timer-display'),
             arrivalTime: document.getElementById('arrival-time'),
@@ -575,8 +577,8 @@
             startBtn: document.getElementById('start-btn'),
             resetBtn: document.getElementById('reset-btn'),
             settingsBtn: document.getElementById('settings-btn'),
-            fullscreenBtn: document.getElementById('fullscreen-btn'), // New Button
-            resetToast: document.getElementById('reset-toast'),       // New Toast
+            fullscreenBtn: document.getElementById('fullscreen-btn'), 
+            resetToast: document.getElementById('reset-toast'),       
             closeSettings: document.getElementById('close-settings'),
             modal: document.getElementById('settings-modal'),
             
@@ -611,7 +613,6 @@
             toggleArrivalTime: document.getElementById('toggle-arrival-time'), 
         };
 
-        // --- Canvas & Physics ---
         const ctx = els.canvas.getContext('2d');
         let width, height;
         let waves = [];
@@ -634,19 +635,15 @@
 
         function getColor(progress) {
             let h, s, l;
-            
             if (progress < 0.5) {
-                // Transition Rose (350) to Amber (40)
                 const p = progress * 2; 
                 const startH = -10; 
                 const endH = 40;
                 h = startH + (p * (endH - startH));
                 if (h < 0) h += 360; 
-                
                 s = 90;
                 l = 60 + (p * 5); 
             } else {
-                // Transition Amber (40) to Mint (160)
                 const p = (progress - 0.5) * 2; 
                 h = 40 + (p * 120); 
                 s = 90 - (p * 10); 
@@ -659,13 +656,11 @@
             return { h, s, l };
         }
 
-        // --- Delta-Time Based Physics Animation Loop ---
         function drawWaves(timestamp) {
             if (!lastTime) lastTime = timestamp;
             const delta = timestamp - lastTime;
             lastTime = timestamp;
 
-            // Prevent physics bugs or huge jumps when tab is unfocused/resumed
             const dt = Math.min(delta, 100); 
             
             ctx.clearRect(0, 0, width, height);
@@ -681,11 +676,8 @@
             const color = getColor(progress);
             const baseWaterHeight = height - (height * progress);
             
-            // Adjust speeds so they match the original pacing at 60fps, now delta-time scaled
             const speedMult = (state.waterSpeed / 20) * 0.016 * (dt / 16.67); 
             waveTime += speedMult;
-
-            // Increased loop step size to 20px (from 10px) to cut drawing loops by half.
             const segmentStep = 20;
 
             waves.forEach((wave, i) => {
@@ -695,12 +687,10 @@
                 const style = state.waterStyle;
                 const t = waveTime * wave.speed;
 
-                // --- OPTIMIZED PHYSICS ENGINE ---
                 if (style === 'digital') {
                     const step = 40;
                     for (let x = 0; x <= width + step; x += step) {
-                        const y = baseWaterHeight + 
-                                  Math.sin(x * wave.length + t + wave.offset) * wave.amplitude;
+                        const y = baseWaterHeight + Math.sin(x * wave.length + t + wave.offset) * wave.amplitude;
                         ctx.lineTo(x, Math.floor(y / step) * step);
                         ctx.lineTo(x + step, Math.floor(y / step) * step);
                     }
@@ -753,15 +743,13 @@
                 }
                 else if (style === 'minimal') {
                     for (let x = 0; x <= width + 50; x += 50) {
-                        const y = baseWaterHeight + 
-                                  Math.sin(x * 0.001 + waveTime * 0.5 + wave.offset) * 5;
+                        const y = baseWaterHeight + Math.sin(x * 0.001 + waveTime * 0.5 + wave.offset) * 5;
                         ctx.lineTo(x, y);
                     }
                 }
                 else if (style === 'ocean') {
                     for (let x = 0; x <= width + segmentStep; x += segmentStep) {
-                        const y = baseWaterHeight + 
-                                  Math.sin(x * wave.length + (t * 5) + wave.offset) * wave.amplitude;
+                        const y = baseWaterHeight + Math.sin(x * wave.length + (t * 5) + wave.offset) * wave.amplitude;
                         ctx.lineTo(x, y);
                     }
                 }
@@ -774,9 +762,7 @@
                 }
                 else if (style === 'orbit') {
                     for (let x = 0; x <= width + segmentStep; x += segmentStep) {
-                        const y = baseWaterHeight + 
-                                  Math.sin(x * wave.length + t) * wave.amplitude +
-                                  Math.cos(x * wave.length * 2 + t) * (wave.amplitude * 0.5);
+                        const y = baseWaterHeight + Math.sin(x * wave.length + t) * wave.amplitude + Math.cos(x * wave.length * 2 + t) * (wave.amplitude * 0.5);
                         ctx.lineTo(x, y);
                     }
                 }
@@ -790,24 +776,20 @@
                 else if (style === 'flux') {
                     for (let x = 0; x <= width + segmentStep; x += segmentStep) {
                         const ampMod = Math.sin(x * 0.005 + t);
-                        const y = baseWaterHeight + 
-                                  Math.sin(x * wave.length + t) * wave.amplitude * ampMod;
+                        const y = baseWaterHeight + Math.sin(x * wave.length + t) * wave.amplitude * ampMod;
                         ctx.lineTo(x, y);
                     }
                 }
                 else if (style === 'nebula') {
                     for (let x = 0; x <= width + 10; x += 10) {
-                        const y = baseWaterHeight + 
-                                  Math.sin(x * 0.005 + t) * 30 + 
-                                  Math.sin(x * 0.02 + t * 2) * 10;
+                        const y = baseWaterHeight + Math.sin(x * 0.005 + t) * 30 + Math.sin(x * 0.02 + t * 2) * 10;
                         ctx.lineTo(x, y);
                     }
                 }
                 else {
-                    // Default: Breathing Wave Style
+                    // Default Breathing
                     for (let x = 0; x <= width + segmentStep; x += segmentStep) {
-                        const y = baseWaterHeight + 
-                                  Math.sin(x * wave.length + t + wave.offset) * wave.amplitude;
+                        const y = baseWaterHeight + Math.sin(x * wave.length + t + wave.offset) * wave.amplitude;
                         ctx.lineTo(x, y);
                     }
                 }
@@ -816,7 +798,6 @@
                 ctx.lineTo(0, height);
                 ctx.closePath();
 
-                // Style & Brightness Application
                 const baseOpacity = 0.3 + (i * 0.15);
                 const adjustedOpacity = baseOpacity * state.waterBrightness;
                 
@@ -827,42 +808,25 @@
             requestAnimationFrame(drawWaves);
         }
 
-        // --- Timer Logic ---
         function formatTime(seconds) {
             const hasH = state.showHours;
             const hasM = state.showMinutes;
             const hasS = state.showSeconds;
 
-            if (!hasH && !hasM && !hasS) {
-                return "00:00";
-            }
+            if (!hasH && !hasM && !hasS) return "00:00";
 
             let h = null, m = null, s = null;
             let rem = seconds;
 
-            if (hasH) {
-                h = Math.floor(rem / 3600);
-                rem = rem % 3600;
-            }
-
-            if (hasM) {
-                m = Math.floor(rem / 60);
-                rem = rem % 60;
-            }
-
-            if (hasS) {
-                s = rem;
-            } else {
+            if (hasH) { h = Math.floor(rem / 3600); rem = rem % 3600; }
+            if (hasM) { m = Math.floor(rem / 60); rem = rem % 60; }
+            if (hasS) { s = rem; } 
+            else {
                 if (rem > 0) {
                     if (hasM) {
                         m += 1;
-                        if (m >= 60 && hasH) {
-                            m = 0;
-                            h += 1;
-                        }
-                    } else if (hasH) {
-                        h += 1;
-                    }
+                        if (m >= 60 && hasH) { m = 0; h += 1; }
+                    } else if (hasH) { h += 1; }
                 }
             }
 
@@ -875,12 +839,10 @@
         }
 
         function updateDisplay() {
-            // Main Clock Text Updates
             els.timerDisplay.textContent = formatTime(state.timeLeft);
             const modeText = state.mode === 'focus' ? 'Focus' : 'Break';
             document.title = `${formatTime(state.timeLeft)} | ${modeText}`;
             
-            // Visibility logic for Timer & Arrival time
             if (state.viewMode === 'water') {
                 els.timerDisplay.style.opacity = '0';
                 els.arrivalTime.style.opacity = '0';
@@ -888,7 +850,6 @@
             } else {
                 els.timerDisplay.style.opacity = '1';
                 
-                // Show arrival time only if toggled ON
                 if (state.showArrivalTime) {
                     const finishTime = new Date(Date.now() + state.timeLeft * 1000);
                     const timeString = finishTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -902,7 +863,6 @@
                 }
             }
             
-            // Session Status Text
             if(state.mode === 'focus') {
                 els.sessionStatus.textContent = "Focus Session";
                 els.sessionStatus.style.color = "rgba(255,255,255,0.6)";
@@ -911,7 +871,6 @@
                 els.sessionStatus.style.color = "#6ee7b7"; 
             }
 
-            // Colorize Text Elements
             if (state.customColor) {
                 els.timerDisplay.style.color = state.customColor;
                 els.arrivalTime.style.color = state.customColor;
@@ -923,14 +882,46 @@
             }
         }
 
+        function showNotification(message, iconClass) {
+            const toast = document.getElementById('global-notification');
+            const text = document.getElementById('notification-text');
+            const icon = document.getElementById('notification-icon');
+            
+            text.textContent = message;
+            icon.className = `fa-solid ${iconClass} text-white text-xl`;
+            
+            toast.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+            }, 5000);
+        }
+
         function toggleTimer() {
             if (state.isRunning) {
                 clearInterval(state.timerId);
                 state.isRunning = false;
                 els.startBtn.innerHTML = '<i class="fa-solid fa-play text-3xl ml-1"></i>';
             } else {
-                if (state.autoFullScreen && !document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(e => console.log(e));
+                // Auto Fullscreen Trigger with enhanced cross-browser (WebKit/MS) support
+                if (state.autoFullScreen && !document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                    const docElm = document.documentElement;
+                    if (docElm.requestFullscreen) {
+                        docElm.requestFullscreen().catch(e => console.log("Fullscreen blocked:", e));
+                    } else if (docElm.webkitRequestFullscreen) {
+                        // Support for Safari/iOS
+                        docElm.webkitRequestFullscreen();
+                    } else if (docElm.msRequestFullscreen) {
+                        // Support for IE/Edge older versions
+                        docElm.msRequestFullscreen();
+                    }
+                }
+
+                // Hide UI Elements on Start
+                if (state.isUiVisible) {
+                    toggleUI();
                 }
 
                 state.isRunning = true;
@@ -975,11 +966,14 @@
             
             if(state.mode === 'focus') {
                 switchSessionMode('break');
-                alert("Focus Session Complete! Take a break.");
+                showNotification("Focus Session Complete! Time for a break.", "fa-mug-hot");
             } else {
                 switchSessionMode('focus');
-                alert("Break Over! Ready to focus?");
+                showNotification("Break Over! Ready to focus?", "fa-brain");
             }
+
+            // Un-hide UI if it was hidden
+            if (!state.isUiVisible) toggleUI();
         }
 
         function resetTimer() {
@@ -999,35 +993,71 @@
         }
 
         function toggleFullScreenMode() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                });
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                const doc = document.documentElement;
+                if (doc.requestFullscreen) {
+                    doc.requestFullscreen().catch(err => console.log(`Error attempting to enable fullscreen: ${err.message}`));
+                } else if (doc.webkitRequestFullscreen) {
+                    doc.webkitRequestFullscreen();
+                } else if (doc.msRequestFullscreen) {
+                    doc.msRequestFullscreen();
+                }
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
                 }
             }
         }
 
-        // Handle Fullscreen icon changes 
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                els.fullscreenBtn.innerHTML = `
-                    <svg class="w-5 h-5 compress-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 9h-6V3M21 3l-6 6M3 15h6v6M3 21l6-6" />
-                    </svg>
-                `;
-            } else {
-                els.fullscreenBtn.innerHTML = `
-                    <svg class="w-5 h-5 expand-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 3h6v6M15 9l6-6M9 21H3v-6M9 15l-6 6" />
-                    </svg>
-                `;
-            }
+        // Handle Fullscreen icon changes accurately for all browser variants
+        const fullscreenChangeEvents = ['fullscreenchange', 'webkitfullscreenchange', 'msfullscreenchange'];
+        fullscreenChangeEvents.forEach(event => {
+            document.addEventListener(event, () => {
+                if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                    els.fullscreenBtn.innerHTML = `
+                        <svg class="w-5 h-5 compress-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 9h-6V3M21 3l-6 6M3 15h6v6M3 21l6-6" />
+                        </svg>
+                    `;
+                } else {
+                    els.fullscreenBtn.innerHTML = `
+                        <svg class="w-5 h-5 expand-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 3h6v6M15 9l6-6M9 21H3v-6M9 15l-6 6" />
+                        </svg>
+                    `;
+                }
+            });
         });
 
-        // --- Settings Logic ---
+        // --- Mouse Idle Tracking (Hide Cursor) ---
+        let mouseIdleTimer = null;
+        function resetMouseIdle() {
+            // Unhide cursor immediately
+            document.body.classList.remove('cursor-hidden');
+            
+            // Clear existing timeout
+            clearTimeout(mouseIdleTimer);
+            
+            // Set new timeout for 3 seconds
+            mouseIdleTimer = setTimeout(() => {
+                // Only hide cursor if UI is hidden or timer is running to not obstruct settings interaction
+                if (!state.isUiVisible || state.isRunning) {
+                    document.body.classList.add('cursor-hidden');
+                }
+            }, 3000);
+        }
+
+        // Attach listeners for mouse tracking
+        document.addEventListener('mousemove', resetMouseIdle);
+        document.addEventListener('mousedown', resetMouseIdle);
+        document.addEventListener('touchstart', resetMouseIdle);
+        // Trigger initially
+        resetMouseIdle();
+
         function updateSettingsUI() {
             els.durationValue.textContent = `${Math.floor(state.focusDuration / 60)}m`;
             els.breakValue.textContent = `${Math.floor(state.breakDuration / 60)}m`;
@@ -1102,7 +1132,8 @@
             els.settingsBtn.classList[method]('distraction-hidden');
             els.sessionStatus.classList[method]('distraction-hidden');
             els.fullscreenBtn.classList[method]('distraction-hidden');
-            if (state.isResetPending) hideResetToast(); // hide toast cleanly if toggling UI
+            if (state.isResetPending) hideResetToast(); 
+            resetMouseIdle(); // wake up mouse cursor when toggling UI
         }
 
         function loadFont(fontName) {
@@ -1122,7 +1153,6 @@
             els.resetToast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
             els.resetToast.classList.add('opacity-100', 'translate-y-0');
             
-            // Auto hide after 5 seconds to prevent it hanging around
             clearTimeout(state.resetToastTimer);
             state.resetToastTimer = setTimeout(hideResetToast, 5000);
         }
@@ -1134,14 +1164,15 @@
             clearTimeout(state.resetToastTimer);
         }
 
-
-        // --- Event Listeners ---
         window.addEventListener('resize', resize);
         els.startBtn.addEventListener('click', toggleTimer);
+        
+        // Mouse click on reset button instantly resets (NO confirmation toast required for mouse interactions)
         els.resetBtn.addEventListener('click', () => {
-            // If they click it, show the toast instead of instant reset for consistency
-            showResetToast();
+            resetTimer();
+            hideResetToast(); // Clean up if toast was visible
         });
+        
         els.fullscreenBtn.addEventListener('click', toggleFullScreenMode);
         
         els.settingsBtn.addEventListener('click', () => {
@@ -1284,7 +1315,6 @@
 
         // Global Keyboard Shortcut Controller
         document.addEventListener('keydown', (e) => {
-            // Do not capture keystrokes if the user is typing in a text field
             if (document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text') {
                 return;
             }
@@ -1299,7 +1329,7 @@
             }
             else if (e.key.toLowerCase() === 'r') {
                 e.preventDefault();
-                showResetToast();
+                showResetToast(); // Keyboard still requires confirmation
             }
             else if (e.code === 'Enter' && state.isResetPending) {
                 e.preventDefault();
@@ -1312,7 +1342,6 @@
             }
         });
 
-        // --- Init ---
         loadSettings(); 
         loadFont(state.font); 
         resize();
