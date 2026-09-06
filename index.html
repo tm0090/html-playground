@@ -462,6 +462,14 @@
                     </div>
 
                     <div class="flex items-center justify-between">
+                        <span class="text-xs text-white/80 font-semibold text-emerald-200">Hover to view Clock (Water Focus)</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" id="toggle-clock-hover-water" class="sr-only peer">
+                          <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500/50 border border-white/10"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between">
                         <span class="text-xs text-white/80 font-semibold">Pulsing Clock Animation</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" id="toggle-pulse" class="sr-only peer" checked>
@@ -481,7 +489,7 @@
             </div>
             
             <div class="mt-8 pt-6 border-t border-white/10 text-center text-white/30 text-xs">
-                Focus Flow Engine v2.6 (Auto-Hide UI)
+                Focus Flow Engine v2.7 (Auto-Hide UI)
             </div>
         </div>
     </div>
@@ -520,6 +528,7 @@
             autoFullScreen: true,
             showArrivalTime: true, 
             autoShowClockOnBreak: false,
+            showClockOnHoverInWater: false, // NEW STATE FOR WATER FOCUS HOVER CLOCK
 
             // Shortcut UI States
             isResetPending: false,
@@ -545,6 +554,7 @@
                 autoFullScreen: state.autoFullScreen,
                 showArrivalTime: state.showArrivalTime, 
                 autoShowClockOnBreak: state.autoShowClockOnBreak,
+                showClockOnHoverInWater: state.showClockOnHoverInWater,
             };
             localStorage.setItem('focusFlowSettings', JSON.stringify(settings));
         }
@@ -572,6 +582,7 @@
                     state.autoFullScreen = parsed.autoFullScreen !== undefined ? parsed.autoFullScreen : true;
                     state.showArrivalTime = parsed.showArrivalTime !== undefined ? parsed.showArrivalTime : true;
                     state.autoShowClockOnBreak = parsed.autoShowClockOnBreak !== undefined ? parsed.autoShowClockOnBreak : false;
+                    state.showClockOnHoverInWater = parsed.showClockOnHoverInWater !== undefined ? parsed.showClockOnHoverInWater : false;
                     
                     state.duration = state.mode === 'focus' ? state.focusDuration : state.breakDuration;
                     state.timeLeft = state.duration;
@@ -624,6 +635,7 @@
             toggleFullscreen: document.getElementById('toggle-fullscreen'),
             toggleArrivalTime: document.getElementById('toggle-arrival-time'), 
             toggleClockOnBreak: document.getElementById('toggle-clock-break'),
+            toggleClockHoverWater: document.getElementById('toggle-clock-hover-water'),
         };
 
         const ctx = els.canvas.getContext('2d');
@@ -856,8 +868,13 @@
             const modeText = state.mode === 'focus' ? 'Focus' : 'Break';
             document.title = `${formatTime(state.timeLeft)} | ${modeText}`;
             
-            const forceClockShow = state.mode === 'break' && state.autoShowClockOnBreak;
-            const hideClock = state.viewMode === 'water' && !forceClockShow;
+            // Logic dictates clock hiding
+            const forceClockShowBreak = state.mode === 'break' && state.autoShowClockOnBreak;
+            
+            // NEW HOVER LOGIC: If we are in focus session, viewMode is water, setting is enabled, AND UI is currently visible (mouse active)
+            const forceClockShowHover = state.mode === 'focus' && state.viewMode === 'water' && state.showClockOnHoverInWater && state.isUiVisible;
+
+            const hideClock = state.viewMode === 'water' && !forceClockShowBreak && !forceClockShowHover;
 
             if (hideClock) {
                 els.timerDisplay.style.opacity = '0';
@@ -1056,6 +1073,9 @@
             els.sessionStatus.classList[method]('distraction-hidden');
             els.fullscreenBtn.classList[method]('distraction-hidden');
             if (!visible && state.isResetPending) hideResetToast(); 
+            
+            // Re-evaluate display elements directly hooked into UI visibility (like the new Water Hover Clock feature)
+            updateDisplay();
         }
 
         // --- Mouse Idle Tracking (Auto Hide/Show UI & Cursor) ---
@@ -1133,6 +1153,7 @@
             els.toggleFullscreen.checked = state.autoFullScreen;
             els.toggleArrivalTime.checked = state.showArrivalTime; 
             els.toggleClockOnBreak.checked = state.autoShowClockOnBreak;
+            els.toggleClockHoverWater.checked = state.showClockOnHoverInWater; // Binding new toggle
 
             if (state.pulsingClock) {
                 els.timerDisplay.classList.add('breathing');
@@ -1254,6 +1275,13 @@
 
         els.toggleClockOnBreak.addEventListener('change', (e) => {
             state.autoShowClockOnBreak = e.target.checked;
+            updateDisplay();
+            saveSettings();
+        });
+
+        // Event listener for the new toggle
+        els.toggleClockHoverWater.addEventListener('change', (e) => {
+            state.showClockOnHoverInWater = e.target.checked;
             updateDisplay();
             saveSettings();
         });
