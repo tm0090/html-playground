@@ -249,7 +249,7 @@
     <div id="app-ui">
         
         <div id="top-controls" class="absolute top-8 w-full flex justify-center opacity-50 text-xs tracking-widest uppercase transition-opacity duration-500 z-20">
-            Press <span class="mx-2 font-bold bg-white/20 px-1 rounded">TAB</span> to toggle UI, <span class="mx-2 font-bold bg-white/20 px-1 rounded">SPACE</span> to Start/Pause, <span class="mx-2 font-bold bg-white/20 px-1 rounded">R</span> to Reset
+            Press <span class="mx-2 font-bold bg-white/20 px-1 rounded">TAB</span> to lock UI, <span class="mx-2 font-bold bg-white/20 px-1 rounded">SPACE</span> to Start/Pause, <span class="mx-2 font-bold bg-white/20 px-1 rounded">R</span> to Reset
         </div>
 
         <button id="fullscreen-btn" class="absolute top-6 right-8 btn-icon p-3 rounded-full text-white/50 hover:text-white glass-panel transition-opacity duration-500 z-20" title="Toggle Fullscreen">
@@ -454,6 +454,14 @@
                     </div>
 
                     <div class="flex items-center justify-between">
+                        <span class="text-xs text-white/80 font-semibold">Show Clock on Break (Water Mode)</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" id="toggle-clock-break" class="sr-only peer">
+                          <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/40 border border-white/10"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between">
                         <span class="text-xs text-white/80 font-semibold">Pulsing Clock Animation</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" id="toggle-pulse" class="sr-only peer" checked>
@@ -473,7 +481,7 @@
             </div>
             
             <div class="mt-8 pt-6 border-t border-white/10 text-center text-white/30 text-xs">
-                Focus Flow Engine v2.5 (Automated Focus & UI Hiding)
+                Focus Flow Engine v2.6 (Auto-Hide UI)
             </div>
         </div>
     </div>
@@ -495,6 +503,7 @@
             arrivalSize: 1.125,  
             font: 'Inter',
             isUiVisible: true,
+            uiLockedHidden: false, // New state for Tab locking
             themeHue: 350, 
             themeS: 90,    
             themeL: 60,   
@@ -510,6 +519,7 @@
             pulsingClock: true,
             autoFullScreen: true,
             showArrivalTime: true, 
+            autoShowClockOnBreak: false,
 
             // Shortcut UI States
             isResetPending: false,
@@ -534,6 +544,7 @@
                 pulsingClock: state.pulsingClock,
                 autoFullScreen: state.autoFullScreen,
                 showArrivalTime: state.showArrivalTime, 
+                autoShowClockOnBreak: state.autoShowClockOnBreak,
             };
             localStorage.setItem('focusFlowSettings', JSON.stringify(settings));
         }
@@ -560,6 +571,7 @@
                     state.pulsingClock = parsed.pulsingClock !== undefined ? parsed.pulsingClock : true;
                     state.autoFullScreen = parsed.autoFullScreen !== undefined ? parsed.autoFullScreen : true;
                     state.showArrivalTime = parsed.showArrivalTime !== undefined ? parsed.showArrivalTime : true;
+                    state.autoShowClockOnBreak = parsed.autoShowClockOnBreak !== undefined ? parsed.autoShowClockOnBreak : false;
                     
                     state.duration = state.mode === 'focus' ? state.focusDuration : state.breakDuration;
                     state.timeLeft = state.duration;
@@ -611,6 +623,7 @@
             togglePulse: document.getElementById('toggle-pulse'),
             toggleFullscreen: document.getElementById('toggle-fullscreen'),
             toggleArrivalTime: document.getElementById('toggle-arrival-time'), 
+            toggleClockOnBreak: document.getElementById('toggle-clock-break'),
         };
 
         const ctx = els.canvas.getContext('2d');
@@ -843,7 +856,10 @@
             const modeText = state.mode === 'focus' ? 'Focus' : 'Break';
             document.title = `${formatTime(state.timeLeft)} | ${modeText}`;
             
-            if (state.viewMode === 'water') {
+            const forceClockShow = state.mode === 'break' && state.autoShowClockOnBreak;
+            const hideClock = state.viewMode === 'water' && !forceClockShow;
+
+            if (hideClock) {
                 els.timerDisplay.style.opacity = '0';
                 els.arrivalTime.style.opacity = '0';
                 els.arrivalTime.style.transform = 'translateY(-10px)';
@@ -919,11 +935,6 @@
                     }
                 }
 
-                // Hide UI Elements on Start
-                if (state.isUiVisible) {
-                    toggleUI();
-                }
-
                 state.isRunning = true;
                 els.startBtn.innerHTML = '<i class="fa-solid fa-pause text-3xl"></i>';
                 
@@ -972,8 +983,10 @@
                 showNotification("Break Over! Ready to focus?", "fa-brain");
             }
 
-            // Un-hide UI if it was hidden
-            if (!state.isUiVisible) toggleUI();
+            // Un-hide UI to show it finished if it's not hard locked
+            if (!state.uiLockedHidden) {
+                resetMouseIdle();
+            }
         }
 
         function resetTimer() {
@@ -1013,7 +1026,6 @@
             }
         }
 
-        // Handle Fullscreen icon changes accurately for all browser variants
         const fullscreenChangeEvents = ['fullscreenchange', 'webkitfullscreenchange', 'msfullscreenchange'];
         fullscreenChangeEvents.forEach(event => {
             document.addEventListener(event, () => {
@@ -1033,30 +1045,45 @@
             });
         });
 
-        // --- Mouse Idle Tracking (Hide Cursor) ---
+        // --- Core UI Visibility Setter ---
+        function setUiVisibility(visible) {
+            if (state.isUiVisible === visible) return;
+            state.isUiVisible = visible;
+            const method = visible ? 'remove' : 'add';
+            els.bottomControls.classList[method]('distraction-hidden');
+            els.topControls.classList[method]('distraction-hidden');
+            els.settingsBtn.classList[method]('distraction-hidden');
+            els.sessionStatus.classList[method]('distraction-hidden');
+            els.fullscreenBtn.classList[method]('distraction-hidden');
+            if (!visible && state.isResetPending) hideResetToast(); 
+        }
+
+        // --- Mouse Idle Tracking (Auto Hide/Show UI & Cursor) ---
         let mouseIdleTimer = null;
         function resetMouseIdle() {
-            // Unhide cursor immediately
+            // Unhide cursor immediately on move/click
             document.body.classList.remove('cursor-hidden');
             
-            // Clear existing timeout
+            // If the UI is not hard-locked to be hidden, show it now
+            if (!state.uiLockedHidden) {
+                setUiVisibility(true);
+            }
+            
             clearTimeout(mouseIdleTimer);
             
-            // Set new timeout for 3 seconds
+            // Set new timeout for 3 seconds of inactivity
             mouseIdleTimer = setTimeout(() => {
-                // Only hide cursor if UI is hidden or timer is running to not obstruct settings interaction
-                if (!state.isUiVisible || state.isRunning) {
-                    document.body.classList.add('cursor-hidden');
+                document.body.classList.add('cursor-hidden');
+                // Automatically fade out the UI if it's not locked
+                if (!state.uiLockedHidden) {
+                    setUiVisibility(false);
                 }
             }, 3000);
         }
 
-        // Attach listeners for mouse tracking
         document.addEventListener('mousemove', resetMouseIdle);
         document.addEventListener('mousedown', resetMouseIdle);
         document.addEventListener('touchstart', resetMouseIdle);
-        // Trigger initially
-        resetMouseIdle();
 
         function updateSettingsUI() {
             els.durationValue.textContent = `${Math.floor(state.focusDuration / 60)}m`;
@@ -1105,6 +1132,7 @@
             els.togglePulse.checked = state.pulsingClock;
             els.toggleFullscreen.checked = state.autoFullScreen;
             els.toggleArrivalTime.checked = state.showArrivalTime; 
+            els.toggleClockOnBreak.checked = state.autoShowClockOnBreak;
 
             if (state.pulsingClock) {
                 els.timerDisplay.classList.add('breathing');
@@ -1122,18 +1150,6 @@
             });
 
             updateDisplay();
-        }
-
-        function toggleUI() {
-            state.isUiVisible = !state.isUiVisible;
-            const method = state.isUiVisible ? 'remove' : 'add';
-            els.bottomControls.classList[method]('distraction-hidden');
-            els.topControls.classList[method]('distraction-hidden');
-            els.settingsBtn.classList[method]('distraction-hidden');
-            els.sessionStatus.classList[method]('distraction-hidden');
-            els.fullscreenBtn.classList[method]('distraction-hidden');
-            if (state.isResetPending) hideResetToast(); 
-            resetMouseIdle(); // wake up mouse cursor when toggling UI
         }
 
         function loadFont(fontName) {
@@ -1167,10 +1183,9 @@
         window.addEventListener('resize', resize);
         els.startBtn.addEventListener('click', toggleTimer);
         
-        // Mouse click on reset button instantly resets (NO confirmation toast required for mouse interactions)
         els.resetBtn.addEventListener('click', () => {
             resetTimer();
-            hideResetToast(); // Clean up if toast was visible
+            hideResetToast(); 
         });
         
         els.fullscreenBtn.addEventListener('click', toggleFullScreenMode);
@@ -1233,6 +1248,12 @@
         
         els.toggleArrivalTime.addEventListener('change', (e) => {
             state.showArrivalTime = e.target.checked;
+            updateDisplay();
+            saveSettings();
+        });
+
+        els.toggleClockOnBreak.addEventListener('change', (e) => {
+            state.autoShowClockOnBreak = e.target.checked;
             updateDisplay();
             saveSettings();
         });
@@ -1321,7 +1342,15 @@
 
             if (e.code === 'Tab') {
                 e.preventDefault();
-                toggleUI();
+                // Toggle the "Hard Lock" state
+                state.uiLockedHidden = !state.uiLockedHidden;
+                if (state.uiLockedHidden) {
+                    setUiVisibility(false);
+                    showNotification("UI Locked. Mouse won't reveal it.", "fa-lock");
+                } else {
+                    showNotification("UI Unlocked. Auto-hides on idle.", "fa-unlock");
+                    resetMouseIdle(); // Show UI instantly and restart idle timer
+                }
             }
             else if (e.code === 'Space') {
                 e.preventDefault();
@@ -1329,7 +1358,7 @@
             }
             else if (e.key.toLowerCase() === 'r') {
                 e.preventDefault();
-                showResetToast(); // Keyboard still requires confirmation
+                showResetToast();
             }
             else if (e.code === 'Enter' && state.isResetPending) {
                 e.preventDefault();
@@ -1348,6 +1377,9 @@
         initWaves();
         requestAnimationFrame(drawWaves);
         updateSettingsUI();
+        
+        // Trigger initial animation layout
+        resetMouseIdle();
     </script>
 </body>
 </html>
