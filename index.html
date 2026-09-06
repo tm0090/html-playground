@@ -232,6 +232,108 @@
         .breathing {
             animation: breathe 6s ease-in-out infinite;
         }
+
+        /* --- SESSION COMPLETION ANIMATION STYLES --- */
+        @keyframes focusCompleteRipple {
+            0% {
+                transform: translate(-50%, -50%) scale(0.2);
+                opacity: 0.9;
+                border-width: 4px;
+            }
+            50% { opacity: 0.6; }
+            100% {
+                transform: translate(-50%, -50%) scale(2.8);
+                opacity: 0;
+                border-width: 1px;
+            }
+        }
+
+        @keyframes breakCompleteConverge {
+            0% {
+                transform: translate(-50%, -50%) scale(2.5) rotate(0deg);
+                opacity: 0;
+                filter: blur(8px);
+            }
+            50% {
+                opacity: 0.85;
+                filter: blur(0px);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0.7) rotate(180deg);
+                opacity: 0;
+                filter: blur(4px);
+            }
+        }
+
+        @keyframes floatUpFade {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.92);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: translateY(-5px) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-25px) scale(0.95);
+            }
+        }
+
+        @keyframes energyFlash {
+            0% {
+                box-shadow: 0 0 0 0 rgba(110, 231, 183, 0.6);
+                transform: scale(0.95);
+            }
+            50% {
+                box-shadow: 0 0 50px 20px rgba(110, 231, 183, 0.3);
+                transform: scale(1.03);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(110, 231, 183, 0);
+                transform: scale(1);
+            }
+        }
+
+        .completion-overlay-focus {
+            animation: floatUpFade 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .completion-overlay-break {
+            animation: energyFlash 0.8s ease-out, floatUpFade 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .ripple-ring-focus {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+            z-index: 15;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.2);
+            animation: focusCompleteRipple 2.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+
+        .converge-ring-break {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 360px;
+            height: 360px;
+            border-radius: 40%;
+            border: 2px dashed rgba(110, 231, 183, 0.8);
+            pointer-events: none;
+            z-index: 15;
+            box-shadow: 0 0 40px rgba(110, 231, 183, 0.5);
+            animation: breakCompleteConverge 1.8s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+        }
     </style>
 </head>
 <body>
@@ -259,6 +361,19 @@
         </button>
 
         <div id="session-status" title="Click Settings to Switch Mode">Focus Session</div>
+
+        <!-- Completion Celebration Banner Overlay -->
+        <div id="completion-banner" class="absolute z-30 pointer-events-none flex flex-col items-center justify-center opacity-0 transition-all duration-500">
+            <div id="completion-badge" class="glass-panel px-8 py-4 rounded-3xl flex items-center gap-4 shadow-[0_15px_50px_rgba(0,0,0,0.5)] border border-white/30 backdrop-blur-md">
+                <div id="completion-icon-wrapper" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+                    <i id="completion-icon" class="fa-solid fa-check"></i>
+                </div>
+                <div class="text-left">
+                    <div id="completion-title" class="text-xs uppercase tracking-widest font-extrabold text-white/60">Session Complete</div>
+                    <div id="completion-subtitle" class="text-lg font-bold tracking-wide text-white">Great job staying focused!</div>
+                </div>
+            </div>
+        </div>
 
         <!-- Timer Display Area -->
         <div class="flex-grow flex flex-col items-center justify-center w-full relative">
@@ -627,6 +742,13 @@
             bottomControls: document.getElementById('bottom-controls'),
             canvas: document.getElementById('waterCanvas'),
 
+            // COMPLETION ANIMATION ELEMENTS
+            completionBanner: document.getElementById('completion-banner'),
+            completionIconWrapper: document.getElementById('completion-icon-wrapper'),
+            completionIcon: document.getElementById('completion-icon'),
+            completionTitle: document.getElementById('completion-title'),
+            completionSubtitle: document.getElementById('completion-subtitle'),
+
             // TOGGLES
             toggleHours: document.getElementById('toggle-hours'),
             toggleMinutes: document.getElementById('toggle-minutes'),
@@ -643,6 +765,7 @@
         let waves = [];
         let waveTime = 0;
         let lastTime = 0;
+        let completionParticles = [];
 
         function resize() {
             width = els.canvas.width = window.innerWidth;
@@ -830,6 +953,30 @@
                 ctx.fill();
             });
 
+            if (completionParticles.length > 0) {
+                for (let i = completionParticles.length - 1; i >= 0; i--) {
+                    const p = completionParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= p.decay;
+
+                    if (p.alpha <= 0) {
+                        completionParticles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.alpha;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = p.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
             requestAnimationFrame(drawWaves);
         }
 
@@ -985,17 +1132,147 @@
             updateSettingsUI();
         }
 
+        function playSoundEffect(type) {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const audioCtx = new AudioCtx();
+
+                if (type === 'focusEnd') {
+                    // Soft warm chime chord (C5, E5, G5, C6) with gradual decay
+                    const freqs = [523.25, 659.25, 783.99, 1046.50];
+                    freqs.forEach((f, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.12);
+                        
+                        gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.12);
+                        gain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + i * 0.12 + 0.04);
+                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.12 + 1.8);
+                        
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        
+                        osc.start(audioCtx.currentTime + i * 0.12);
+                        osc.stop(audioCtx.currentTime + i * 0.12 + 1.9);
+                    });
+                } else if (type === 'breakEnd') {
+                    // Energetic upward arpeggio with bright timbre (E5, A5, B5, E6)
+                    const freqs = [659.25, 880.00, 987.77, 1318.51];
+                    freqs.forEach((f, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.08);
+                        
+                        gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.08);
+                        gain.gain.linearRampToValueAtTime(0.22, audioCtx.currentTime + i * 0.08 + 0.03);
+                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.08 + 1.2);
+                        
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        
+                        osc.start(audioCtx.currentTime + i * 0.08);
+                        osc.stop(audioCtx.currentTime + i * 0.08 + 1.3);
+                    });
+                }
+            } catch(e) {
+                console.log("Audio synthesis notice:", e);
+            }
+        }
+
+        function triggerCompletionAnimation(type) {
+            playSoundEffect(type);
+
+            const appUi = document.getElementById('app-ui');
+            const oldRipples = document.querySelectorAll('.ripple-ring-focus, .converge-ring-break');
+            oldRipples.forEach(el => el.remove());
+
+            if (type === 'focusEnd') {
+                // Expanding ethereal ripple rings
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const ring = document.createElement('div');
+                        ring.className = 'ripple-ring-focus';
+                        ring.style.animationDelay = `${i * 0.3}s`;
+                        ring.style.borderColor = `hsla(${state.themeHue}, ${state.themeS}%, 85%, 0.7)`;
+                        ring.style.boxShadow = `0 0 35px hsla(${state.themeHue}, ${state.themeS}%, 70%, 0.5)`;
+                        appUi.appendChild(ring);
+                        setTimeout(() => ring.remove(), 2500);
+                    }, i * 300);
+                }
+
+                // Rising warm particles
+                completionParticles = [];
+                for (let i = 0; i < 65; i++) {
+                    completionParticles.push({
+                        x: width / 2 + (Math.random() - 0.5) * 220,
+                        y: height / 2 + (Math.random() - 0.5) * 120,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: -Math.random() * 3.5 - 1.5,
+                        radius: Math.random() * 4 + 2,
+                        alpha: 1,
+                        decay: Math.random() * 0.01 + 0.006,
+                        color: `hsl(${state.themeHue}, 90%, ${70 + Math.random() * 20}%)`
+                    });
+                }
+
+                // Glass banner styling for Focus End
+                els.completionIconWrapper.className = "w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-amber-400/20 text-amber-300 border border-amber-400/40 shadow-[0_0_25px_rgba(251,191,36,0.35)]";
+                els.completionIcon.className = "fa-solid fa-trophy text-amber-300";
+                els.completionTitle.textContent = "Focus Session Complete";
+                els.completionSubtitle.textContent = "Time to rest & restore your energy!";
+                els.completionBanner.className = "absolute z-30 pointer-events-none flex flex-col items-center justify-center completion-overlay-focus";
+
+            } else if (type === 'breakEnd') {
+                // Inward converging energy ring
+                const ring = document.createElement('div');
+                ring.className = 'converge-ring-break';
+                appUi.appendChild(ring);
+                setTimeout(() => ring.remove(), 2000);
+
+                // Outward energizing particle burst
+                completionParticles = [];
+                for (let i = 0; i < 75; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 9 + 3;
+                    completionParticles.push({
+                        x: width / 2,
+                        y: height / 2,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        radius: Math.random() * 3 + 1.5,
+                        alpha: 1,
+                        decay: Math.random() * 0.02 + 0.01,
+                        color: `hsl(150, 90%, ${65 + Math.random() * 25}%)`
+                    });
+                }
+
+                // Glass banner styling for Break End
+                els.completionIconWrapper.className = "w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-emerald-400/20 text-emerald-300 border border-emerald-400/40 shadow-[0_0_25px_rgba(52,211,153,0.35)]";
+                els.completionIcon.className = "fa-solid fa-bolt text-emerald-300";
+                els.completionTitle.textContent = "Break Finished";
+                els.completionSubtitle.textContent = "Recharged & ready for deep focus!";
+                els.completionBanner.className = "absolute z-30 pointer-events-none flex flex-col items-center justify-center completion-overlay-break";
+            }
+
+            setTimeout(() => {
+                els.completionBanner.className = "absolute z-30 pointer-events-none flex flex-col items-center justify-center opacity-0 transition-all duration-500";
+            }, 3600);
+        }
+
         function finishTimer() {
             clearInterval(state.timerId);
             state.isRunning = false;
             els.startBtn.innerHTML = '<i class="fa-solid fa-play text-3xl ml-1"></i>';
-            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-            audio.play();
             
             if(state.mode === 'focus') {
+                triggerCompletionAnimation('focusEnd');
                 switchSessionMode('break');
                 showNotification("Focus Session Complete! Time for a break.", "fa-mug-hot");
             } else {
+                triggerCompletionAnimation('breakEnd');
                 switchSessionMode('focus');
                 showNotification("Break Over! Ready to focus?", "fa-brain");
             }
