@@ -1142,6 +1142,10 @@
 
   tpStart.addEventListener('click', startTimer);
   tpCancel.addEventListener('click', closePicker);
+  // Click outside the card to close (same as Cancel; only once a timer is running)
+  let downOnBackdrop = false;
+  pickerEl.addEventListener('pointerdown', e => { downOnBackdrop = e.target === pickerEl; });
+  pickerEl.addEventListener('click', e => { if (downOnBackdrop && e.target === pickerEl && running) closePicker(); });
   pickerEl.addEventListener('keydown', e => {
     if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); startTimer(); }
     if (e.key === 'Escape' && running) closePicker();
